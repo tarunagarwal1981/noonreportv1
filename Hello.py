@@ -45,7 +45,7 @@ def create_assistant():
         raise
 
 # Check if assistant already exists and use it, or create a new one
-assistant_id = "replace_with_existing_assistant_id_or_leave_blank"
+assistant_id = st.secrets["openai"]["assistant_id"]
 if not assistant_id:
     assistant_id = create_assistant()
 
