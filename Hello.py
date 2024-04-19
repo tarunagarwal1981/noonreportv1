@@ -55,9 +55,9 @@ if st.button('Analyze') and df is not None:
             model="claude-v1",
             max_tokens=500,
             messages=[
-                {"role": "system", "content": "You are a data analysis assistant."},
                 {"role": "user", "content": prompt}
             ],
+            system="You are a data analysis assistant.",
             temperature=0.7
         )
 
