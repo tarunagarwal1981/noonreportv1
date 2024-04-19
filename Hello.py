@@ -39,13 +39,14 @@ def create_assistant():
             model="gpt-4-1106-preview",
             tools=[{"type": "code_interpreter"}]
         )
+        st.write(f"Assistant created with ID: {assistant.id}")
         return assistant.id
     except Exception as e:
         st.error(f"Failed to create assistant: {str(e)}")
         raise
 
 # Check if assistant already exists and use it, or create a new one
-assistant_id = st.secrets["openai"]["assistant_id"]
+assistant_id = st.secrets["openai"].get("assistant_id", None)
 if not assistant_id:
     assistant_id = create_assistant()
 
@@ -90,7 +91,9 @@ if st.button('Analyze') and df is not None:
         messages = client.beta.threads.messages.list(thread_id=thread.id)
         for message in messages.data:
             if message.role == "assistant":
-                st.write(message.content[0].text['value'])
+                for content_piece in message.content:
+                    if 'text' in content_piece:
+                        st.write(content_piece['text']['value'])
 
     except Exception as e:
         st.error(f"Failed to analyze data: {str(e)}")
