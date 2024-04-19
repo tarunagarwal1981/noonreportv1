@@ -52,7 +52,7 @@ if st.button('Analyze') and df is not None:
 
         # Send the prompt to Claude and get the response
         response = client.messages.create(
-            model="claude-v1",
+            model="claude-1.3",
             max_tokens=500,
             messages=[
                 {"role": "user", "content": prompt}
