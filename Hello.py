@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import os
 import time
-from openai import OpenAI  # Ensure you're importing OpenAI correctly
+from openai import OpenAI
 
 # Setup the OpenAI API key
 def get_api_key():
@@ -15,7 +15,6 @@ def get_api_key():
         raise ValueError("API key not found. Set OPENAI_API_KEY as an environment variable.")
     return api_key
 
-# Initialize the OpenAI client with the API key
 client = OpenAI(api_key=get_api_key())
 
 # Function to list and load Excel files from a specified folder
@@ -30,12 +29,12 @@ def load_excel(file_name, folder_path='docs'):
     df = pd.read_excel(file_path)
     return df
 
-# Assistant ID (replace this with your actual assistant ID after you create it)
-assistant_id = "your-assistant-id"
+# Assistant ID
+assistant_id = "your-assistant-id"  # Replace with your actual assistant ID
 
-# Streamlit app interface
+# Streamlit user interface setup
 st.title('Data Analysis with OpenAI Assistant')
-folder_path = 'docs'  # Set the path to your folder containing Excel files
+folder_path = 'docs'
 try:
     excel_files = list_excel_files(folder_path)
     selected_file = st.selectbox("Choose an Excel file to analyze:", excel_files)
@@ -59,7 +58,6 @@ if st.button('Analyze') and df is not None:
         assistant_id=assistant_id,
     )
 
-    # Function to wait on a run
     def wait_on_run(run, thread):
         while run.status in ["queued", "in_progress"]:
             run = client.beta.threads.runs.retrieve(
@@ -75,7 +73,4 @@ if st.button('Analyze') and df is not None:
         if message.role == "assistant":
             st.write(message.content[0].text['value'])
 
-# Run the Streamlit app
-if __name__ == "__main__":
-    st.mainloop()
-
+# Note: No need for st.mainloop() or equivalent
