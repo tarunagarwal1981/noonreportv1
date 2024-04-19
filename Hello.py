@@ -1,8 +1,7 @@
 import streamlit as st
 import pandas as pd
 import os
-import time
-from anthropic import Claude
+import anthropic
 
 def get_api_key():
     """Retrieve the API key from Streamlit secrets or environment variables."""
@@ -14,8 +13,8 @@ def get_api_key():
         raise ValueError("API key not found. Set CLAUDE_API_KEY as an environment variable.")
     return api_key
 
-# Initialize the Claude client with the API key
-client = Claude(api_key=get_api_key())
+# Initialize the Anthropic client with the API key
+client = anthropic.Anthropic(api_key=get_api_key())
 
 def list_excel_files(folder_path='docs'):
     """List .xlsx files in the specified folder."""
@@ -52,15 +51,18 @@ if st.button('Analyze') and df is not None:
         prompt = f"Here is the data in CSV format:\n\n{csv_data}\n\nUser's query: {user_query}\n\nPlease analyze the data and provide a response to the user's query."
 
         # Send the prompt to Claude and get the response
-        response = client.completion(
-            prompt=prompt,
+        response = client.messages.create(
             model="claude-v1",
-            max_tokens_to_sample=500,
-            temperature=0.7,
+            max_tokens=500,
+            messages=[
+                {"role": "system", "content": "You are a data analysis assistant."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7
         )
 
         # Display Claude's response
-        st.write(response.completion)
+        st.write(response.content[0].text)
 
     except Exception as e:
         st.error(f"Failed to analyze data: {str(e)}")
