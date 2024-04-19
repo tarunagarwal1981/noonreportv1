@@ -1,51 +1,81 @@
-# Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022)
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 import streamlit as st
-from streamlit.logger import get_logger
+import pandas as pd
+import os
+import time
+from openai import OpenAI
 
-LOGGER = get_logger(__name__)
+# Setup the OpenAI API key
+def get_api_key():
+    """Retrieve the API key from Streamlit secrets or environment variables."""
+    if 'openai' in st.secrets:
+        return st.secrets['openai']['api_key']
+    api_key = os.getenv('OPENAI_API_KEY')
+    if api_key is None:
+        raise ValueError("API key not found. Set OPENAI_API_KEY as an environment variable.")
+    return api_key
 
+openai.api_key = get_api_key()
 
-def run():
-    st.set_page_config(
-        page_title="Hello",
-        page_icon="👋",
+# Function to list and load Excel files from a specified folder
+def list_excel_files(folder_path='docs'):
+    file_list = [file for file in os.listdir(folder_path) if file.endswith('.xlsx')]
+    if not file_list:
+        raise FileNotFoundError(f"No Excel files found in folder '{folder_path}'.")
+    return file_list
+
+def load_excel(file_name, folder_path='docs'):
+    file_path = os.path.join(folder_path, file_name)
+    df = pd.read_excel(file_path)
+    return df
+
+# Initialize OpenAI client
+client = OpenAI()
+
+# Assistant ID (replace this with your actual assistant ID after you create it)
+assistant_id = "your-assistant-id"
+
+# Streamlit app interface
+st.title('Data Analysis with OpenAI Assistant')
+folder_path = 'docs'  # Set the path to your folder containing Excel files
+try:
+    excel_files = list_excel_files(folder_path)
+    selected_file = st.selectbox("Choose an Excel file to analyze:", excel_files)
+    df = load_excel(selected_file, folder_path)
+except FileNotFoundError as e:
+    st.error(str(e))
+    df = None
+
+user_query = st.text_input("Enter your query about the data:")
+
+if st.button('Analyze') and df is not None:
+    thread = client.beta.threads.create()
+    message = client.beta.threads.messages.create(
+        thread_id=thread.id,
+        role="user",
+        content=user_query
     )
 
-    st.write("# Welcome to Streamlit! 👋")
-
-    st.sidebar.success("Select a demo above.")
-
-    st.markdown(
-        """
-        Streamlit is an open-source app framework built specifically for
-        Machine Learning and Data Science projects.
-        **👈 Select a demo from the sidebar** to see some examples
-        of what Streamlit can do!
-        ### Want to learn more?
-        - Check out [streamlit.io](https://streamlit.io)
-        - Jump into our [documentation](https://docs.streamlit.io)
-        - Ask a question in our [community
-          forums](https://discuss.streamlit.io)
-        ### See more complex demos
-        - Use a neural net to [analyze the Udacity Self-driving Car Image
-          Dataset](https://github.com/streamlit/demo-self-driving)
-        - Explore a [New York City rideshare dataset](https://github.com/streamlit/demo-uber-nyc-pickups)
-    """
+    run = client.beta.threads.runs.create(
+        thread_id=thread.id,
+        assistant_id=assistant_id,
     )
 
+    # Function to wait on a run
+    def wait_on_run(run, thread):
+        while run.status in ["queued", "in_progress"]:
+            run = client.beta.threads.runs.retrieve(
+                thread_id=thread.id,
+                run_id=run.id,
+            )
+            time.sleep(0.5)
+        return run
 
+    run = wait_on_run(run, thread)
+    messages = client.beta.threads.messages.list(thread_id=thread.id)
+    for message in messages.data:
+        if message.role == "assistant":
+            st.write(message.content[0].text['value'])
+
+# Run the Streamlit app
 if __name__ == "__main__":
-    run()
+    st.mainloop()
