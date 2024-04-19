@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import os
 import time
-from openai import OpenAI
+from openai import OpenAI  # Ensure you're importing OpenAI correctly
 
 # Setup the OpenAI API key
 def get_api_key():
@@ -11,10 +11,12 @@ def get_api_key():
         return st.secrets['openai']['api_key']
     api_key = os.getenv('OPENAI_API_KEY')
     if api_key is None:
+        st.error("API key not found. Set OPENAI_API_KEY as an environment variable.")
         raise ValueError("API key not found. Set OPENAI_API_KEY as an environment variable.")
     return api_key
 
-openai.api_key = get_api_key()
+# Initialize the OpenAI client with the API key
+client = OpenAI(api_key=get_api_key())
 
 # Function to list and load Excel files from a specified folder
 def list_excel_files(folder_path='docs'):
@@ -27,9 +29,6 @@ def load_excel(file_name, folder_path='docs'):
     file_path = os.path.join(folder_path, file_name)
     df = pd.read_excel(file_path)
     return df
-
-# Initialize OpenAI client
-client = OpenAI()
 
 # Assistant ID (replace this with your actual assistant ID after you create it)
 assistant_id = "your-assistant-id"
@@ -79,3 +78,4 @@ if st.button('Analyze') and df is not None:
 # Run the Streamlit app
 if __name__ == "__main__":
     st.mainloop()
+
