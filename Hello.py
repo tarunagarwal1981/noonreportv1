@@ -29,6 +29,14 @@ def load_excel(file_name, folder_path='docs'):
     df = pd.read_excel(file_path)
     return df
 
+def chunk_csv_data(csv_data, chunk_size=10000):
+    """Split the CSV data into smaller chunks."""
+    chunks = []
+    for i in range(0, len(csv_data), chunk_size):
+        chunk = csv_data[i:i+chunk_size]
+        chunks.append(chunk)
+    return chunks
+
 st.title('Data Analysis with Claude')
 
 folder_path = 'docs'
@@ -47,22 +55,31 @@ if st.button('Analyze') and df is not None:
         # Convert DataFrame to CSV string
         csv_data = df.to_csv(index=False)
 
-        # Construct the prompt for Claude
-        prompt = f"Here is the data in CSV format:\n\n{csv_data}\n\nUser's query: {user_query}\n\nPlease analyze the data and provide a response to the user's query."
+        # Split the CSV data into chunks
+        csv_chunks = chunk_csv_data(csv_data)
 
-        # Send the prompt to Claude and get the response
-        response = client.messages.create(
-            model="claude-1.3",
-            max_tokens=500,
-            messages=[
-                {"role": "user", "content": prompt}
-            ],
-            system="You are a data analysis assistant.",
-            temperature=0.7
-        )
+        # Process each chunk and get the response from Claude
+        response_chunks = []
+        for chunk in csv_chunks:
+            # Construct the prompt for Claude
+            prompt = f"Here is a chunk of the data in CSV format:\n\n{chunk}\n\nUser's query: {user_query}\n\nPlease analyze the data and provide a response to the user's query."
 
-        # Display Claude's response
-        st.write(response.content[0].text)
+            # Send the prompt to Claude and get the response
+            response = client.messages.create(
+                model="claude-1.3",
+                max_tokens=500,
+                messages=[
+                    {"role": "user", "content": prompt}
+                ],
+                system="You are a data analysis assistant.",
+                temperature=0.7
+            )
+
+            response_chunks.append(response.content[0].text)
+
+        # Combine the response chunks and display the result
+        combined_response = "\n".join(response_chunks)
+        st.write(combined_response)
 
     except Exception as e:
         st.error(f"Failed to analyze data: {str(e)}")
