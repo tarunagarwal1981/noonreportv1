@@ -13,7 +13,7 @@ def get_api_key():
     return os.getenv('OPENAI_API_KEY', 'Your-OpenAI-API-Key')  # Suggested use of os.getenv for safety
 
 # Set up the directory path
-DIR_PATH = Path(__file__).parent.resolve() / "pages"
+DIR_PATH = Path(__file__).parent.resolve() / "docs"
 
 # Load the Excel files from the directory
 xlsx_files = []
