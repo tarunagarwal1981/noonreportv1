@@ -32,7 +32,7 @@ if st.button("Analyze"):
     if user_query:
         try:
             # Split the defect sheet data into chunks
-            chunk_size = 10000  # Adjust the chunk size based on the token limit
+            chunk_size = 30000  # Adjust the chunk size based on the token limit
             data_chunks = [df.iloc[i:i+chunk_size].to_string(index=False) for i in range(0, len(df), chunk_size)]
 
             # Process each chunk and get the response from the OpenAI API
