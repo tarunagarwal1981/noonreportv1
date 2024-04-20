@@ -11,14 +11,10 @@ def get_api_key():
         return st.secrets['openai']['api_key']
     return os.getenv('OPENAI_API_KEY', 'Your-OpenAI-API-Key')
 
-def convert_df_to_string(df):
-    """Convert DataFrame to a readable string format."""
-    if not df.empty:
-        return df.to_string(index=False)
-    return "No data found."
-
 def dataframe_to_narrative(df):
     """Convert DataFrame to a narrative string format."""
+    if df.empty:
+        return "No data found."
     narratives = []
     for _, row in df.iterrows():
         narrative = ', '.join([f"{col} is {row[col]}" for col in df.columns])
@@ -52,23 +48,21 @@ if st.button('Analyze'):
         # Use PandasAI to answer the user query
         extracted_info = smart_df.chat(user_query)
 
-        # Check if extracted_info is DataFrame and convert accordingly
-        if isinstance(extracted_info, pd.DataFrame):
-            # Convert DataFrame to a suitable string format
-            info_string = dataframe_to_narrative(extracted_info)
-        elif isinstance(extracted_info, (int, float)):
-            info_string = str(extracted_info)
-        else:
-            info_string = str(extracted_info)  # Assuming it is already in a string or similar format
+        # Convert DataFrame to a suitable string format if necessary
+        info_string = dataframe_to_narrative(extracted_info) if isinstance(extracted_info, pd.DataFrame) else str(extracted_info)
 
-        if info_string:
-            # Pass the formatted string to LLM for further processing
-            response = openai.Completion.create(
-                engine="davinci",
-                prompt=f"Summarize or enhance the following information: {info_string}",
+        # Check if information was extracted and is not empty
+        if info_string and info_string != "No data found.":
+            # Pass the formatted string to LLM for further processing using ChatCompletion
+            chat_response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are a helpful assistant, trained to summarize and enhance information."},
+                    {"role": "user", "content": info_string}
+                ],
                 max_tokens=150
             )
-            processed_answer = response.choices[0].text.strip()
+            processed_answer = chat_response.choices[0].message['content'].strip()
             st.write(processed_answer)
         else:
             st.write("No data found based on your query.")
