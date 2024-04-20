@@ -54,7 +54,7 @@ if st.button("Analyze"):
                     prompt += "If the question cannot be answered based on the given data, provide a relevant response indicating the lack of sufficient information."
 
                     response = openai.ChatCompletion.create(
-                        model="gpt-3.5-turbo",
+                        model="gpt-4-turbo",
                         messages=[
                             {"role": "system", "content": "You are a helpful assistant analyzing defect sheet data."},
                             {"role": "user", "content": prompt}
