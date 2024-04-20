@@ -36,37 +36,31 @@ user_query = st.text_input("Ask a question about the defect sheet data:")
 
 if st.button('Analyze'):
     if user_query:
-        # Use PandasAI to answer the user query
-        extracted_info = smart_df.chat(user_query)
+        # Use PandasAI to extract relevant information from the Excel data
+        extraction_query = f"Based on the user's query: '{user_query}', extract the relevant information from the data to answer the query."
+        extracted_info = smart_df.chat(extraction_query)
         
-        # Check if extracted_info is None before proceeding
-        if extracted_info is None:
+        # Check if extracted_info is valid
+        if extracted_info is None or (isinstance(extracted_info, pd.DataFrame) and extracted_info.empty):
             st.write("No relevant data extracted from your query.")
         else:
-            # Check the type of extracted_info and handle accordingly
+            # Format the extracted information
             if isinstance(extracted_info, pd.DataFrame):
-                if not extracted_info.empty:
-                    info_string = extracted_info.to_string(index=False)
-                else:
-                    st.write("No relevant data extracted from your query.")
-                    info_string = None
-            elif isinstance(extracted_info, str) and extracted_info.strip():
-                info_string = extracted_info
+                info_string = extracted_info.to_string(index=False)
             else:
-                st.write("No relevant data extracted from your query.")
-                info_string = None
-
-            # If info_string is valid, proceed to process it
-            if info_string:
-                # Pass the formatted string to LLM for further processing using ChatCompletion
-                response = openai.ChatCompletion.create(
-                    model="gpt-3.5-turbo",
-                    messages=[
-                        {"role": "system", "content": "You are a helpful assistant, trained to summarize and enhance information."},
-                        {"role": "user", "content": info_string}
-                    ],
-                    max_tokens=150
-                )
-                
-                processed_answer = response['choices'][0]['message']['content'].strip()
-                st.write(processed_answer)
+                info_string = str(extracted_info)
+            
+            # Pass the formatted information and user query to OpenAI for processing
+            prompt = f"User's query: {user_query}\n\nExtracted information:\n{info_string}\n\nPlease provide a summarized and enhanced answer to the user's query based on the extracted information."
+            
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are a helpful assistant, trained to summarize and enhance information."},
+                    {"role": "user", "content": prompt}
+                ],
+                max_tokens=150
+            )
+            
+            processed_answer = response['choices'][0]['message']['content'].strip()
+            st.write(processed_answer)
