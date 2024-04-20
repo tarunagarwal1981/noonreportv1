@@ -50,14 +50,14 @@ if st.button('Analyze'):
 
         # If info_string is valid, proceed to process it
         if info_string:
-            # Pass the formatted string to LLM for further processing
-            response = openai.Completion.create(
-                engine="gpt-3.5-turbo",
+            # Pass the formatted string to LLM for further processing using ChatCompletion
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
                 messages=[
                     {"role": "system", "content": "You are a helpful assistant, trained to summarize and enhance information."},
                     {"role": "user", "content": info_string}
                 ],
                 max_tokens=150
             )
-            processed_answer = response.choices[0].text.strip()
+            processed_answer = response['choices'][0]['message']['content'].strip()
             st.write(processed_answer)
