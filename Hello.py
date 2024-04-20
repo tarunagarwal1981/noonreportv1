@@ -31,14 +31,16 @@ user_query = st.text_input("Ask a question about the defect sheet data:")
 if st.button("Analyze"):
     if user_query:
         try:
-            # Split the defect sheet data into chunks
-            chunk_size = 30000  # Adjust the chunk size based on the token limit
-            data_chunks = [df.iloc[i:i+chunk_size].to_string(index=False) for i in range(0, len(df), chunk_size)]
+            # Filter the data based on the user's query
+            query_keywords = user_query.lower().split()
+            relevant_data = df[df.apply(lambda row: any(keyword in str(row).lower() for keyword in query_keywords), axis=1)]
 
-            # Process each chunk and get the response from the OpenAI API
-            answer_chunks = []
-            for chunk in data_chunks:
-                prompt = f"The following is a defect sheet data for a fleet of vessels:\n\n{chunk}\n\n"
+            # Check if relevant data is found
+            if len(relevant_data) == 0:
+                st.write("No relevant data found for the given query.")
+            else:
+                # Prepare the prompt with the relevant data
+                prompt = f"The following is the relevant defect sheet data based on the user's query:\n\n{relevant_data.to_string(index=False)}\n\n"
                 prompt += f"Based on the provided data, answer the following question: {user_query}\n"
                 prompt += "Please provide a detailed and accurate answer, considering the following points:\n"
                 prompt += "- Identify the most critical defects for each vessel\n"
@@ -47,6 +49,7 @@ if st.button("Analyze"):
                 prompt += "- Offer insights and recommendations based on the defect information\n"
                 prompt += "If the question cannot be answered based on the given data, provide a relevant response indicating the lack of sufficient information."
 
+                # Send the prompt to the OpenAI ChatCompletion API
                 response = openai.ChatCompletion.create(
                     model="gpt-3.5-turbo",
                     messages=[
@@ -59,12 +62,9 @@ if st.button("Analyze"):
                     temperature=0.7,
                 )
 
-                answer_chunk = response.choices[0].message['content'].strip()
-                answer_chunks.append(answer_chunk)
-
-            # Combine the answer chunks and display the result
-            answer = "\n".join(answer_chunks)
-            st.write(answer)
+                # Extract and display the generated answer
+                answer = response.choices[0].message['content'].strip()
+                st.write(answer)
 
         except Exception as e:
             st.error(f"An error occurred: {str(e)}")
