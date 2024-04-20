@@ -26,8 +26,6 @@ st.title("Defect Sheet Chat Assistant")
 
 user_query = st.text_input("Ask a question about the defect sheet data:")
 
-# ... (previous code remains the same)
-
 if st.button("Analyze"):
     if user_query:
         try:
@@ -39,31 +37,39 @@ if st.button("Analyze"):
             if len(relevant_data) == 0:
                 st.write("No relevant data found for the given query.")
             else:
-                # Prepare the prompt with the relevant data
-                prompt = f"The following is the relevant defect sheet data based on the user's query:\n\n{relevant_data.to_string(index=False)}\n\n"
-                prompt += f"Based on the provided data, answer the following question: {user_query}\n"
-                prompt += "Please provide a detailed and accurate answer, considering the following points:\n"
-                prompt += "- Identify the most critical defects for each vessel\n"
-                prompt += "- Provide the count of defects for specific vessels or components if requested\n"
-                prompt += "- Analyze trends or patterns in the defect data\n"
-                prompt += "- Offer insights and recommendations based on the defect information\n"
-                prompt += "If the question cannot be answered based on the given data, provide a relevant response indicating the lack of sufficient information."
+                # Split the relevant data into chunks
+                chunk_size = 30000  # Adjust the chunk size based on the token limit
+                data_chunks = [relevant_data.iloc[i:i+chunk_size].to_string(index=False) for i in range(0, len(relevant_data), chunk_size)]
 
-                # Send the prompt to the OpenAI ChatCompletion API
-                response = openai.ChatCompletion.create(
-                    model="gpt-3.5-turbo",
-                    messages=[
-                        {"role": "system", "content": "You are a helpful assistant analyzing defect sheet data."},
-                        {"role": "user", "content": prompt}
-                    ],
-                    max_tokens=500,
-                    n=1,
-                    stop=None,
-                    temperature=0.7,
-                )
+                # Process each chunk and get the response from the OpenAI API
+                answer_chunks = []
+                for chunk in data_chunks:
+                    prompt = f"The following is the relevant defect sheet data based on the user's query:\n\n{chunk}\n\n"
+                    prompt += f"Based on the provided data, answer the following question: {user_query}\n"
+                    prompt += "Please provide a detailed and accurate answer, considering the following points:\n"
+                    prompt += "- Identify the most critical defects for each vessel\n"
+                    prompt += "- Provide the count of defects for specific vessels or components if requested\n"
+                    prompt += "- Analyze trends or patterns in the defect data\n"
+                    prompt += "- Offer insights and recommendations based on the defect information\n"
+                    prompt += "If the question cannot be answered based on the given data, provide a relevant response indicating the lack of sufficient information."
 
-                # Extract and display the generated answer
-                answer = response.choices[0].message['content'].strip()
+                    response = openai.ChatCompletion.create(
+                        model="gpt-3.5-turbo",
+                        messages=[
+                            {"role": "system", "content": "You are a helpful assistant analyzing defect sheet data."},
+                            {"role": "user", "content": prompt}
+                        ],
+                        max_tokens=500,
+                        n=1,
+                        stop=None,
+                        temperature=0.7,
+                    )
+
+                    answer_chunk = response.choices[0].message['content'].strip()
+                    answer_chunks.append(answer_chunk)
+
+                # Combine the answer chunks and display the result
+                answer = "\n".join(answer_chunks)
                 st.write(answer)
 
         except Exception as e:
