@@ -7,3 +7,4 @@ openai
 requests
 openpyxl
 anthropic
+pandasai[excel]
