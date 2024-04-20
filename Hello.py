@@ -54,19 +54,29 @@ if st.button("Analyze"):
                 extracted_data = None
             
             if extracted_data:
-                # Pass the extracted data to the LLM for further processing
-                prompt = f"User's query: {user_query}\n\nExtracted data:\n{extracted_data}\n\nPlease provide a summarized and enhanced answer to the user's query based on the extracted data."
+                # Split the extracted data into chunks
+                max_tokens = 3000  # Adjust this value based on your token limit
+                data_chunks = [extracted_data[i:i+max_tokens] for i in range(0, len(extracted_data), max_tokens)]
                 
-                response = openai.ChatCompletion.create(
-                    model="gpt-3.5-turbo",
-                    messages=[
-                        {"role": "system", "content": "You are a helpful assistant, trained to summarize and enhance information."},
-                        {"role": "user", "content": prompt}
-                    ],
-                    max_tokens=150
-                )
+                processed_answers = []
+                for chunk in data_chunks:
+                    # Pass each chunk to the LLM for processing
+                    prompt = f"User's query: {user_query}\n\nExtracted data chunk:\n{chunk}\n\nPlease provide a summarized and enhanced answer to the user's query based on the extracted data chunk."
+                    
+                    response = openai.ChatCompletion.create(
+                        model="gpt-3.5-turbo",
+                        messages=[
+                            {"role": "system", "content": "You are a helpful assistant, trained to summarize and enhance information."},
+                            {"role": "user", "content": prompt}
+                        ],
+                        max_tokens=150
+                    )
+                    
+                    processed_answer = response['choices'][0]['message']['content'].strip()
+                    processed_answers.append(processed_answer)
                 
-                processed_answer = response['choices'][0]['message']['content'].strip()
-                st.write(processed_answer)
+                # Combine the processed answers and display them
+                final_answer = "\n".join(processed_answers)
+                st.write(final_answer)
         except Exception as e:
             st.write(f"An error occurred: {str(e)}")
