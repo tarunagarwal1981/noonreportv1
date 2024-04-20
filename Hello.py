@@ -13,7 +13,7 @@ def get_api_key():
     return st.secrets.get('OPENAI_API_KEY', 'Your-OpenAI-API-Key') # Replace 'Your-OpenAI-API-Key' with your actual key
 
 # Set up the directory path
-DIR_PATH = Path(__file__).parent.resolve() / "UOG"
+DIR_PATH = Path(__file__).parent.resolve() / "docs"
 
 # Load the Excel files from the directory
 xlsx_files = []
