@@ -55,13 +55,13 @@ if st.button("Analyze"):
             
             if extracted_data:
                 # Split the extracted data into chunks
-                max_tokens = 30000  # Adjust this value based on your token limit
+                max_tokens = 30000 # Adjust this value based on your token limit
                 data_chunks = [extracted_data[i:i+max_tokens] for i in range(0, len(extracted_data), max_tokens)]
                 
                 processed_answers = []
                 for chunk in data_chunks:
                     # Pass each chunk to the LLM for processing
-                    prompt = f"User's query: {user_query}\n\nExtracted data chunk:\n{chunk}\n\nPlease provide a summarized and enhanced answer to the user's query based on the extracted data chunk."
+                    prompt = f"User's query: {user_query}\n\nExtracted data chunk:\n{chunk}\n\nPlease provide only the relevant and reformatted answer to the user's query based on the extracted data chunk. Discard any extra or irrelevant parts and use your intelligence to restructure the answer."
                     
                     response = openai.ChatCompletion.create(
                         model="gpt-3.5-turbo",
