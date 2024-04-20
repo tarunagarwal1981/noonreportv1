@@ -3,7 +3,7 @@ numpy
 pandas
 pydeck
 streamlit
-openai
+openai==0.28
 requests
 openpyxl
 anthropic
