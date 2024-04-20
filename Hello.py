@@ -55,7 +55,7 @@ if st.button("Analyze"):
             
             if extracted_data:
                 # Split the extracted data into chunks
-                max_tokens = 3000  # Adjust this value based on your token limit
+                max_tokens = 30000  # Adjust this value based on your token limit
                 data_chunks = [extracted_data[i:i+max_tokens] for i in range(0, len(extracted_data), max_tokens)]
                 
                 processed_answers = []
