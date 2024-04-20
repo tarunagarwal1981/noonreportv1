@@ -3,6 +3,7 @@ import pandas as pd
 import os
 import openai
 from pathlib import Path
+from pandasai import PandasAI
 
 def get_api_key():
     """Retrieve the API key from Streamlit secrets or environment variables."""
@@ -21,6 +22,9 @@ df = pd.read_excel(file_path)
 # Set up the OpenAI API
 openai.api_key = get_api_key()
 
+# Initialize PandasAI
+pandas_ai = PandasAI(api_key=openai.api_key)
+
 # Streamlit app
 st.title("Defect Sheet Chat Assistant")
 
@@ -29,17 +33,16 @@ user_query = st.text_input("Ask a question about the defect sheet data:")
 if st.button("Analyze"):
     if user_query:
         try:
-            # Filter the data based on the user's query
-            query_keywords = user_query.lower().split()
-            relevant_data = df[df.apply(lambda row: any(keyword in str(row).lower() for keyword in query_keywords), axis=1)]
+            # Use PandasAI to extract relevant data based on the user's query
+            extracted_data = pandas_ai.run(df, prompt=f"Extract the relevant data from the defect sheet to answer the following question: {user_query}")
 
             # Check if relevant data is found
-            if len(relevant_data) == 0:
+            if extracted_data.empty:
                 st.write("No relevant data found for the given query.")
             else:
-                # Split the relevant data into chunks
+                # Split the extracted data into chunks
                 chunk_size = 30000  # Adjust the chunk size based on the token limit
-                data_chunks = [relevant_data.iloc[i:i+chunk_size].to_string(index=False) for i in range(0, len(relevant_data), chunk_size)]
+                data_chunks = [extracted_data.iloc[i:i+chunk_size].to_string(index=False) for i in range(0, len(extracted_data), chunk_size)]
 
                 # Process each chunk and get the response from the OpenAI API
                 answer_chunks = []
@@ -54,7 +57,7 @@ if st.button("Analyze"):
                     prompt += "If the question cannot be answered based on the given data, provide a relevant response indicating the lack of sufficient information."
 
                     response = openai.ChatCompletion.create(
-                        model="gpt-4-turbo",
+                        model="gpt-3.5-turbo",
                         messages=[
                             {"role": "system", "content": "You are a helpful assistant analyzing defect sheet data."},
                             {"role": "user", "content": prompt}
