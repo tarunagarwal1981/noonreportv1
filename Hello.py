@@ -1,73 +1,72 @@
 import streamlit as st
 import pandas as pd
 import os
-from pathlib import Path
 import openai
+from pathlib import Path
 from pandasai import SmartDataframe
+from pandasai.llm import OpenAI
 
 def get_api_key():
     """Retrieve the API key from Streamlit secrets or environment variables."""
     if 'openai' in st.secrets:
         return st.secrets['openai']['api_key']
-    return os.getenv('OPENAI_API_KEY', 'Your-OpenAI-API-Key')
+    return st.secrets.get('OPENAI_API_KEY', 'Your-OpenAI-API-Key') # Replace 'Your-OpenAI-API-Key' with your actual key
 
-# Set up the directory path for loading Excel files.
-DIR_PATH = Path(__file__).resolve().parent / "docs"
+# Set up the directory path
+DIR_PATH = Path(__file__).parent.resolve() / "UOG"
 
-# Load Excel files from the specified directory into a list of DataFrames.
+# Load the Excel files from the directory
 xlsx_files = []
 for file_path in DIR_PATH.glob("*.xlsx"):
     xlsx_data = pd.read_excel(file_path)
     xlsx_files.append(xlsx_data)
 
-# Combine all loaded DataFrames into a single DataFrame.
+# Set up the OpenAI API
+openai.api_key = get_api_key()
+llm = OpenAI(api_token=openai.api_key)
+
+# Combine the Excel data into a single DataFrame
 combined_data = pd.concat(xlsx_files, ignore_index=True)
 
-# Initialize OpenAI with the retrieved API key.
-openai.api_key = get_api_key()
+# Create a SmartDataframe object
+smart_df = SmartDataframe(combined_data, config={"llm": llm})
 
-# Create a SmartDataFrame which integrates large language model capabilities.
-smart_df = SmartDataframe(combined_data)
-
-# Streamlit UI for user interaction.
+# Streamlit app
 st.title("Defect Sheet Chat Assistant")
 
 user_query = st.text_input("Ask a question about the defect sheet data:")
 
-if st.button('Analyze'):
+if st.button("Analyze"):
     if user_query:
         try:
-            # Use PandasAI to extract relevant information from the Excel data
-            extraction_query = f"Based on the user's query: '{user_query}', extract the relevant information from the data to answer the query."
-            extracted_info = smart_df.chat(extraction_query)
+            # Use PandasAI to extract data from the Excel file
+            answer = smart_df.chat(user_query)
             
-            # Check if extracted_info is valid
-            if extracted_info is None:
-                st.write("No relevant data extracted from your query.")
+            # Check the type of the answer and format it accordingly
+            if isinstance(answer, pd.DataFrame):
+                extracted_data = answer.to_string(index=False)
+            elif isinstance(answer, str):
+                extracted_data = answer
+            elif isinstance(answer, (int, float)):
+                extracted_data = str(answer)
             else:
-                # Format the extracted information
-                if isinstance(extracted_info, pd.DataFrame):
-                    info_string = extracted_info.to_string(index=False)
-                elif isinstance(extracted_info, str):
-                    info_string = extracted_info
-                else:
-                    st.write(f"Unexpected type of extracted_info: {type(extracted_info)}")
-                    info_string = None
+                st.write("Unsupported data type extracted from the Excel file.")
+                extracted_data = None
+            
+            if extracted_data:
+                # Pass the extracted data to the LLM for further processing
+                prompt = f"User's query: {user_query}\n\nExtracted data:\n{extracted_data}\n\nPlease provide a summarized and enhanced answer to the user's query based on the extracted data."
                 
-                if info_string:
-                    # Pass the formatted information and user query to OpenAI for processing
-                    prompt = f"User's query: {user_query}\n\nExtracted information:\n{info_string}\n\nPlease provide a summarized and enhanced answer to the user's query based on the extracted information."
-                    
-                    response = openai.ChatCompletion.create(
-                        model="gpt-3.5-turbo",
-                        messages=[
-                            {"role": "system", "content": "You are a helpful assistant, trained to summarize and enhance information."},
-                            {"role": "user", "content": prompt}
-                        ],
-                        max_tokens=150
-                    )
-                    
-                    processed_answer = response['choices'][0]['message']['content'].strip()
-                    st.write(processed_answer)
+                response = openai.ChatCompletion.create(
+                    model="gpt-3.5-turbo",
+                    messages=[
+                        {"role": "system", "content": "You are a helpful assistant, trained to summarize and enhance information."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    max_tokens=150
+                )
+                
+                processed_answer = response['choices'][0]['message']['content'].strip()
+                st.write(processed_answer)
         except Exception as e:
             st.write(f"An error occurred: {str(e)}")
