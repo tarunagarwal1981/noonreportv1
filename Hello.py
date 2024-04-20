@@ -3,7 +3,8 @@ import pandas as pd
 import os
 import openai
 from pathlib import Path
-from pandasai import PandasAI
+from pandasai import SmartDataframe
+from pandasai.llm import OpenAI
 
 def get_api_key():
     """Retrieve the API key from Streamlit secrets or environment variables."""
