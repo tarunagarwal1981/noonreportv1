@@ -42,7 +42,7 @@ def process_and_display_data(data, query):
     answer_chunks = []
     for chunk in data_chunks:
         prompt = f"{chunk}\n\nCan you provide further insights based on this data regarding the query: {query}?"
-        answer_chunk = pandas_ai.ask(combined_data, prompt)
+        answer_chunk = pandas_ai.run(prompt)
         answer_chunks.append(answer_chunk)
     
     # Combine the answer chunks and display the result
@@ -50,7 +50,7 @@ def process_and_display_data(data, query):
 
 if st.button("Analyze") and user_query:
     # Use PandasAI to answer the user query
-    extracted_info = pandas_ai.ask(combined_data, user_query)
+    extracted_info = pandas_ai.run(user_query)
     
     if extracted_info:
         # If the info is too large, process in chunks and display
