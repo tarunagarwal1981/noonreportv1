@@ -14,16 +14,27 @@ def get_api_key():
 # Set up the directory path
 DIR_PATH = Path(__file__).parent.resolve() / "docs"
 
-# Load the Excel file
-excel_file = "UOG Vessels Defects List.xlsx"
-file_path = DIR_PATH / excel_file
-df = pd.read_excel(file_path)
+# Load all Excel files from the directory
+xlsx_files = []
+for file_path in DIR_PATH.glob("*.xlsx"):
+    try:
+        df = pd.read_excel(file_path)
+        xlsx_files.append(df)
+    except Exception as e:
+        st.error(f"Failed to load {file_path}: {str(e)}")
+
+# Combine all Excel files into a single DataFrame if any files were loaded
+if xlsx_files:
+    combined_df = pd.concat(xlsx_files, ignore_index=True)
+else:
+    st.error("No Excel files found in the directory.")
+    combined_df = pd.DataFrame()  # Create an empty DataFrame to prevent further errors
 
 # Set up the OpenAI API
 openai.api_key = get_api_key()
 
-# Initialize the SmartDataframe
-smart_df = SmartDataframe(df)
+# Initialize the SmartDataframe with the combined DataFrame
+smart_df = SmartDataframe(combined_df)
 
 # Streamlit app
 st.title("Defect Sheet Chat Assistant")
@@ -40,7 +51,7 @@ if st.button("Analyze"):
                 if extracted_data.empty:
                     st.write("No relevant data found for the given query.")
                 else:
-                    # Handle DataFrame processing
+                    # Process and display the DataFrame data
                     process_and_display_data(extracted_data)
             elif isinstance(extracted_data, str):
                 # Handle string responses
