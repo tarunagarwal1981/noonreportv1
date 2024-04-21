@@ -1,84 +1,72 @@
-# Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022)
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-from typing import Any
-
-import numpy as np
-
 import streamlit as st
-from streamlit.hello.utils import show_code
+import pandas as pd
+import os
+from pathlib import Path
+import openai
+from pandasai import SmartDataframe
+from pandasai.llm import OpenAI
 
+def get_api_key():
+    """Retrieve the API key from Streamlit secrets or environment variables."""
+    if 'openai' in st.secrets:
+        return st.secrets['openai']['api_key']
+    return os.getenv('OPENAI_API_KEY', 'Your-OpenAI-API-Key')
 
-def animation_demo() -> None:
+# Set up the OpenAI API
+openai.api_key = get_api_key()
 
-    # Interactive Streamlit elements, like these sliders, return their value.
-    # This gives you an extremely simple interaction model.
-    iterations = st.sidebar.slider("Level of detail", 2, 20, 10, 1)
-    separation = st.sidebar.slider("Separation", 0.7, 2.0, 0.7885)
+# Initialize the LLM with the OpenAI API token
+llm = OpenAI(api_token=openai.api_key)
 
-    # Non-interactive elements return a placeholder to their location
-    # in the app. Here we're storing progress_bar to update it later.
-    progress_bar = st.sidebar.progress(0)
+# Set up the directory path
+DIR_PATH = Path(__file__).parent.resolve() / "docs"
 
-    # These two elements will be filled in later, so we create a placeholder
-    # for them using st.empty()
-    frame_text = st.sidebar.empty()
-    image = st.empty()
+# Load the Excel files from the directory
+xlsx_files = []
+for file_path in DIR_PATH.glob("*.xlsx"):
+    xlsx_data = pd.read_excel(file_path)
+    xlsx_files.append(xlsx_data)
 
-    m, n, s = 960, 640, 400
-    x = np.linspace(-m / s, m / s, num=m).reshape((1, m))
-    y = np.linspace(-n / s, n / s, num=n).reshape((n, 1))
+# Combine the Excel data into a single DataFrame
+combined_data = pd.concat(xlsx_files, ignore_index=True)
 
-    for frame_num, a in enumerate(np.linspace(0.0, 4 * np.pi, 100)):
-        # Here were setting value for these two elements.
-        progress_bar.progress(frame_num)
-        frame_text.text("Frame %i/100" % (frame_num + 1))
+# Create a SmartDataframe object with LLM configuration
+smart_df = SmartDataframe(combined_data, config={"llm": llm})
 
-        # Performing some fractal wizardry.
-        c = separation * np.exp(1j * a)
-        Z = np.tile(x, (n, 1)) + 1j * np.tile(y, (1, m))
-        C = np.full((n, m), c)
-        M: Any = np.full((n, m), True, dtype=bool)
-        N = np.zeros((n, m))
+# Streamlit app setup
+st.title("Defect Sheet Chat Assistant")
+user_query = st.text_input("Ask a question about the defect sheet data:")
 
-        for i in range(iterations):
-            Z[M] = Z[M] * Z[M] + C[M]
-            M[np.abs(Z) > 2] = False
-            N[M] = i
+def process_and_display_data(data, query):
+    # Assuming the need to process and display DataFrame data in chunks
+    chunk_size = 30000  # Adjust based on token limits for the model
+    data_chunks = [data.iloc[i:i + chunk_size].to_string(index=False) for i in range(0, len(data), chunk_size)]
+    
+    # Process each chunk and get the response from the OpenAI API
+    answer_chunks = []
+    for chunk in data_chunks:
+        prompt = f"{chunk}\n\nCan you provide further insights based on this data regarding the query: {query}?"
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are an intelligent assistant trained to analyze and summarize data."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=500
+        )
+        answer_chunk = response.choices[0].message['content'].strip()
+        answer_chunks.append(answer_chunk)
+    
+    # Combine the answer chunks and display the result
+    return "\n".join(answer_chunks)
 
-        # Update the image placeholder by calling the image() function on it.
-        image.image(1.0 - (N / N.max()), use_column_width=True)
+if st.button("Analyze") and user_query:
+    # Use PandasAI to answer the user query
+    extracted_info = smart_df.chat(user_query)
 
-    # We clear elements by calling empty on them.
-    progress_bar.empty()
-    frame_text.empty()
-
-    # Streamlit widgets automatically run the script from top to bottom. Since
-    # this button is not connected to any other logic, it just causes a plain
-    # rerun.
-    st.button("Re-run")
-
-
-st.set_page_config(page_title="Animation Demo", page_icon="📹")
-st.markdown("# Animation Demo")
-st.sidebar.header("Animation Demo")
-st.write(
-    """This app shows how you can use Streamlit to build cool animations.
-It displays an animated fractal based on the the Julia Set. Use the slider
-to tune different parameters."""
-)
-
-animation_demo()
-
-show_code(animation_demo)
+    if extracted_info:
+        # If the info is too large, process in chunks and display
+        processed_answer = process_and_display_data(pd.DataFrame([extracted_info]), user_query)  # Assuming the output can be a single row DataFrame
+        st.write(processed_answer)
+    else:
+        st.write("No data found based on your query.")
