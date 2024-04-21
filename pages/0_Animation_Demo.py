@@ -19,11 +19,11 @@ openai.api_key = get_api_key()
 llm = OpenAI(api_token=openai.api_key)
 
 # Set up the directory path
-DIR_PATH = "uog/docs"
+DIR_PATH = Path(__file__).parent.resolve() / "docs"
 
 # Load the Excel files from the directory
 xlsx_files = []
-for file_path in DIR_PATH("*.xlsx"):
+for file_path in DIR_PATH.glob("*.xlsx"):
     xlsx_data = pd.read_excel(file_path)
     xlsx_files.append(xlsx_data)
 
