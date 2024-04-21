@@ -1,56 +1,77 @@
-# Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022)
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-import time
-
-import numpy as np
-
 import streamlit as st
-from streamlit.hello.utils import show_code
+import pandas as pd
+import os
+from pathlib import Path
+import openai
+from pandasai import SmartDataframe
+from pandasai.llm import OpenAI
 
+def get_api_key():
+    """Retrieve the API key from Streamlit secrets or environment variables."""
+    if 'openai' in st.secrets:
+        return st.secrets['openai']['api_key']
+    return os.getenv('OPENAI_API_KEY', 'Your-OpenAI-API-Key')
 
-def plotting_demo():
-    progress_bar = st.sidebar.progress(0)
-    status_text = st.sidebar.empty()
-    last_rows = np.random.randn(1, 1)
-    chart = st.line_chart(last_rows)
+# Set up the OpenAI API
+openai.api_key = get_api_key()
 
-    for i in range(1, 101):
-        new_rows = last_rows[-1, :] + np.random.randn(5, 1).cumsum(axis=0)
-        status_text.text("%i%% Complete" % i)
-        chart.add_rows(new_rows)
-        progress_bar.progress(i)
-        last_rows = new_rows
-        time.sleep(0.05)
+# Initialize the LLM with the OpenAI API token
+llm = OpenAI(api_token=openai.api_key)
 
-    progress_bar.empty()
+# Set up the directory path
+DIR_PATH = Path(__file__).parent.parent.resolve() / "docs"
 
-    # Streamlit widgets automatically run the script from top to bottom. Since
-    # this button is not connected to any other logic, it just causes a plain
-    # rerun.
-    st.button("Re-run")
+# Load the Excel files from the directory and store them in a dictionary
+excel_files = {}
+for file_path in DIR_PATH.glob("*.xlsx"):
+    file_name = file_path.stem
+    excel_files[file_name] = pd.read_excel(file_path)
 
+# Streamlit app setup
+st.title("Defect Sheet Chat Assistant")
+user_query = st.text_input("Ask a question about the defect sheet data:")
 
-st.set_page_config(page_title="Plotting Demo", page_icon="📈")
-st.markdown("# Plotting Demo")
-st.sidebar.header("Plotting Demo")
-st.write(
-    """This demo illustrates a combination of plotting and animation with
-Streamlit. We're generating a bunch of random numbers in a loop for around
-5 seconds. Enjoy!"""
-)
+def process_and_display_data(data, query):
+    # Assuming the need to process and display DataFrame data in chunks
+    chunk_size = 30000  # Adjust based on token limits for the model
+    data_chunks = [data.iloc[i:i + chunk_size].to_string(index=False) for i in range(0, len(data), chunk_size)]
+    
+    # Process each chunk and get the response from the OpenAI API
+    answer_chunks = []
+    for chunk in data_chunks:
+        prompt = f"{chunk}\n\nBased on the provided defect sheet data, can you provide insights and analysis related to the following query: {query}? Please frame your response with relevant context to the query."
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are an intelligent assistant trained to analyze and provide insights from defect sheet data. Frame your responses with context relevant to the given query."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=500
+        )
+        answer_chunk = response.choices[0].message['content'].strip()
+        answer_chunks.append(answer_chunk)
+    
+    # Combine the answer chunks and display the result
+    return "\n".join(answer_chunks)
 
-plotting_demo()
-
-show_code(plotting_demo)
+if st.button("Analyze") and user_query:
+    # Use PandasAI to find the relevant file based on the user's query
+    relevant_file_query = f"Based on the user's query: '{user_query}', which Excel file among {list(excel_files.keys())} is most likely to contain the relevant information to answer the query?"
+    relevant_file = llm(relevant_file_query)
+    
+    if relevant_file in excel_files:
+        # Create a SmartDataframe object with the selected Excel file
+        smart_df = SmartDataframe(excel_files[relevant_file], config={"llm": llm})
+        
+        # Use PandasAI to answer the user query with context
+        prompt = f"Based on the defect sheet data in '{relevant_file}', provide an insightful answer to the following question: {user_query}. Ensure your response includes relevant context related to the query."
+        extracted_info = smart_df.chat(prompt)
+        
+        if extracted_info:
+            # If the info is too large, process in chunks and display
+            processed_answer = process_and_display_data(pd.DataFrame([extracted_info]), user_query)  # Assuming the output can be a single row DataFrame
+            st.write(processed_answer)
+        else:
+            st.write("No data found based on your query.")
+    else:
+        st.write("No relevant Excel file found for the given query.")
