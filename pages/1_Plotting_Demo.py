@@ -4,7 +4,6 @@ import os
 from pathlib import Path
 import openai
 from pandasai import SmartDataframe
-from pandasai.llm import OpenAI
 
 def get_api_key():
     """Retrieve the API key from Streamlit secrets or environment variables."""
@@ -14,9 +13,6 @@ def get_api_key():
 
 # Set up the OpenAI API
 openai.api_key = get_api_key()
-
-# Initialize the LLM with the OpenAI API token
-llm = OpenAI(api_token=openai.api_key)
 
 # Set up the directory path
 DIR_PATH = Path(__file__).parent.parent.resolve() / "docs"
@@ -61,13 +57,21 @@ if st.button("Analyze") and user_query:
     excel_file_info += "2. UOG - AE Status Excel.xlsx: Contains various KPIs with different aux engines (AEs) of different vessels.\n"
     excel_file_info += "3. UOM - AE Health Status Excel.xlsx: Contains the rating of the different aux engines of the vessels."
 
-    # Use PandasAI to find the relevant Excel sheet and answer the user query
+    # Use OpenAI API to find the relevant Excel sheet and answer the user query
     excel_file_query = f"{excel_file_info}\n\nBased on the user's query: '{user_query}', which Excel file among {list(excel_files.keys())} is most likely to contain the relevant information to answer the query?"
-    relevant_file = llm.chat(excel_file_query)
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": "You are an intelligent assistant trained to analyze and provide insights from vessel data. Frame your responses with context relevant to the given query."},
+            {"role": "user", "content": excel_file_query}
+        ],
+        max_tokens=100
+    )
+    relevant_file = response.choices[0].message['content'].strip()
     
     if relevant_file in excel_files:
         relevant_data = excel_files[relevant_file]
-        smart_df = SmartDataframe(relevant_data, config={"llm": llm})
+        smart_df = SmartDataframe(relevant_data)
         
         # Use PandasAI to answer the user query with context
         prompt = f"{excel_file_info}\n\nBased on the data in '{relevant_file}', provide an insightful answer to the following question: {user_query}. Ensure your response includes relevant context related to the query."
