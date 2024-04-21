@@ -19,17 +19,17 @@ openai.api_key = get_api_key()
 llm = OpenAI(api_token=openai.api_key)
 
 # Set up the directory path
-DIR_PATH = Path(__file__).parent.parent.resolve() / "docs"
+DIR_PATH = Path(__file__).parent.resolve() / "docs"
 
-# Load the Excel files from the directory and store them in a dictionary
+# Load the Excel files from the directory
 excel_files = {}
 for file_path in DIR_PATH.glob("*.xlsx"):
     file_name = file_path.stem
     excel_files[file_name] = pd.read_excel(file_path)
 
 # Streamlit app setup
-st.title("Defect Sheet Chat Assistant")
-user_query = st.text_input("Ask a question about the defect sheet data:")
+st.title("Vessel Data Chat Assistant")
+user_query = st.text_input("Ask a question about the vessel data:")
 
 def process_and_display_data(data, query):
     # Assuming the need to process and display DataFrame data in chunks
@@ -39,11 +39,11 @@ def process_and_display_data(data, query):
     # Process each chunk and get the response from the OpenAI API
     answer_chunks = []
     for chunk in data_chunks:
-        prompt = f"{chunk}\n\nBased on the provided defect sheet data, can you provide insights and analysis related to the following query: {query}? Please frame your response with relevant context to the query."
+        prompt = f"{chunk}\n\nBased on the provided vessel data, can you provide insights and analysis related to the following query: {query}? Please frame your response with relevant context to the query."
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "You are an intelligent assistant trained to analyze and provide insights from defect sheet data. Frame your responses with context relevant to the given query."},
+                {"role": "system", "content": "You are an intelligent assistant trained to analyze and provide insights from vessel data. Frame your responses with context relevant to the given query."},
                 {"role": "user", "content": prompt}
             ],
             max_tokens=500
@@ -55,23 +55,32 @@ def process_and_display_data(data, query):
     return "\n".join(answer_chunks)
 
 if st.button("Analyze") and user_query:
-    # Use PandasAI to find the relevant file based on the user's query
-    relevant_file_query = f"Based on the user's query: '{user_query}', which Excel file among {list(excel_files.keys())} is most likely to contain the relevant information to answer the query?"
-    relevant_file = llm(relevant_file_query)
+    # Provide information about the Excel files to PandasAI
+    excel_file_info = "The available Excel files are:\n"
+    excel_file_info += "1. UOG vessels defect list.xlsx: Contains details of all the defects like their name, actions taken, vessel name, status, cost, etc.\n"
+    excel_file_info += "2. UOG - AE Status Excel.xlsx: Contains various KPIs with different aux engines (AEs) of different vessels.\n"
+    excel_file_info += "3. UOM - AE Health Status Excel.xlsx: Contains the rating of the different aux engines of the vessels."
+
+    # Use PandasAI to find the relevant Excel sheet and answer the user query
+    excel_file_query = f"{excel_file_info}\n\nBased on the user's query: '{user_query}', which Excel file among {list(excel_files.keys())} is most likely to contain the relevant information to answer the query?"
+    relevant_file = llm(excel_file_query)
     
     if relevant_file in excel_files:
-        # Create a SmartDataframe object with the selected Excel file
-        smart_df = SmartDataframe(excel_files[relevant_file], config={"llm": llm})
+        relevant_data = excel_files[relevant_file]
+        smart_df = SmartDataframe(relevant_data, config={"llm": llm})
         
         # Use PandasAI to answer the user query with context
-        prompt = f"Based on the defect sheet data in '{relevant_file}', provide an insightful answer to the following question: {user_query}. Ensure your response includes relevant context related to the query."
+        prompt = f"{excel_file_info}\n\nBased on the data in '{relevant_file}', provide an insightful answer to the following question: {user_query}. Ensure your response includes relevant context related to the query."
         extracted_info = smart_df.chat(prompt)
         
-        if extracted_info:
-            # If the info is too large, process in chunks and display
-            processed_answer = process_and_display_data(pd.DataFrame([extracted_info]), user_query)  # Assuming the output can be a single row DataFrame
+        if not extracted_info.empty:
+            # Create a de-fragmented copy of the DataFrame
+            extracted_df = extracted_info.copy()
+            
+            # Process and display the de-fragmented DataFrame
+            processed_answer = process_and_display_data(extracted_df, user_query)
             st.write(processed_answer)
         else:
             st.write("No data found based on your query.")
     else:
-        st.write("No relevant Excel file found for the given query.")
+        st.write(f"No relevant Excel file found for the query: {user_query}")
