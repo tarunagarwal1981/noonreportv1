@@ -63,7 +63,7 @@ if st.button("Analyze") and user_query:
 
     # Use PandasAI to find the relevant Excel sheet and answer the user query
     excel_file_query = f"{excel_file_info}\n\nBased on the user's query: '{user_query}', which Excel file among {list(excel_files.keys())} is most likely to contain the relevant information to answer the query?"
-    relevant_file = llm.chat(excel_file_query)
+    relevant_file = llm.query(excel_file_query)
     
     if relevant_file in excel_files:
         relevant_data = excel_files[relevant_file]
