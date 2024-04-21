@@ -65,12 +65,9 @@ if st.button("Analyze") and user_query:
     prompt = f"Based on the defect sheet data, provide an insightful answer to the following question: {user_query}. Ensure your response includes relevant context related to the query."
     extracted_info = smart_df.chat(prompt)
     
-    if extracted_info:
-        # Create a new DataFrame with the extracted information
-        extracted_df = pd.DataFrame([extracted_info])
-        
+    if not extracted_info.empty:
         # Create a de-fragmented copy of the DataFrame
-        extracted_df = extracted_df.copy()
+        extracted_df = extracted_info.copy()
         
         # Process and display the de-fragmented DataFrame
         processed_answer = process_and_display_data(extracted_df, user_query)
