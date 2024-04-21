@@ -19,7 +19,7 @@ openai.api_key = get_api_key()
 llm = OpenAI(api_token=openai.api_key)
 
 # Set up the directory path
-DIR_PATH = Path(__file__).parent.resolve() / "docs"
+DIR_PATH = Path(__file__).parent.parent.resolve() / "docs"
 
 # Load the Excel files from the directory
 excel_files = {}
@@ -63,7 +63,7 @@ if st.button("Analyze") and user_query:
 
     # Use PandasAI to find the relevant Excel sheet and answer the user query
     excel_file_query = f"{excel_file_info}\n\nBased on the user's query: '{user_query}', which Excel file among {list(excel_files.keys())} is most likely to contain the relevant information to answer the query?"
-    relevant_file = llm(excel_file_query)
+    relevant_file = llm.chat(excel_file_query)
     
     if relevant_file in excel_files:
         relevant_data = excel_files[relevant_file]
