@@ -66,8 +66,14 @@ if st.button("Analyze") and user_query:
     extracted_info = smart_df.chat(prompt)
     
     if extracted_info:
-        # If the info is too large, process in chunks and display
-        processed_answer = process_and_display_data(pd.DataFrame([extracted_info]), user_query)  # Assuming the output can be a single row DataFrame
+        # Create a new DataFrame with the extracted information
+        extracted_df = pd.DataFrame([extracted_info])
+        
+        # Create a de-fragmented copy of the DataFrame
+        extracted_df = extracted_df.copy()
+        
+        # Process and display the de-fragmented DataFrame
+        processed_answer = process_and_display_data(extracted_df, user_query)
         st.write(processed_answer)
     else:
         st.write("No data found based on your query.")
