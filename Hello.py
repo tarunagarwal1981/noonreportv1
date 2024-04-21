@@ -61,10 +61,9 @@ def process_and_display_data(data, query):
     return "\n".join(answer_chunks)
 
 if st.button("Analyze") and user_query:
-    # Use PandasAI to answer the user query with context
-    prompt = f"Based on the defect sheet data, answer the following question: {user_query}. Frame your response with some context related to the query."
-    extracted_info = smart_df.chat(prompt)
-    
+    # Use PandasAI to answer the user query
+    extracted_info = smart_df.chat(user_query)
+
     if extracted_info:
         # If the info is too large, process in chunks and display
         processed_answer = process_and_display_data(pd.DataFrame([extracted_info]), user_query)  # Assuming the output can be a single row DataFrame
