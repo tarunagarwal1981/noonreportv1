@@ -23,7 +23,7 @@ DIR_PATH = "uog/docs"
 
 # Load the Excel files from the directory
 xlsx_files = []
-for file_path in DIR_PATH.glob("*.xlsx"):
+for file_path in DIR_PATH("*.xlsx"):
     xlsx_data = pd.read_excel(file_path)
     xlsx_files.append(xlsx_data)
 
