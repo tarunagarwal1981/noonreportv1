@@ -15,7 +15,7 @@ def get_api_key():
 openai.api_key = get_api_key()
 
 # Set up the directory path
-DIR_PATH = Path(__file__).parent.resolve() / "docs"
+DIR_PATH = Path(__file__).parent.resolve() / "pages/docs"
 
 # Load the Excel files from the directory
 excel_files = {}
