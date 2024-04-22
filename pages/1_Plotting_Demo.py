@@ -65,7 +65,7 @@ if st.button("Analyze") and user_query:
             {"role": "system", "content": "You are an intelligent assistant trained to analyze and provide insights from vessel data. Frame your responses with context relevant to the given query."},
             {"role": "user", "content": excel_file_query}
         ],
-        max_tokens=200
+        max_tokens=500
     )
     relevant_file = response.choices[0].message['content'].strip()
     
