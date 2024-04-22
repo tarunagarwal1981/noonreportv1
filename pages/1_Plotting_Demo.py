@@ -53,7 +53,7 @@ def process_and_display_data(data, query):
 if st.button("Analyze") and user_query:
     # Provide information about the Excel files to PandasAI
     excel_file_info = "The available Excel files are:\n"
-    excel_file_info += "1. UOG vessels defect list.xlsx: Contains details of all the defects like their name, actions taken, vessel name, status, cost, etc.\n"
+    excel_file_info += "1. UOG vessels defect list.xlsx: Contains details of all the defects like their name, actions taken, vessel name (including NCC Dalia), status, cost, etc.\n"
     excel_file_info += "2. UOG - AE Status Excel.xlsx: Contains various KPIs with different aux engines (AEs) of different vessels.\n"
     excel_file_info += "3. UOM - AE Health Status Excel.xlsx: Contains the rating of the different aux engines of the vessels."
 
@@ -65,7 +65,7 @@ if st.button("Analyze") and user_query:
             {"role": "system", "content": "You are an intelligent assistant trained to analyze and provide insights from vessel data. Frame your responses with context relevant to the given query."},
             {"role": "user", "content": excel_file_query}
         ],
-        max_tokens=100
+        max_tokens=200
     )
     relevant_file = response.choices[0].message['content'].strip()
     
