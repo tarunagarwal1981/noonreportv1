@@ -14,18 +14,10 @@ def get_api_key():
 openai.api_key = get_api_key()
 
 DIR_PATH = Path(__file__).parent / "docs"
-xlsx_files = []
+xlsx_files = {}
 for file_path in DIR_PATH.glob("*.xlsx"):
-    xlsx_data = pd.read_excel(file_path)
-    xlsx_files.append(xlsx_data)
-
-combined_data = pd.concat(xlsx_files, ignore_index=True)
-
-# Print DataFrame structure and summary for debugging
-st.write("DataFrame Head:", combined_data.head())
-st.write("DataFrame Summary:", combined_data.describe())
-
-smart_df = SmartDataframe(combined_data)
+    file_name = file_path.stem
+    xlsx_files[file_name] = pd.read_excel(file_path)
 
 st.title("Vessel Data Chat Assistant")
 user_query = st.text_input("Ask a question about the vessel data:")
@@ -39,7 +31,7 @@ def process_and_display_data(data_string, query):
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "You are an intelligent assistant trained to analyze and summarize data."},
+                {"role": "system", "content": "You are an intelligent assistant trained to analyze and reframe data."},
                 {"role": "user", "content": prompt}
             ],
             max_tokens=500
@@ -49,11 +41,16 @@ def process_and_display_data(data_string, query):
     return "\n".join(answer_chunks)
 
 if st.button("Analyze") and user_query:
-    extracted_info = smart_df.chat(user_query)
-    if extracted_info:
-        # Check what 'extracted_info' returns for debugging
-        st.write("Extracted Info:", extracted_info)
-        processed_answer = process_and_display_data(str(extracted_info), user_query)
+    all_responses = []
+    for file_name, data in xlsx_files.items():
+        smart_df = SmartDataframe(data)
+        extracted_info = smart_df.chat(user_query)
+        if extracted_info:
+            all_responses.append(str(extracted_info))
+
+    if all_responses:
+        combined_info = " ".join(all_responses)
+        processed_answer = process_and_display_data(combined_info, user_query)
         st.write(processed_answer)
     else:
         st.write("No data found based on your query.")
