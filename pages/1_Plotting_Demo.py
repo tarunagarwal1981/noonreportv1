@@ -52,7 +52,11 @@ if st.button("Analyze") and user_query:
 
     if all_responses:
         combined_responses = "\n".join(all_responses)
+        st.write("### Responses from PandasAI:")
+        st.write(combined_responses)  # Display responses from PandasAI
+
         processed_answer = process_and_display_data(combined_responses, user_query)
-        st.write(processed_answer)
+        st.write("### Enhanced Response from LLM (OpenAI):")
+        st.write(processed_answer)  # Display enhanced response from LLM
     else:
         st.write("No data found based on your query.")
