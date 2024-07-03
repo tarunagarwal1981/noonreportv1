@@ -4,38 +4,7 @@ from datetime import datetime, time
 import random
 import string
 
-# Set page config
-st.set_page_config(layout="wide", page_title="Maritime Reporting System")
-
-# Custom CSS (same as before)
-st.markdown("""
-<style>
-    .reportSection {
-        padding-right: 1rem;
-    }
-    .chatSection {
-        padding-left: 1rem;
-        border-left: 1px solid #e0e0e0;
-    }
-    .stButton > button {
-        width: 100%;
-    }
-    .main .block-container {
-        padding-top: 1rem;
-        padding-bottom: 1rem;
-        max-width: 100%;
-    }
-    h1, h2, h3 {
-        margin-top: 0;
-    }
-    .stAlert {
-        margin-top: 1rem;
-    }
-    .stNumberInput input {
-        width: 100px;
-    }
-</style>
-""", unsafe_allow_html=True)
+# [Keep the existing imports and CSS styles]
 
 # Define all possible report types
 ALL_REPORT_TYPES = [
@@ -62,18 +31,29 @@ REQUIRED_FOLLOW_UPS = {
     "Begin Fuel Changeover": "End Fuel Changeover",
     "Entering Special Area": "Leaving Special Area",
     "Begin of Offhire": "End of Offhire",
-    "Begin Canal Passage": "End Canal Passage"
+    "Begin Canal Passage": "End Canal Passage",
+    "Begin Anchoring/Drifting": "End Anchoring/Drifting",
+    "Arrival at Port": "Departure from Port",
+    "Arrival at STS": "Departure from STS",
+    "ArrivalSTS": "DepartureSTS"
 }
 
 def get_chatbot_response(last_report, user_input):
     if user_input == "I want to create a report":
+        response = f"Your last report was '{last_report}'. "
+        
         if last_report in REQUIRED_FOLLOW_UPS:
-            return f"Please complete the '{REQUIRED_FOLLOW_UPS[last_report]}' report before creating a new report."
-        elif last_report in FOLLOW_UP_REPORTS:
+            response += f"Remember that you may need to complete the '{REQUIRED_FOLLOW_UPS[last_report]}' report. "
+        
+        if last_report in FOLLOW_UP_REPORTS:
             options = ", ".join(FOLLOW_UP_REPORTS[last_report])
-            return f"Your last report was '{last_report}'. You can create one of the following reports: {options}. Which one would you like to create?"
+            response += f"You can create one of the following reports: {options}. "
         else:
-            return "What type of report would you like to create?"
+            options = ", ".join(ALL_REPORT_TYPES)
+            response += f"You can create any of the following reports: {options}. "
+        
+        response += "Which report would you like to create?"
+        return response
     elif user_input == "I want to see the last voyage reports list":
         return "Here is a placeholder for the last voyage reports list. In a real implementation, this would fetch and display the actual list of recent reports."
     else:
