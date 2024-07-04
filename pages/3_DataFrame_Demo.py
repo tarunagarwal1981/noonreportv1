@@ -12,6 +12,9 @@ st.set_page_config(layout="wide", page_title="Maritime Reporting System")
 st.markdown("""
 <style>
     /* Your existing styles here */
+    .stButton > button {
+        width: 100%;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -129,11 +132,20 @@ def create_form():
     # Your existing form code here (unchanged)
     pass
 
+def clear_chat_history():
+    st.session_state.messages = []
+    st.session_state.last_report = ALL_REPORT_TYPES[0]  # Reset to the first report type
+
 def create_chatbot():
     st.header("AI Assistant")
     
     # Dropdown for selecting last report (for testing)
     last_report = st.selectbox("Select last report (for testing)", ALL_REPORT_TYPES, key="last_report")
+
+    # Clear Chat button
+    if st.button("Clear Chat"):
+        clear_chat_history()
+        st.experimental_rerun()
 
     # Initialize chat history
     if "messages" not in st.session_state:
