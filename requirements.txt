@@ -8,3 +8,4 @@ requests
 openpyxl
 anthropic
 pandasai[excel]
+nltk==3.8.1
