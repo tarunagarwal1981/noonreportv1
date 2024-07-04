@@ -3,15 +3,7 @@ import pandas as pd
 from datetime import datetime, time
 import random
 import string
-import nltk
-from nltk.tokenize import word_tokenize
-from nltk.corpus import stopwords
-from nltk.stem import WordNetLemmatizer
-
-# Download necessary NLTK data
-nltk.download('punkt')
-nltk.download('stopwords')
-nltk.download('wordnet')
+import re
 
 # Set page config
 st.set_page_config(layout="wide", page_title="Maritime Reporting System")
@@ -23,27 +15,53 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Define all possible report types and follow-up reports (keep your existing definitions)
+# Define all possible report types
 ALL_REPORT_TYPES = [
-    # Your existing report types
+    "Arrival at Port", "Arrival at STS", "Departure from Port", "Departure from STS",
+    "Noon at Port/STS", "Bunkering", "Off hire", "Begin Fuel Changeover",
+    "End Fuel Changeover", "Begin of Offhire", "End of Offhire", "ArrivalSTS",
+    "DepartureSTS", "Begin Canal Passage", "End Canal Passage",
+    "Begin Anchoring/Drifting", "End Anchoring/Drifting", "Noon (Position) - River",
+    "Noon (Position) - Stoppage", "Entering Special Area", "Leaving Special Area",
+    "End of Sea Passage (EOSP)"
 ]
 
+# Define the follow-up reports for each report type
 FOLLOW_UP_REPORTS = {
-    # Your existing follow-up report definitions
+    "Arrival at Port": ["Departure from Port", "Noon at Port/STS", "Bunkering", "Off hire", "Begin Fuel Changeover", "End Fuel Changeover"],
+    "Arrival at STS": ["Departure from STS", "Noon at Port/STS", "Bunkering", "Off hire", "Begin Fuel Changeover", "End Fuel Changeover"],
+    "Departure from Port": ["Noon at Port/STS", "Begin of Offhire", "End of Offhire", "ArrivalSTS", "DepartureSTS", "Begin Canal Passage", "End Canal Passage", "Begin Anchoring/Drifting", "End Anchoring/Drifting", "Noon (Position) - River", "Noon (Position) - Stoppage", "Begin Fuel Changeover", "End Fuel Changeover", "Entering Special Area", "Leaving Special Area"],
+    "Departure from STS": ["Noon at Port/STS", "Begin of Offhire", "End of Offhire", "ArrivalSTS", "DepartureSTS", "Begin Canal Passage", "End Canal Passage", "Begin Anchoring/Drifting", "End Anchoring/Drifting", "Noon (Position) - River", "Noon (Position) - Stoppage", "Begin Fuel Changeover", "End Fuel Changeover", "Entering Special Area", "Leaving Special Area"],
+    "End of Sea Passage (EOSP)": ["Noon at Port/STS", "Begin of Offhire", "End of Offhire", "ArrivalSTS", "DepartureSTS", "Begin Canal Passage", "End Canal Passage", "Begin Anchoring/Drifting", "End Anchoring/Drifting", "Noon (Position) - River", "Noon (Position) - Stoppage", "Begin Fuel Changeover", "End Fuel Changeover", "Entering Special Area", "Leaving Special Area"]
 }
 
+# Define reports that require a specific follow-up
 REQUIRED_FOLLOW_UPS = {
-    # Your existing required follow-ups
+    "Begin Fuel Changeover": "End Fuel Changeover",
+    "Entering Special Area": "Leaving Special Area",
+    "Begin of Offhire": "End of Offhire",
+    "Begin Canal Passage": "End Canal Passage",
+    "Begin Anchoring/Drifting": "End Anchoring/Drifting",
+    "Arrival at Port": "Departure from Port",
+    "Arrival at STS": "Departure from STS",
+    "ArrivalSTS": "DepartureSTS"
 }
 
-# NLP preprocessing
-lemmatizer = WordNetLemmatizer()
-stop_words = set(stopwords.words('english'))
+# Simple tokenization function
+def tokenize(text):
+    return re.findall(r'\b\w+\b', text.lower())
+
+# Simple stemming function
+def simple_stem(word):
+    suffixes = ['ing', 'ly', 'ed', 'ious', 'ies', 'ive', 'es', 's']
+    for suffix in suffixes:
+        if word.endswith(suffix):
+            return word[:-len(suffix)]
+    return word
 
 def preprocess_text(text):
-    tokens = word_tokenize(text.lower())
-    tokens = [lemmatizer.lemmatize(token) for token in tokens if token not in stop_words and token.isalnum()]
-    return tokens
+    tokens = tokenize(text)
+    return [simple_stem(token) for token in tokens]
 
 def extract_intent(tokens):
     create_keywords = ['create', 'make', 'new', 'start']
@@ -58,7 +76,7 @@ def extract_intent(tokens):
 
 def extract_report_type(tokens):
     for report_type in ALL_REPORT_TYPES:
-        if all(word in tokens for word in report_type.lower().split()):
+        if all(simple_stem(word) in tokens for word in tokenize(report_type.lower())):
             return report_type
     return None
 
