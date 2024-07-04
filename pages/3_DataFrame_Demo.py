@@ -3,45 +3,78 @@ import pandas as pd
 from datetime import datetime, time
 import random
 import string
+import nltk
+from nltk.tokenize import word_tokenize
+from nltk.corpus import stopwords
+from nltk.stem import WordNetLemmatizer
 
-# [Keep the existing imports and CSS styles]
+# Download necessary NLTK data
+nltk.download('punkt')
+nltk.download('stopwords')
+nltk.download('wordnet')
 
-# Define all possible report types
+# Set page config
+st.set_page_config(layout="wide", page_title="Maritime Reporting System")
+
+# Custom CSS (keep your existing styles)
+st.markdown("""
+<style>
+    /* Your existing styles here */
+</style>
+""", unsafe_allow_html=True)
+
+# Define all possible report types and follow-up reports (keep your existing definitions)
 ALL_REPORT_TYPES = [
-    "Arrival at Port", "Arrival at STS", "Departure from Port", "Departure from STS",
-    "Noon at Port/STS", "Bunkering", "Off hire", "Begin Fuel Changeover",
-    "End Fuel Changeover", "Begin of Offhire", "End of Offhire", "ArrivalSTS",
-    "DepartureSTS", "Begin Canal Passage", "End Canal Passage",
-    "Begin Anchoring/Drifting", "End Anchoring/Drifting", "Noon (Position) - River",
-    "Noon (Position) - Stoppage", "Entering Special Area", "Leaving Special Area",
-    "End of Sea Passage (EOSP)"
+    # Your existing report types
 ]
 
-# Define the follow-up reports for each report type
 FOLLOW_UP_REPORTS = {
-    "Arrival at Port": ["Departure from Port", "Noon at Port/STS", "Bunkering", "Off hire", "Begin Fuel Changeover", "End Fuel Changeover"],
-    "Arrival at STS": ["Departure from STS", "Noon at Port/STS", "Bunkering", "Off hire", "Begin Fuel Changeover", "End Fuel Changeover"],
-    "Departure from Port": ["Noon at Port/STS", "Begin of Offhire", "End of Offhire", "ArrivalSTS", "DepartureSTS", "Begin Canal Passage", "End Canal Passage", "Begin Anchoring/Drifting", "End Anchoring/Drifting", "Noon (Position) - River", "Noon (Position) - Stoppage", "Begin Fuel Changeover", "End Fuel Changeover", "Entering Special Area", "Leaving Special Area"],
-    "Departure from STS": ["Noon at Port/STS", "Begin of Offhire", "End of Offhire", "ArrivalSTS", "DepartureSTS", "Begin Canal Passage", "End Canal Passage", "Begin Anchoring/Drifting", "End Anchoring/Drifting", "Noon (Position) - River", "Noon (Position) - Stoppage", "Begin Fuel Changeover", "End Fuel Changeover", "Entering Special Area", "Leaving Special Area"],
-    "End of Sea Passage (EOSP)": ["Noon at Port/STS", "Begin of Offhire", "End of Offhire", "ArrivalSTS", "DepartureSTS", "Begin Canal Passage", "End Canal Passage", "Begin Anchoring/Drifting", "End Anchoring/Drifting", "Noon (Position) - River", "Noon (Position) - Stoppage", "Begin Fuel Changeover", "End Fuel Changeover", "Entering Special Area", "Leaving Special Area"]
+    # Your existing follow-up report definitions
 }
 
-# Define reports that require a specific follow-up
 REQUIRED_FOLLOW_UPS = {
-    "Begin Fuel Changeover": "End Fuel Changeover",
-    "Entering Special Area": "Leaving Special Area",
-    "Begin of Offhire": "End of Offhire",
-    "Begin Canal Passage": "End Canal Passage",
-    "Begin Anchoring/Drifting": "End Anchoring/Drifting",
-    "Arrival at Port": "Departure from Port",
-    "Arrival at STS": "Departure from STS",
-    "ArrivalSTS": "DepartureSTS"
+    # Your existing required follow-ups
 }
+
+# NLP preprocessing
+lemmatizer = WordNetLemmatizer()
+stop_words = set(stopwords.words('english'))
+
+def preprocess_text(text):
+    tokens = word_tokenize(text.lower())
+    tokens = [lemmatizer.lemmatize(token) for token in tokens if token not in stop_words and token.isalnum()]
+    return tokens
+
+def extract_intent(tokens):
+    create_keywords = ['create', 'make', 'new', 'start']
+    view_keywords = ['see', 'view', 'show', 'list']
+    
+    if any(word in tokens for word in create_keywords):
+        return 'create_report'
+    elif any(word in tokens for word in view_keywords):
+        return 'view_reports'
+    else:
+        return 'unknown'
+
+def extract_report_type(tokens):
+    for report_type in ALL_REPORT_TYPES:
+        if all(word in tokens for word in report_type.lower().split()):
+            return report_type
+    return None
 
 def get_chatbot_response(last_report, user_input):
-    if user_input == "I want to create a report":
+    tokens = preprocess_text(user_input)
+    intent = extract_intent(tokens)
+    report_type = extract_report_type(tokens)
+
+    if intent == 'create_report':
         response = f"Your last report was '{last_report}'. "
         
+        if report_type:
+            response += f"You've indicated you want to create a {report_type} report. "
+        else:
+            response += "Which type of report would you like to create? "
+
         if last_report in REQUIRED_FOLLOW_UPS:
             response += f"Remember that you may need to complete the '{REQUIRED_FOLLOW_UPS[last_report]}' report. "
         
@@ -51,13 +84,13 @@ def get_chatbot_response(last_report, user_input):
         else:
             options = ", ".join(ALL_REPORT_TYPES)
             response += f"You can create any of the following reports: {options}. "
-        
-        response += "Which report would you like to create?"
-        return response
-    elif user_input == "I want to see the last voyage reports list":
-        return "Here is a placeholder for the last voyage reports list. In a real implementation, this would fetch and display the actual list of recent reports."
+
+    elif intent == 'view_reports':
+        response = "Here is a placeholder for the last voyage reports list. In a real implementation, this would fetch and display the actual list of recent reports."
     else:
-        return "I'm sorry, I didn't understand that request. Would you like to create a report or see the last voyage reports list?"
+        response = "I'm not sure I understood that. Would you like to create a new report or view existing reports? You can say something like 'Create a new arrival report' or 'Show me the last voyage reports'."
+
+    return response
 
 def main():
     st.title("AI-Enhanced Maritime Reporting System")
@@ -93,18 +126,10 @@ def create_chatbot():
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
-    # Display default options if no messages
-    if not st.session_state.messages:
-        st.button("I want to create a report", on_click=lambda: add_user_message("I want to create a report"))
-        st.button("I want to see the last voyage reports list", on_click=lambda: add_user_message("I want to see the last voyage reports list"))
-
     # React to user input
-    if prompt := st.chat_input("Type your message here"):
+    if prompt := st.chat_input("How can I assist you with your maritime reporting?"):
         add_user_message(prompt)
-
-    # Generate and display chatbot response
-    if st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
-        response = get_chatbot_response(last_report, st.session_state.messages[-1]["content"])
+        response = get_chatbot_response(last_report, prompt)
         add_assistant_message(response)
 
 def add_user_message(message):
