@@ -134,7 +134,6 @@ def create_form():
 
 def clear_chat_history():
     st.session_state.messages = []
-    st.session_state.last_report = ALL_REPORT_TYPES[0]  # Reset to the first report type
 
 def create_chatbot():
     st.header("AI Assistant")
