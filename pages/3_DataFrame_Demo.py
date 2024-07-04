@@ -144,7 +144,6 @@ def create_chatbot():
     # Clear Chat button
     if st.button("Clear Chat"):
         clear_chat_history()
-        st.experimental_rerun()
 
     # Initialize chat history
     if "messages" not in st.session_state:
@@ -157,15 +156,17 @@ def create_chatbot():
 
     # React to user input
     if prompt := st.chat_input("How can I assist you with your maritime reporting?"):
-        add_user_message(prompt)
+        # Add user message to chat history
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        
+        # Get chatbot response
         response = get_chatbot_response(last_report, prompt)
-        add_assistant_message(response)
-
-def add_user_message(message):
-    st.session_state.messages.append({"role": "user", "content": message})
-
-def add_assistant_message(message):
-    st.session_state.messages.append({"role": "assistant", "content": message})
+        
+        # Add assistant message to chat history
+        st.session_state.messages.append({"role": "assistant", "content": response})
+        
+        # Force a rerun to display the new messages
+        st.experimental_rerun()
 
 if __name__ == "__main__":
     main()
