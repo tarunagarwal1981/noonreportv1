@@ -120,7 +120,7 @@ def create_form():
 
 def clear_chat_history():
     st.session_state.messages = []
-    st.session_state.last_report = REPORT_TYPES[0]
+    # Removed the line that tries to reset last_report
 
 def create_chatbot():
     st.header("AI Assistant")
@@ -132,6 +132,7 @@ def create_chatbot():
 
     if st.button("Clear Chat"):
         clear_chat_history()
+        st.experimental_rerun()
 
     if "messages" not in st.session_state:
         st.session_state.messages = []
