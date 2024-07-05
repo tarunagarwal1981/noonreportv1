@@ -89,7 +89,8 @@ def get_chatbot_response(last_report, user_input):
                 if "noon" in report_type.lower() and not is_noon_report_time():
                     return "Noon reports can only be created between 11:00 and 13:00 LT."
                 if "fuel change over" in report_type.lower():
-                    return f"Initiating {report_type}. This can be done during any state. Please provide the necessary details."
+                    st.session_state.current_report_type = report_type
+                    return f"Initiating {report_type}. This can be done during any state. Please fill out the form on the left side of the screen with the necessary details."
                 st.session_state.current_report_type = report_type
                 return f"Initiating {report_type}. Please fill out the form on the left side of the screen with the necessary details."
             else:
@@ -201,11 +202,15 @@ def create_report_form(report_type):
 def main():
     st.title("AI-Enhanced Maritime Reporting System")
     
+    # Initialize current_report_type if it doesn't exist
+    if 'current_report_type' not in st.session_state:
+        st.session_state.current_report_type = None
+    
     col1, col2 = st.columns([0.7, 0.3])
 
     with col1:
         st.markdown('<div class="reportSection">', unsafe_allow_html=True)
-        if 'current_report_type' in st.session_state:
+        if st.session_state.current_report_type:
             create_report_form(st.session_state.current_report_type)
         else:
             st.write("Please use the chatbot to initiate a report.")
@@ -218,6 +223,7 @@ def main():
 
 def clear_chat_history():
     st.session_state.messages = []
+    # We're not clearing the current_report_type here
 
 def create_chatbot():
     st.header("AI Assistant")
