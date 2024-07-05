@@ -142,32 +142,43 @@ def create_form():
         st.text_input("Cargo Weight")
         
         st.subheader("Fuel Consumption Section")
-        st.text_input("Fuel Type")
-        st.text_input("Fuel Consumption")
+        st.text_input("Main Engines Fuel Consumption (HFO, LFO, MGO, etc.)")
+        st.text_input("Auxiliary Engines Fuel Consumption (HFO, LFO, MGO, etc.)")
+        st.text_input("Boilers Fuel Consumption (HFO, LFO, MGO, etc.)")
+        st.text_input("Inert Gas Generators Fuel Consumption")
+        st.text_input("Incinerators Fuel Consumption")
         
         st.subheader("ROB Section")
-        st.text_input("Fuel ROB")
+        st.text_input("Main Engines Fuel ROB")
+        st.text_input("Auxiliary Engines Fuel ROB")
+        st.text_input("Boilers Fuel ROB")
+        st.text_input("Inert Gas Generators Fuel ROB")
+        st.text_input("Incinerators Fuel ROB")
         
         st.subheader("Fuel Allocation Section")
-        st.text_input("DP Part")
+        st.text_input("DP Fuel Consumption")
         
         st.subheader("Machinery Section")
-        st.text_input("Main Engine Data")
-        st.text_input("Auxiliary Engine Data")
+        st.text_input("Main Engine Running Hours")
+        st.text_input("Auxiliary Engine Running Hours")
         
         st.subheader("Weather Section")
         st.text_input("Wind Direction")
         st.text_input("Wind Speed")
         st.text_input("Sea State")
+        st.text_input("Swell")
+        st.text_input("Current")
+        st.text_input("Temperature (ambient, water)")
         
         st.subheader("Draft Section")
-        st.text_input("Draft")
+                st.text_input("Draft: Fore")
+        st.text_input("Draft: Aft")
         
         st.form_submit_button(label='Submit Report')
 
 def clear_chat_history():
     st.session_state.messages = []
-    # Removed the line that tries to reset last_report
+    st.session_state.last_report = REPORT_TYPES[0]  # Reset the last report to the default
 
 def create_chatbot():
     st.header("AI Assistant")
@@ -196,3 +207,4 @@ def create_chatbot():
 
 if __name__ == "__main__":
     main()
+
