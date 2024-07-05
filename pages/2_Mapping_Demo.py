@@ -171,7 +171,7 @@ def create_form():
         st.text_input("Temperature (ambient, water)")
         
         st.subheader("Draft Section")
-                st.text_input("Draft: Fore")
+        st.text_input("Draft: Fore")
         st.text_input("Draft: Aft")
         
         st.form_submit_button(label='Submit Report')
