@@ -1,117 +1,96 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime, time
-import random
-import string
-import re
+import pytz
 
 # Set page config
 st.set_page_config(layout="wide", page_title="Maritime Reporting System")
 
-# Custom CSS (keep your existing styles)
+# Custom CSS
 st.markdown("""
 <style>
-    /* Your existing styles here */
-    .stButton > button {
-        width: 100%;
-    }
+    .reportSection { padding-right: 1rem; }
+    .chatSection { padding-left: 1rem; border-left: 1px solid #e0e0e0; }
+    .stButton > button { width: 100%; }
+    .main .block-container { padding-top: 1rem; padding-bottom: 1rem; max-width: 100%; }
+    h1, h2, h3 { margin-top: 0; }
+    .stAlert { margin-top: 1rem; }
 </style>
 """, unsafe_allow_html=True)
 
-# Define all possible report types
-ALL_REPORT_TYPES = [
-    "Arrival at Port", "Arrival at STS", "Departure from Port", "Departure from STS",
-    "Noon at Port/STS", "Bunkering", "Off hire", "Begin Fuel Changeover",
-    "End Fuel Changeover", "Begin of Offhire", "End of Offhire", "ArrivalSTS",
-    "DepartureSTS", "Begin Canal Passage", "End Canal Passage",
-    "Begin Anchoring/Drifting", "End Anchoring/Drifting", "Noon (Position) - River",
-    "Noon (Position) - Stoppage", "Entering Special Area", "Leaving Special Area",
-    "End of Sea Passage (EOSP)"
+# Define report types and their sequences
+REPORT_TYPES = [
+    "Arrival", "Departure", "Begin of sea passage", "End of sea passage",
+    "Noon (Position) - Sea passage", "Drifting", "Anchor Arrival / FWE",
+    "Noon Port / Anchor", "Anchor/STS Departure / SBE", "Berth Arrival / FWE",
+    "Berth Departure / SBE", "Begin fuel change over", "End fuel change over",
+    "Entering special area", "Leaving special area", "Begin offhire", "End offhire",
+    "Begin canal passage", "End canal passage", "Begin Anchoring/Drifting",
+    "End Anchoring/Drifting", "Noon (Position) - Port", "Noon (Position) - River",
+    "Noon (Position) - Stoppage", "ETA update", "Change destination (Deviation)",
+    "Begin of deviation", "End of deviation", "Other event"
 ]
 
-# Define the follow-up reports for each report type
 FOLLOW_UP_REPORTS = {
-    "Arrival at Port": ["Departure from Port", "Noon at Port/STS", "Bunkering", "Off hire", "Begin Fuel Changeover", "End Fuel Changeover"],
-    "Arrival at STS": ["Departure from STS", "Noon at Port/STS", "Bunkering", "Off hire", "Begin Fuel Changeover", "End Fuel Changeover"],
-    "Departure from Port": ["Noon at Port/STS", "Begin of Offhire", "End of Offhire", "ArrivalSTS", "DepartureSTS", "Begin Canal Passage", "End Canal Passage", "Begin Anchoring/Drifting", "End Anchoring/Drifting", "Noon (Position) - River", "Noon (Position) - Stoppage", "Begin Fuel Changeover", "End Fuel Changeover", "Entering Special Area", "Leaving Special Area"],
-    "Departure from STS": ["Noon at Port/STS", "Begin of Offhire", "End of Offhire", "ArrivalSTS", "DepartureSTS", "Begin Canal Passage", "End Canal Passage", "Begin Anchoring/Drifting", "End Anchoring/Drifting", "Noon (Position) - River", "Noon (Position) - Stoppage", "Begin Fuel Changeover", "End Fuel Changeover", "Entering Special Area", "Leaving Special Area"],
-    "End of Sea Passage (EOSP)": ["Noon at Port/STS", "Begin of Offhire", "End of Offhire", "ArrivalSTS", "DepartureSTS", "Begin Canal Passage", "End Canal Passage", "Begin Anchoring/Drifting", "End Anchoring/Drifting", "Noon (Position) - River", "Noon (Position) - Stoppage", "Begin Fuel Changeover", "End Fuel Changeover", "Entering Special Area", "Leaving Special Area"]
+    "Arrival": ["Departure", "Noon (Position) - Port", "Begin fuel change over", "Bunkering", "Off hire"],
+    "Departure": ["Begin of sea passage", "Noon (Position) - Port", "ArrivalSTS", "DepartureSTS", "Begin canal passage"],
+    "Begin of sea passage": ["Noon (Position) - Sea passage", "End of sea passage"],
+    "Noon (Position) - Sea passage": ["Noon (Position) - Sea passage", "End of sea passage"],
+    "End of sea passage": ["Anchor Arrival / FWE", "Berth Arrival / FWE"],
+    "Anchor Arrival / FWE": ["Noon Port / Anchor", "Anchor/STS Departure / SBE"],
+    "Berth Arrival / FWE": ["Noon (Position) - Port", "Berth Departure / SBE"]
 }
 
-# Define reports that require a specific follow-up
 REQUIRED_FOLLOW_UPS = {
-    "Begin Fuel Changeover": "End Fuel Changeover",
-    "Entering Special Area": "Leaving Special Area",
-    "Begin of Offhire": "End of Offhire",
-    "Begin Canal Passage": "End Canal Passage",
+    "Begin fuel change over": "End fuel change over",
+    "Entering special area": "Leaving special area",
+    "Begin offhire": "End offhire",
+    "Begin canal passage": "End canal passage",
     "Begin Anchoring/Drifting": "End Anchoring/Drifting",
-    "Arrival at Port": "Departure from Port",
-    "Arrival at STS": "Departure from STS",
-    "ArrivalSTS": "DepartureSTS"
+    "Begin of deviation": "End of deviation"
 }
 
-# Simple tokenization function
-def tokenize(text):
-    return re.findall(r'\b\w+\b', text.lower())
+def is_valid_sequence(last_report, new_report):
+    if last_report in FOLLOW_UP_REPORTS:
+        return new_report in FOLLOW_UP_REPORTS[last_report]
+    return True
 
-# Simple stemming function
-def simple_stem(word):
-    suffixes = ['ing', 'ly', 'ed', 'ious', 'ies', 'ive', 'es', 's']
-    for suffix in suffixes:
-        if word.endswith(suffix):
-            return word[:-len(suffix)]
-    return word
+def is_noon_report_time():
+    now = datetime.now(pytz.utc)
+    return 11 <= now.hour <= 13
 
-def preprocess_text(text):
-    tokens = tokenize(text)
-    return [simple_stem(token) for token in tokens]
-
-def extract_intent(tokens):
-    create_keywords = ['create', 'make', 'new', 'start']
-    view_keywords = ['see', 'view', 'show', 'list']
-    
-    if any(word in tokens for word in create_keywords):
-        return 'create_report'
-    elif any(word in tokens for word in view_keywords):
-        return 'view_reports'
-    else:
-        return 'unknown'
-
-def extract_report_type(tokens):
-    for report_type in ALL_REPORT_TYPES:
-        if all(simple_stem(word) in tokens for word in tokenize(report_type.lower())):
-            return report_type
-    return None
+def get_pending_reports(last_report):
+    return [REQUIRED_FOLLOW_UPS[last_report]] if last_report in REQUIRED_FOLLOW_UPS else []
 
 def get_chatbot_response(last_report, user_input):
-    tokens = preprocess_text(user_input)
-    intent = extract_intent(tokens)
-    report_type = extract_report_type(tokens)
-
-    if intent == 'create_report':
-        response = f"Your last report was '{last_report}'. "
+    pending_reports = get_pending_reports(last_report)
+    
+    if "create a report" in user_input.lower():
+        if pending_reports:
+            return f"You need to complete the following report first: {pending_reports[0]}"
         
-        if report_type:
-            response += f"You've indicated you want to create a {report_type} report. "
-        else:
-            response += "Which type of report would you like to create? "
-
-        if last_report in REQUIRED_FOLLOW_UPS:
-            response += f"Remember that you may need to complete the '{REQUIRED_FOLLOW_UPS[last_report]}' report. "
+        valid_reports = FOLLOW_UP_REPORTS.get(last_report, REPORT_TYPES)
         
-        if last_report in FOLLOW_UP_REPORTS:
-            options = ", ".join(FOLLOW_UP_REPORTS[last_report])
-            response += f"You can create one of the following reports: {options}. "
-        else:
-            options = ", ".join(ALL_REPORT_TYPES)
-            response += f"You can create any of the following reports: {options}. "
-
-    elif intent == 'view_reports':
-        response = "Here is a placeholder for the last voyage reports list. In a real implementation, this would fetch and display the actual list of recent reports."
+        if "noon" in last_report.lower() and not is_noon_report_time():
+            valid_reports = [report for report in valid_reports if "noon" not in report.lower()]
+        
+        report_options = "\n".join([f"- {report}" for report in valid_reports])
+        return f"Your last report was '{last_report}'. You can create one of the following reports:\n{report_options}\nWhich report would you like to create?"
+    
+    elif "see the last voyage reports" in user_input.lower():
+        return "Here is a placeholder for the last voyage reports list. In a real implementation, this would fetch and display the actual list of recent reports."
+    
     else:
-        response = "I'm not sure I understood that. Would you like to create a new report or view existing reports? You can say something like 'Create a new arrival report' or 'Show me the last voyage reports'."
-
-    return response
+        for report_type in REPORT_TYPES:
+            if report_type.lower() in user_input.lower():
+                if is_valid_sequence(last_report, report_type):
+                    if "noon" in report_type.lower() and not is_noon_report_time():
+                        return "Noon reports can only be created between 11:00 and 13:00 LT."
+                    return f"Please provide the details for the {report_type} report."
+                else:
+                    return f"Invalid report sequence. The {report_type} report cannot follow the {last_report} report."
+        
+        return "I'm not sure what you want to do. Would you like to create a new report or see the last voyage reports?"
 
 def main():
     st.title("AI-Enhanced Maritime Reporting System")
@@ -129,43 +108,35 @@ def main():
         st.markdown('</div>', unsafe_allow_html=True)
 
 def create_form():
-    # Your existing form code here (unchanged)
-    pass
+    # Placeholder for the form code
+    st.write("Report form will be implemented here.")
 
 def clear_chat_history():
     st.session_state.messages = []
+    st.session_state.last_report = REPORT_TYPES[0]
 
 def create_chatbot():
     st.header("AI Assistant")
     
-    # Dropdown for selecting last report (for testing)
-    last_report = st.selectbox("Select last report (for testing)", ALL_REPORT_TYPES, key="last_report")
+    if "last_report" not in st.session_state:
+        st.session_state.last_report = REPORT_TYPES[0]
 
-    # Clear Chat button
+    last_report = st.selectbox("Select last report (for testing)", REPORT_TYPES, key="last_report")
+
     if st.button("Clear Chat"):
         clear_chat_history()
 
-    # Initialize chat history
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
-    # Display chat messages from history on app rerun
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
-    # React to user input
     if prompt := st.chat_input("How can I assist you with your maritime reporting?"):
-        # Add user message to chat history
         st.session_state.messages.append({"role": "user", "content": prompt})
-        
-        # Get chatbot response
         response = get_chatbot_response(last_report, prompt)
-        
-        # Add assistant message to chat history
         st.session_state.messages.append({"role": "assistant", "content": response})
-        
-        # Force a rerun to display the new messages
         st.experimental_rerun()
 
 if __name__ == "__main__":
