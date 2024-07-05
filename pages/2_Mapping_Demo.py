@@ -19,41 +19,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Define report types and their sequences
-REPORT_TYPES = [
-    "Arrival", "Departure", "Begin of sea passage", "End of sea passage",
-    "Noon (Position) - Sea passage", "Drifting", "Anchor Arrival / FWE",
-    "Noon Port / Anchor", "Anchor/STS Departure / SBE", "Berth Arrival / FWE",
-    "Berth Departure / SBE", "Begin fuel change over", "End fuel change over",
-    "Entering special area", "Leaving special area", "Begin offhire", "End offhire",
-    "Begin canal passage", "End canal passage", "Begin Anchoring/Drifting",
-    "End Anchoring/Drifting", "Noon (Position) - Port", "Noon (Position) - River",
-    "Noon (Position) - Stoppage", "ETA update", "Change destination (Deviation)",
-    "Begin of deviation", "End of deviation", "Other event"
-]
-
-FOLLOW_UP_REPORTS = {
-    "Arrival": ["Departure", "Noon (Position) - Port", "Begin fuel change over", "End fuel change over", "Bunkering", "Off hire"],
-    "Departure": ["Begin of sea passage", "Noon (Position) - Port", "ArrivalSTS", "DepartureSTS", "Begin canal passage", "End canal passage", "Begin Anchoring/Drifting", "End Anchoring/Drifting", "Noon (Position) - River", "Noon (Position) - Stoppage", "Begin fuel change over", "End fuel change over", "Entering special area", "Leaving special area"],
-    "Begin of sea passage": ["Noon (Position) - Sea passage", "End of sea passage", "Begin fuel change over", "End fuel change over", "Entering special area", "Leaving special area"],
-    "End of sea passage": ["Anchor Arrival / FWE", "Berth Arrival / FWE", "Begin Anchoring/Drifting"],
-    "Noon (Position) - Sea passage": ["Noon (Position) - Sea passage", "End of sea passage", "Begin fuel change over", "End fuel change over", "Entering special area", "Leaving special area"],
-    "Drifting": ["End Anchoring/Drifting", "Begin of sea passage"],
-    "Anchor Arrival / FWE": ["Noon Port / Anchor", "Anchor/STS Departure / SBE", "Begin fuel change over", "End fuel change over"],
-    "Noon Port / Anchor": ["Noon Port / Anchor", "Anchor/STS Departure / SBE", "Begin fuel change over", "End fuel change over"],
-    "Anchor/STS Departure / SBE": ["Begin of sea passage", "Berth Arrival / FWE"],
-    "Berth Arrival / FWE": ["Noon (Position) - Port", "Berth Departure / SBE", "Begin fuel change over", "End fuel change over"],
-    "Berth Departure / SBE": ["Begin of sea passage", "Anchor Arrival / FWE"]
-}
-
-REQUIRED_FOLLOW_UPS = {
-    "Begin fuel change over": "End fuel change over",
-    "Entering special area": "Leaving special area",
-    "Begin offhire": "End offhire",
-    "Begin canal passage": "End canal passage",
-    "Begin Anchoring/Drifting": "End Anchoring/Drifting",
-    "Begin of deviation": "End of deviation"
-}
+# [Keep all the REPORT_TYPES, FOLLOW_UP_REPORTS, and REQUIRED_FOLLOW_UPS as before]
 
 def is_valid_sequence(last_report, new_report):
     if last_report in FOLLOW_UP_REPORTS:
@@ -104,98 +70,8 @@ def get_chatbot_response(last_report, user_input):
 def create_report_form(report_type):
     st.subheader(f"{report_type} Report")
     
-    # Vessel data (Auto fill for all reports)
-    st.subheader("Vessel Data")
-    col1, col2 = st.columns(2)
-    with col1:
-        st.text_input("Vessel Name", key="vessel_name")
-    with col2:
-        st.text_input("IMO Number", key="imo_number")
-    
-    # Voyage data
-    st.subheader("Voyage Data")
-    col1, col2 = st.columns(2)
-    with col1:
-        st.text_input("Voyage ID", key="voyage_id")
-    with col2:
-        st.text_input("Segment ID", key="segment_id")
-    
-    # Event data
-    st.subheader("Event Data")
-    if "drifting" in report_type.lower():
-        st.number_input("Drifting Hours", min_value=0.0, step=0.1, key="drifting_hours")
-    if report_type in ["End of sea passage", "Begin of sea passage"]:
-        st.number_input("Maneuvering Time (hours)", min_value=0.0, step=0.1, key="maneuvering_time")
-    if "anchor" in report_type.lower():
-        st.number_input("Anchor Time (hours)", min_value=0.0, step=0.1, key="anchor_time")
-    
-    # Position (All reports)
-    st.subheader("Position")
-    col1, col2 = st.columns(2)
-    with col1:
-        st.text_input("Latitude", key="latitude")
-    with col2:
-        st.text_input("Longitude", key="longitude")
-    
-    # Cargo (All reports)
-    st.subheader("Cargo")
-    st.number_input("Cargo Quantity (MT)", min_value=0.0, step=0.1, key="cargo_quantity")
-    
-    # Fuel Consumption (All reports)
-    st.subheader("Fuel Consumption")
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.number_input("HFO Consumption (MT)", min_value=0.0, step=0.1, key="hfo_consumption")
-    with col2:
-        st.number_input("LFO Consumption (MT)", min_value=0.0, step=0.1, key="lfo_consumption")
-    with col3:
-        st.number_input("MGO Consumption (MT)", min_value=0.0, step=0.1, key="mgo_consumption")
-    
-    # ROB (All reports)
-    st.subheader("Remaining On Board (ROB)")
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.number_input("HFO ROB (MT)", min_value=0.0, step=0.1, key="hfo_rob")
-    with col2:
-        st.number_input("LFO ROB (MT)", min_value=0.0, step=0.1, key="lfo_rob")
-    with col3:
-        st.number_input("MGO ROB (MT)", min_value=0.0, step=0.1, key="mgo_rob")
-    
-    # Fuel allocation (All reports)
-    st.subheader("Fuel Allocation")
-    st.text_area("Fuel Allocation Details", key="fuel_allocation")
-    
-    # Main Engine (Only for noon at sea reports and EOSP reports)
-    if report_type in ["Noon (Position) - Sea passage", "End of sea passage"]:
-        st.subheader("Main Engine")
-        col1, col2 = st.columns(2)
-        with col1:
-            st.number_input("Main Engine RPM", min_value=0, step=1, key="me_rpm")
-        with col2:
-            st.number_input("Main Engine Load (%)", min_value=0, max_value=100, step=1, key="me_load")
-    
-    # Aux Engines (All reports)
-    st.subheader("Auxiliary Engines")
-    st.text_area("Auxiliary Engines Details", key="aux_engines_details")
-    
-    # Weather (All reports)
-    st.subheader("Weather")
-    col1, col2 = st.columns(2)
-    with col1:
-        st.number_input("Wind Speed (knots)", min_value=0, step=1, key="wind_speed")
-        st.selectbox("Wind Direction", ["N", "NE", "E", "SE", "S", "SW", "W", "NW"], key="wind_direction")
-    with col2:
-        st.number_input("Sea State (Douglas Scale)", min_value=0, max_value=9, step=1, key="sea_state")
-        st.number_input("Swell Height (m)", min_value=0.0, step=0.1, key="swell_height")
-    
-    # Draft (All reports)
-    st.subheader("Draft")
-    col1, col2 = st.columns(2)
-    with col1:
-        st.number_input("Forward Draft (m)", min_value=0.0, step=0.1, key="forward_draft")
-    with col2:
-        st.number_input("Aft Draft (m)", min_value=0.0, step=0.1, key="aft_draft")
-    
+    # [Keep all the form fields as before]
+
     if st.button("Submit Report"):
         st.success(f"{report_type} report submitted successfully!")
 
