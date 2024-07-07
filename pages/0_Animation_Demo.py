@@ -9,7 +9,7 @@ import random
 import string
 
 # Set page config
-st.set_page_config(layout="wide", page_title="OceanLog - AI-Enhanced Maritime Reporting System")
+st.set_page_config(layout="wide", page_title="OptiLog - AI-Enhanced Maritime Reporting System")
 
 # Custom CSS for compact layout, history panel, and field prompts
 st.markdown("""
@@ -19,7 +19,7 @@ st.markdown("""
     .stButton > button { width: 100%; }
     .main .block-container { padding-top: 2rem; padding-bottom: 2rem; max-width: 100%; }
     h1, h2, h3 { margin-top: 0; font-size: 1.5em; line-height: 1.3; padding: 0.5rem 0; }
-    .stAlert { margin-top: 1rem; }
+    .stAlert { margin-top: 1rem; font-size: 0.9em; }
     .stNumberInput, .stTextInput, .stSelectbox { 
         padding-bottom: 0.5rem !important; 
     }
@@ -51,6 +51,7 @@ st.markdown("""
         color: #666;
         margin-bottom: 2px;
     }
+    .stWarning { font-size: 0.9em !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -134,8 +135,7 @@ VALIDATION_RULES = {
 
 # Prepare the training data as a string
 TRAINING_DATA = f"""
-You are an AI assistant for an advanced maritime reporting system, with the knowledge and experience of a seasoned maritime seafarer. Your role is to guide users through creating various types of maritime reports, ensuring compliance with industry standards and regulations while maintaining a logical sequence of events
-while maintaining a logical sequence of events. 
+You are an AI assistant for an advanced maritime reporting system, with the knowledge and experience of a seasoned maritime seafarer. Your role is to guide users through creating various types of maritime reports, ensuring compliance with industry standards and regulations while maintaining a logical sequence of events. 
 Keep your responses as short and crisp and easy to understand as possible. While suggesting the reports just suggest the name of the reports not their explanations.
 Valid report types: {', '.join(REPORT_TYPES)}
 
@@ -209,52 +209,30 @@ def create_fields(fields, prefix):
             st.markdown(f'<p class="field-prompt">{field}</p>', unsafe_allow_html=True)
             
             if field == "Vessel Name":
-                st.text_input(field, value=generate_random_vessel_name(), key=field_key)
+                st.text_input("", value=generate_random_vessel_name(), key=field_key)
             elif field == "Vessel IMO":
-                st.text_input(field, value=generate_random_imo(), key=field_key)
+                st.text_input("", value=generate_random_imo(), key=field_key)
             elif "Date" in field:
-                st.date_input(field, key=field_key)
+                st.date_input("", key=field_key)
             elif "Time" in field:
-                st.time_input(field, key=field_key)
+                st.time_input("", key=field_key)
             elif field in VALIDATION_RULES:
                 min_val, max_val = VALIDATION_RULES[field]["min"], VALIDATION_RULES[field]["max"]
-                value = st.number_input(field, min_value=min_val, max_value=max_val, key=field_key)
+                value = st.number_input("", min_value=min_val, max_value=max_val, key=field_key)
                 if value < min_val or value > max_val:
                     st.warning(f"{field} should be between {min_val} and {max_val}")
             elif any(unit in field for unit in ["(%)", "(mt)", "(kW)", "(°C)", "(bar)", "(g/kWh)", "(knots)", "(meters)", "(seconds)", "(degrees)"]):
-                st.number_input(field, key=field_key)
+                st.number_input("", key=field_key)
             elif "Direction" in field and "degrees" not in field:
-                st.selectbox(field, options=["N", "NE", "E", "SE", "S", "SW", "W", "NW"], key=field_key)
+                st.selectbox("", options=["N", "NE", "E", "SE", "S", "SW", "W", "NW"], key=field_key)
             else:
-                st.text_input(field, key=field_key)
+                st.text_input("", key=field_key)
             
             # Add specific validation for Main Engine consumption
             if field.startswith("ME ") and field.endswith(" (mt)"):
                 value = st.session_state.get(field_key, 0)
                 if value > 15:
-                    st.session_state[f"{prefix}_me_warning"] = True
-            
-            # Boiler consumption validation based on ME load
-            if field.startswith("Boiler ") and field.endswith(" (mt)"):
-                me_warning = st.session_state.get(f"{prefix}_me_warning", False)
-                if me_warning:
                     st.warning("Since ME is running at more than 50% load, Boiler consumption is expected to be zero.")
-            
-            # Add validation for total fuel consumption
-            if any(field.startswith(prefix_type) and field.endswith(" (mt)") for prefix_type in ["ME", "AE", "Boiler"]):
-                machinery_type = field.split()[0]
-                fuel_type = field.split()[-2].replace("(", "").replace(")", "").upper()
-                fuel_total_key = f"{prefix}_{machinery_type.lower()}_total"
-                
-                if fuel_total_key not in st.session_state:
-                    st.session_state[fuel_total_key] = 0
-                
-                value = st.session_state.get(field_key, 0)
-                st.session_state[fuel_total_key] += value
-                
-                max_total = VALIDATION_RULES[f"{machinery_type} LFO (mt)"]["max"]
-                if st.session_state[fuel_total_key] > max_total:
-                    st.warning(f"The total consumption of {machinery_type} exceeds the expected values ({max_total} mt).")
 
 def create_form(report_type):
     st.header(f"New {report_type}")
@@ -264,6 +242,9 @@ def create_form(report_type):
     if not report_structure:
         st.error(f"No structure defined for report type: {report_type}")
         return False
+    
+    total_me_consumption = 0
+    boiler_warning_shown = False
     
     for section in report_structure:
         with st.expander(section, expanded=False):  # Set expanded to False to collapse by default
@@ -278,6 +259,15 @@ def create_form(report_type):
                 create_fields(fields, f"{report_type}_{section}")
             else:
                 st.error(f"Unexpected field type for section {section}: {type(fields)}")
+            
+            if section == "Fuel Consumption":
+                for fuel in ["ME LFO (mt)", "ME MGO (mt)", "ME LNG (mt)", "ME Other (mt)"]:
+                    fuel_key = f"{report_type}_Fuel_Consumption_Main_Engine_{fuel.lower().replace(' ', '_')}"
+                    if fuel_key in st.session_state:
+                        total_me_consumption += st.session_state[fuel_key]
+                if total_me_consumption > 15 and not boiler_warning_shown:
+                    st.warning("Since ME is running at more than 50% load, Boiler consumption is expected to be zero.", icon="⚠️")
+                    boiler_warning_shown = True
 
     if st.button("Submit Report"):
         if validate_report(report_type):
@@ -286,7 +276,7 @@ def create_form(report_type):
         else:
             st.error("Please correct the errors in the report before submitting.")
     return False
-
+    
 def validate_report(report_type):
     # Add your validation logic here
     # For example, checking if all required fields are filled
@@ -356,7 +346,6 @@ def create_chatbot(last_reports):
             if f"Agreed. The form for {report_type}" in response:
                 if is_valid_report_sequence(last_reports, report_type):
                     st.session_state.current_report_type = report_type
-                    st.session_state.show_form = True
                     break
                 else:
                     st.warning(f"Invalid report sequence. {report_type} cannot follow the previous reports.")
@@ -403,7 +392,7 @@ def main():
 
     with col1:
         st.markdown('<div class="reportSection">', unsafe_allow_html=True)
-        if 'current_report_type' in st.session_state and st.session_state.current_report_type:
+        if 'current_report_type' in st.session_state:
             create_form(st.session_state.current_report_type)
         else:
             st.write("Please use the AI Assistant to initiate a report.")
