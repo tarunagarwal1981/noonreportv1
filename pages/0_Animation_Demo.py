@@ -70,33 +70,19 @@ REPORT_TYPES = [
     "Begin of deviation", "End of deviation", "Entering special area", "Leaving special area"
 ]
 
-# Define sections for each report type
+# Define sections and fields for each report type
 REPORT_SECTIONS = {
-    "Arrival": ["Vessel Data", "Voyage Data", "Event Data", "Position", "Cargo", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"],
-    "Departure": ["Vessel Data", "Voyage Data", "Event Data", "Position", "Cargo", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"],
-    "Begin of offhire": ["Vessel Data", "Voyage Data", "Event Data", "Position", "Cargo", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"],
-    "End of offhire": ["Vessel Data", "Voyage Data", "Event Data", "Position", "Cargo", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"],
-    "Arrival STS": ["Vessel Data", "Voyage Data", "Event Data", "Position", "Cargo", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"],
-    "Departure STS": ["Vessel Data", "Voyage Data", "Event Data", "Position", "Cargo", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"],
-    "STS": ["Vessel Data", "Voyage Data", "Event Data", "Position", "Cargo", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"],
-    "Begin canal passage": ["Vessel Data", "Voyage Data", "Event Data", "Position", "Cargo", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"],
-    "End canal passage": ["Vessel Data", "Voyage Data", "Event Data", "Position", "Cargo", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"],
-    "Begin of sea passage": ["Vessel Data", "Voyage Data", "Event Data", "Position", "Cargo", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"],
-    "End of sea passage": ["Vessel Data", "Voyage Data", "Event Data", "Position", "Cargo", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"],
-    "Begin Anchoring/Drifting": ["Vessel Data", "Voyage Data", "Event Data", "Position", "Cargo", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"],
-    "End Anchoring/Drifting": ["Vessel Data", "Voyage Data", "Event Data", "Position", "Cargo", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"],
-    "Noon (Position) - Sea passage": ["Vessel Data", "Voyage Data", "Event Data", "Position", "Cargo", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"],
-    "Noon (Position) - Port": ["Vessel Data", "Voyage Data", "Event Data", "Position", "Cargo", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"],
-    "Noon (Position) - River": ["Vessel Data", "Voyage Data", "Event Data", "Position", "Cargo", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"],
-    "Noon (Position) - Stoppage": ["Vessel Data", "Voyage Data", "Event Data", "Position", "Cargo", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"],
-    "ETA update": ["Vessel Data", "Voyage Data", "Position"],
-    "Begin fuel change over": ["Vessel Data", "Voyage Data", "Event Data", "Position", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"],
-    "End fuel change over": ["Vessel Data", "Voyage Data", "Event Data", "Position", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"],
-    "Change destination (Deviation)": ["Vessel Data", "Voyage Data", "Event Data", "Position", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"],
-    "Begin of deviation": ["Vessel Data", "Voyage Data", "Event Data", "Position", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"],
-    "End of deviation": ["Vessel Data", "Voyage Data", "Event Data", "Position", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"],
-    "Entering special area": ["Vessel Data", "Voyage Data", "Event Data", "Position", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"],
-    "Leaving special area": ["Vessel Data", "Voyage Data", "Event Data", "Position", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"]
+    "Vessel Data": ["Vessel Name", "Vessel IMO"],
+    "Voyage Data": ["Local Date", "Local Time", "UTC Offset", "Voyage ID", "Segment ID", "From Port", "To Port"],
+    "Event Data": ["Event Type", "Time Elapsed (hours)", "Sailing Time (hours)", "Anchor Time (hours)", "DP Time (hours)", "Ice Time (hours)", "Maneuvering (hours)", "Loading/Unloading (hours)", "Drifting (hours)"],
+    "Position": ["Latitude Degrees", "Latitude Minutes", "Latitude Direction", "Longitude Degrees", "Longitude Minutes", "Longitude Direction"],
+    "Cargo": ["Cargo Weight (mt)"],
+    "Fuel Consumption": ["ME LFO (mt)", "ME MGO (mt)", "ME LNG (mt)", "ME Other (mt)", "ME Other Fuel Type", "AE LFO (mt)", "AE MGO (mt)", "AE LNG (mt)", "AE Other (mt)", "AE Other Fuel Type", "Boiler LFO (mt)", "Boiler MGO (mt)", "Boiler LNG (mt)", "Boiler Other (mt)", "Boiler Other Fuel Type"],
+    "ROB": ["LFO ROB (mt)", "MGO ROB (mt)", "LNG ROB (mt)", "Other ROB (mt)", "Other Fuel Type ROB", "Total Fuel ROB (mt)"],
+    "Fuel Allocation": ["Cargo Heating LFO (mt)", "Cargo Heating MGO (mt)", "Cargo Heating LNG (mt)", "Cargo Heating Other (mt)", "Cargo Heating Other Fuel Type"],
+    "Machinery": ["ME Load (kW)", "ME Load Percentage (%)", "ME Speed (RPM)", "ME Propeller Pitch (m)", "ME Propeller Pitch Ratio", "ME Shaft Generator Power (kW)", "ME Charge Air Inlet Temp (°C)", "ME Scav. Air Pressure (bar)", "ME SFOC (g/kWh)", "ME SFOC ISO Corrected (g/kWh)", "AE1 Load (kW)", "AE1 Charge Air Inlet Temp (°C)", "AE1 Charge Air Pressure (bar)", "AE1 SFOC (g/kWh)", "AE1 SFOC ISO Corrected (g/kWh)", "AE2 Load (kW)", "AE2 Charge Air Inlet Temp (°C)", "AE2 Charge Air Pressure (bar)", "AE2 SFOC (g/kWh)", "AE2 SFOC ISO Corrected (g/kWh)", "AE3 Load (kW)", "AE3 Charge Air Inlet Temp (°C)", "AE3 Charge Air Pressure (bar)", "AE3 SFOC (g/kWh)", "AE3 SFOC ISO Corrected (g/kWh)"],
+    "Weather": ["Wind Direction (degrees)", "Wind Speed (knots)", "Wind Force (Beaufort)", "Sea State Direction (degrees)", "Sea State Force (Douglas scale)", "Sea State Period (seconds)", "Swell Direction (degrees)", "Swell Height (meters)", "Swell Period (seconds)", "Current Direction (degrees)", "Current Speed (knots)", "Air Temperature (°C)", "Sea Temperature (°C)"],
+    "Draft": ["Actual Forward Draft (m)", "Actual Aft Draft (m)", "Displacement (mt)", "Water Depth (m)"]
 }
 
 # Prepare the training data as a string
@@ -159,23 +145,23 @@ def get_ai_response(user_input, last_reports):
 def create_form(report_type):
     st.header(f"New {report_type}")
     
-    sections = REPORT_SECTIONS.get(report_type, [])
-    
-    for section in sections:
+    for section, fields in REPORT_SECTIONS.items():
         with st.expander(section, expanded=False):
-            if section == "Vessel Data":
-                st.text_input("Vessel Name", value=generate_random_vessel_name(), key=f"{report_type}_vessel_name")
-                st.text_input("IMO Number", value=generate_random_imo(), key=f"{report_type}_imo_number")
-            elif section == "Voyage Data":
-                st.date_input("Local Date", key=f"{report_type}_local_date")
-                st.time_input("Local Time", key=f"{report_type}_local_time")
-                st.selectbox("UTC Offset", options=[f"{i:+d}" for i in range(-12, 13)], key=f"{report_type}_utc_offset")
-                st.text_input("Voyage ID", key=f"{report_type}_voyage_id")
-                st.text_input("Segment ID", key=f"{report_type}_segment_id")
-                st.text_input("From Port", key=f"{report_type}_from_port")
-                st.text_input("To Port", key=f"{report_type}_to_port")
-            # Add more sections with their respective fields
-            # ...
+            for field in fields:
+                if section == "Vessel Data" and field == "Vessel Name":
+                    st.text_input(field, value=generate_random_vessel_name(), key=f"{report_type}_{field.lower().replace(' ', '_')}")
+                elif section == "Vessel Data" and field == "Vessel IMO":
+                    st.text_input(field, value=generate_random_imo(), key=f"{report_type}_{field.lower().replace(' ', '_')}")
+                elif "Date" in field:
+                    st.date_input(field, key=f"{report_type}_{field.lower().replace(' ', '_')}")
+                elif "Time" in field:
+                    st.time_input(field, key=f"{report_type}_{field.lower().replace(' ', '_')}")
+                elif any(unit in field for unit in ["(%)", "(mt)", "(kW)", "(°C)", "(bar)", "(g/kWh)", "(knots)", "(meters)", "(seconds)", "(degrees)"]):
+                    st.number_input(field, key=f"{report_type}_{field.lower().replace(' ', '_')}")
+                elif "Direction" in field:
+                    st.selectbox(field, options=["N", "NE", "E", "SE", "S", "SW", "W", "NW"], key=f"{report_type}_{field.lower().replace(' ', '_')}")
+                else:
+                    st.text_input(field, key=f"{report_type}_{field.lower().replace(' ', '_')}")
 
     if st.button("Submit Report"):
         st.success(f"{report_type} submitted successfully!")
@@ -215,9 +201,9 @@ def create_chatbot(last_reports):
         response = get_ai_response(prompt, last_reports)
         st.session_state.messages.append({"role": "assistant", "content": response})
         
-        # Check if a specific report type is mentioned
+        # Check if a specific report type is mentioned and agreed upon
         for report_type in REPORT_TYPES:
-            if report_type.lower() in prompt.lower():
+            if report_type.lower() in prompt.lower() and "agree" in prompt.lower():
                 st.session_state.current_report_type = report_type
                 st.session_state.show_form = True
                 break
