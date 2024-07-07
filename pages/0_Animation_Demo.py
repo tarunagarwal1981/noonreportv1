@@ -70,24 +70,51 @@ REPORT_TYPES = [
     "Begin of deviation", "End of deviation", "Entering special area", "Leaving special area"
 ]
 
-# Define sections and fields for each report type
-REPORT_SECTIONS = {
-    "Vessel Data": ["Vessel Name", "Vessel IMO"],
-    "Voyage Data": ["Local Date", "Local Time", "UTC Offset", "Voyage ID", "Segment ID", "From Port", "To Port"],
-    "Event Data": ["Event Type", "Time Elapsed (hours)", "Sailing Time (hours)", "Anchor Time (hours)", "DP Time (hours)", "Ice Time (hours)", "Maneuvering (hours)", "Loading/Unloading (hours)", "Drifting (hours)"],
-    "Position": ["Latitude Degrees", "Latitude Minutes", "Latitude Direction", "Longitude Degrees", "Longitude Minutes", "Longitude Direction"],
-    "Cargo": ["Cargo Weight (mt)"],
-    "Fuel Consumption": ["ME LFO (mt)", "ME MGO (mt)", "ME LNG (mt)", "ME Other (mt)", "ME Other Fuel Type", "AE LFO (mt)", "AE MGO (mt)", "AE LNG (mt)", "AE Other (mt)", "AE Other Fuel Type", "Boiler LFO (mt)", "Boiler MGO (mt)", "Boiler LNG (mt)", "Boiler Other (mt)", "Boiler Other Fuel Type"],
-    "ROB": ["LFO ROB (mt)", "MGO ROB (mt)", "LNG ROB (mt)", "Other ROB (mt)", "Other Fuel Type ROB", "Total Fuel ROB (mt)"],
-    "Fuel Allocation": ["Cargo Heating LFO (mt)", "Cargo Heating MGO (mt)", "Cargo Heating LNG (mt)", "Cargo Heating Other (mt)", "Cargo Heating Other Fuel Type"],
-    "Machinery": ["ME Load (kW)", "ME Load Percentage (%)", "ME Speed (RPM)", "ME Propeller Pitch (m)", "ME Propeller Pitch Ratio", "ME Shaft Generator Power (kW)", "ME Charge Air Inlet Temp (°C)", "ME Scav. Air Pressure (bar)", "ME SFOC (g/kWh)", "ME SFOC ISO Corrected (g/kWh)", "AE1 Load (kW)", "AE1 Charge Air Inlet Temp (°C)", "AE1 Charge Air Pressure (bar)", "AE1 SFOC (g/kWh)", "AE1 SFOC ISO Corrected (g/kWh)", "AE2 Load (kW)", "AE2 Charge Air Inlet Temp (°C)", "AE2 Charge Air Pressure (bar)", "AE2 SFOC (g/kWh)", "AE2 SFOC ISO Corrected (g/kWh)", "AE3 Load (kW)", "AE3 Charge Air Inlet Temp (°C)", "AE3 Charge Air Pressure (bar)", "AE3 SFOC (g/kWh)", "AE3 SFOC ISO Corrected (g/kWh)"],
-    "Weather": ["Wind Direction (degrees)", "Wind Speed (knots)", "Wind Force (Beaufort)", "Sea State Direction (degrees)", "Sea State Force (Douglas scale)", "Sea State Period (seconds)", "Swell Direction (degrees)", "Swell Height (meters)", "Swell Period (seconds)", "Current Direction (degrees)", "Current Speed (knots)", "Air Temperature (°C)", "Sea Temperature (°C)"],
-    "Draft": ["Actual Forward Draft (m)", "Actual Aft Draft (m)", "Displacement (mt)", "Water Depth (m)"]
+# Define detailed report structures
+REPORT_STRUCTURES = {
+    "Noon (Position) - Sea passage": {
+        "Vessel Data": ["Vessel Name", "Vessel IMO"],
+        "Voyage Data": ["Local Date", "Local Time", "UTC Offset", "Voyage ID", "Segment ID", "From Port", "To Port"],
+        "Event Data": ["Event Type", "Time Elapsed (hours)", "Sailing Time (hours)", "Anchor Time (hours)", "DP Time (hours)", "Ice Time (hours)", "Maneuvering (hours)", "Loading/Unloading (hours)", "Drifting (hours)"],
+        "Position": ["Latitude Degrees", "Latitude Minutes", "Latitude Direction", "Longitude Degrees", "Longitude Minutes", "Longitude Direction"],
+        "Cargo": ["Cargo Weight (mt)"],
+        "Fuel Consumption": {
+            "Main Engine": ["ME LFO (mt)", "ME MGO (mt)", "ME LNG (mt)", "ME Other (mt)", "ME Other Fuel Type"],
+            "Auxiliary Engines": ["AE LFO (mt)", "AE MGO (mt)", "AE LNG (mt)", "AE Other (mt)", "AE Other Fuel Type"],
+            "Boilers": ["Boiler LFO (mt)", "Boiler MGO (mt)", "Boiler LNG (mt)", "Boiler Other (mt)", "Boiler Other Fuel Type"]
+        },
+        "ROB": ["LFO ROB (mt)", "MGO ROB (mt)", "LNG ROB (mt)", "Other ROB (mt)", "Other Fuel Type ROB", "Total Fuel ROB (mt)"],
+        "Fuel Allocation": {
+            "Cargo Heating": ["Cargo Heating LFO (mt)", "Cargo Heating MGO (mt)", "Cargo Heating LNG (mt)", "Cargo Heating Other (mt)", "Cargo Heating Other Fuel Type"],
+            "Dynamic Positioning (DP)": ["DP LFO (mt)", "DP MGO (mt)", "DP LNG (mt)", "DP Other (mt)", "DP Other Fuel Type"]
+        },
+        "Machinery": {
+            "Main Engine": ["ME Load (kW)", "ME Load Percentage (%)", "ME Speed (RPM)", "ME Propeller Pitch (m)", "ME Propeller Pitch Ratio", "ME Shaft Generator Power (kW)", "ME Charge Air Inlet Temp (°C)", "ME Scav. Air Pressure (bar)", "ME SFOC (g/kWh)", "ME SFOC ISO Corrected (g/kWh)"],
+            "Auxiliary Engines": {
+                "Auxiliary Engine 1": ["AE1 Load (kW)", "AE1 Charge Air Inlet Temp (°C)", "AE1 Charge Air Pressure (bar)", "AE1 SFOC (g/kWh)", "AE1 SFOC ISO Corrected (g/kWh)"],
+                "Auxiliary Engine 2": ["AE2 Load (kW)", "AE2 Charge Air Inlet Temp (°C)", "AE2 Charge Air Pressure (bar)", "AE2 SFOC (g/kWh)", "AE2 SFOC ISO Corrected (g/kWh)"],
+                "Auxiliary Engine 3": ["AE3 Load (kW)", "AE3 Charge Air Inlet Temp (°C)", "AE3 Charge Air Pressure (bar)", "AE3 SFOC (g/kWh)", "AE3 SFOC ISO Corrected (g/kWh)"]
+            }
+        },
+        "Weather": {
+            "Wind": ["Wind Direction (degrees)", "Wind Speed (knots)", "Wind Force (Beaufort)"],
+            "Sea State": ["Sea State Direction (degrees)", "Sea State Force (Douglas scale)", "Sea State Period (seconds)"],
+            "Swell": ["Swell Direction (degrees)", "Swell Height (meters)", "Swell Period (seconds)"],
+            "Current": ["Current Direction (degrees)", "Current Speed (knots)"],
+            "Temperature": ["Air Temperature (°C)", "Sea Temperature (°C)"]
+        },
+        "Draft": {
+            "Actual": ["Actual Forward Draft (m)", "Actual Aft Draft (m)", "Displacement (mt)", "Water Depth (m)"]
+        }
+    }
+    # Add structures for other report types here...
 }
 
 # Prepare the training data as a string
 TRAINING_DATA = f"""
 You are an AI assistant for an advanced maritime reporting system. Your role is to guide users through creating various types of maritime reports, ensuring compliance with industry standards and regulations.
+
+Valid report types: {', '.join(REPORT_TYPES)}
 
 Key features:
 1. Error reduction and data completion assistance
@@ -95,13 +122,13 @@ Key features:
 3. Streamlined reporting process
 4. Enhanced accuracy in maritime operational reporting
 
-The valid report types are: {', '.join(REPORT_TYPES)}
-
-When suggesting follow-up reports, consider the history of the last 3-4 reports. Only suggest reports from the list provided above. Do not suggest any reports that are not in this list.
+When suggesting follow-up reports, consider the history of the last 3-4 reports. Only suggest reports from the list provided above.
 
 When a user agrees to create a specific report, inform them that the form will appear on the left side of the page with the relevant sections for that report type.
 
-Provide concise and helpful guidance throughout the report creation process.
+Provide concise and helpful guidance throughout the report creation process. If a user agrees to create a report, respond with "Agreed. The form for [REPORT TYPE] will now appear on the left side of the page."
+
+Remember to provide appropriate reminders and follow-up suggestions based on the current report context.
 """
 
 def generate_random_vessel_name():
@@ -142,26 +169,36 @@ def get_ai_response(user_input, last_reports):
     except Exception as e:
         return f"I'm sorry, but I encountered an error while processing your request: {str(e)}. Please try again later."
 
+def create_fields(fields, prefix):
+    for field in fields:
+        if field == "Vessel Name":
+            st.text_input(field, value=generate_random_vessel_name(), key=f"{prefix}_{field.lower().replace(' ', '_')}")
+        elif field == "Vessel IMO":
+            st.text_input(field, value=generate_random_imo(), key=f"{prefix}_{field.lower().replace(' ', '_')}")
+        elif "Date" in field:
+            st.date_input(field, key=f"{prefix}_{field.lower().replace(' ', '_')}")
+        elif "Time" in field:
+            st.time_input(field, key=f"{prefix}_{field.lower().replace(' ', '_')}")
+        elif any(unit in field for unit in ["(%)", "(mt)", "(kW)", "(°C)", "(bar)", "(g/kWh)", "(knots)", "(meters)", "(seconds)", "(degrees)"]):
+            st.number_input(field, key=f"{prefix}_{field.lower().replace(' ', '_')}")
+        elif "Direction" in field and "degrees" not in field:
+            st.selectbox(field, options=["N", "NE", "E", "SE", "S", "SW", "W", "NW"], key=f"{prefix}_{field.lower().replace(' ', '_')}")
+        else:
+            st.text_input(field, key=f"{prefix}_{field.lower().replace(' ', '_')}")
+
 def create_form(report_type):
     st.header(f"New {report_type}")
     
-    for section, fields in REPORT_SECTIONS.items():
+    report_structure = REPORT_STRUCTURES.get(report_type, {})
+    
+    for section, fields in report_structure.items():
         with st.expander(section, expanded=False):
-            for field in fields:
-                if section == "Vessel Data" and field == "Vessel Name":
-                    st.text_input(field, value=generate_random_vessel_name(), key=f"{report_type}_{field.lower().replace(' ', '_')}")
-                elif section == "Vessel Data" and field == "Vessel IMO":
-                    st.text_input(field, value=generate_random_imo(), key=f"{report_type}_{field.lower().replace(' ', '_')}")
-                elif "Date" in field:
-                    st.date_input(field, key=f"{report_type}_{field.lower().replace(' ', '_')}")
-                elif "Time" in field:
-                    st.time_input(field, key=f"{report_type}_{field.lower().replace(' ', '_')}")
-                elif any(unit in field for unit in ["(%)", "(mt)", "(kW)", "(°C)", "(bar)", "(g/kWh)", "(knots)", "(meters)", "(seconds)", "(degrees)"]):
-                    st.number_input(field, key=f"{report_type}_{field.lower().replace(' ', '_')}")
-                elif "Direction" in field:
-                    st.selectbox(field, options=["N", "NE", "E", "SE", "S", "SW", "W", "NW"], key=f"{report_type}_{field.lower().replace(' ', '_')}")
-                else:
-                    st.text_input(field, key=f"{report_type}_{field.lower().replace(' ', '_')}")
+            if isinstance(fields, dict):
+                for subsection, subfields in fields.items():
+                    st.subheader(subsection)
+                    create_fields(subfields, f"{report_type}_{section}_{subsection}")
+            else:
+                create_fields(fields, f"{report_type}_{section}")
 
     if st.button("Submit Report"):
         st.success(f"{report_type} submitted successfully!")
@@ -201,9 +238,9 @@ def create_chatbot(last_reports):
         response = get_ai_response(prompt, last_reports)
         st.session_state.messages.append({"role": "assistant", "content": response})
         
-        # Check if a specific report type is mentioned and agreed upon
+        # Check if a specific report type is agreed upon
         for report_type in REPORT_TYPES:
-            if report_type.lower() in prompt.lower() and "agree" in prompt.lower():
+            if f"Agreed. The form for {report_type}" in response:
                 st.session_state.current_report_type = report_type
                 st.session_state.show_form = True
                 break
@@ -241,3 +278,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+</antArtifact
