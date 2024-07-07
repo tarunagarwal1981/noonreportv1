@@ -30,6 +30,13 @@ st.markdown("""
         box-shadow: none !important;
         margin-bottom: 0.5rem !important;
     }
+    .last-report-dropdown {
+        font-size: 0.8em;
+        margin-bottom: 1rem;
+    }
+    .last-report-dropdown > div > div > div {
+        padding: 0.2rem 0.5rem;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -277,9 +284,6 @@ def create_chatbot(last_report):
 def main():
     st.title("AI-Enhanced Maritime Reporting System")
     
-    # Add dropdown for selecting last submitted report
-    last_report = st.selectbox("Select last submitted report (for testing)", ["None"] + REPORT_TYPES, key="last_report_select")
-    
     col1, col2 = st.columns([0.6, 0.4])
 
     with col1:
@@ -294,6 +298,17 @@ def main():
 
     with col2:
         st.markdown('<div class="chatSection">', unsafe_allow_html=True)
+        
+        # Add the dropdown for last submitted report at the top of the chatbot section
+        st.markdown('<div class="last-report-dropdown">', unsafe_allow_html=True)
+        last_report = st.selectbox(
+            "Last submitted report:",
+            ["None"] + REPORT_TYPES,
+            key="last_report_select",
+            help="Select the last submitted report for context (for testing purposes)"
+        )
+        st.markdown('</div>', unsafe_allow_html=True)
+        
         create_chatbot(last_report)
         
         if st.button("Clear Report"):
