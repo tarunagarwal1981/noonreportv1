@@ -191,6 +191,7 @@ Report Types and Specific Guidelines:
 For each report, provide appropriate follow-up report suggestions based on the current operational context of the vessel.
 
 Always be prepared to explain industry standards, regulations, and best practices related to maritime reporting when asked.
+When suggesting follow-up reports, provide ONLY the names of the valid reports without any additional details or explanations. Respond in a concise manner, listing only the report names as options.
 """
 
 def get_ai_response(user_input, last_report):
