@@ -155,7 +155,7 @@ When suggesting follow-up reports, carefully consider the history of the last 3-
 2. "Begin of sea passage" should follow a departure-type report (e.g., "Departure", "Departure STS", "End Anchoring/Drifting").
 3. "Noon" reports are regular and can follow most report types during a voyage.
 4. "Begin" type reports (e.g., "Begin of offhire", "Begin fuel change over") must be followed by their corresponding "End" reports before suggesting unrelated reports.
-5. If there no Begin report then End report should not be suggested.
+5. If "Begin" report is not there then "End" report should not be suggested.
 
 When a user agrees to create a specific report, inform them that the form will appear on the left side of the page with the relevant sections for that report type.
 
@@ -246,18 +246,20 @@ def create_collapsible_history_panel():
         st.markdown("<h3>Recent Reports</h3>", unsafe_allow_html=True)
         
         if "report_history" not in st.session_state:
-            st.session_state.report_history = ["None"] * 4
+            st.session_state.report_history = []
+
+        # Ensure we always have 4 slots for history, filling with "None" if needed
+        history = st.session_state.report_history + ["None"] * (4 - len(st.session_state.report_history))
 
         for i in range(4):
             st.session_state.report_history[i] = st.selectbox(
                 f"Report {i+1}:",
                 ["None"] + REPORT_TYPES,
                 key=f"history_{i}",
-                index=REPORT_TYPES.index(st.session_state.report_history[i]) + 1 if st.session_state.report_history[i] in REPORT_TYPES else 0
+                index=REPORT_TYPES.index(history[i]) + 1 if history[i] in REPORT_TYPES else 0
             )
 
         st.markdown('</div>', unsafe_allow_html=True)
-
 def create_chatbot(last_reports):
     st.header("AI Assistant")
     
@@ -320,6 +322,9 @@ def is_valid_report_sequence(last_reports, new_report):
 def main():
     st.title("AI-Enhanced Maritime Reporting System")
     
+    if "report_history" not in st.session_state:
+        st.session_state.report_history = []
+    
     col1, col2 = st.columns([0.7, 0.3])
 
     with col1:
@@ -327,8 +332,6 @@ def main():
         if 'show_form' in st.session_state and st.session_state.show_form:
             if create_form(st.session_state.current_report_type):
                 st.session_state.show_form = False
-                if "report_history" not in st.session_state:
-                    st.session_state.report_history = []
                 st.session_state.report_history = [st.session_state.current_report_type] + st.session_state.report_history[:3]
                 st.experimental_rerun()
         else:
