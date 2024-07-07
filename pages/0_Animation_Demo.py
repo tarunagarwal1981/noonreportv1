@@ -9,7 +9,7 @@ import re
 # Set page config
 st.set_page_config(layout="wide", page_title="AI-Enhanced Maritime Reporting System")
 
-# Custom CSS for compact layout
+# Custom CSS for compact layout and collapsible panel
 st.markdown("""
 <style>
     .reportSection { padding-right: 1rem; }
@@ -36,6 +36,26 @@ st.markdown("""
     }
     .last-report-dropdown > div > div > div {
         padding: 0.2rem 0.5rem;
+    }
+    .collapsible {
+        background-color: #f1f1f1;
+        color: #444;
+        cursor: pointer;
+        padding: 18px;
+        width: 100%;
+        border: none;
+        text-align: left;
+        outline: none;
+        font-size: 15px;
+    }
+    .active, .collapsible:hover {
+        background-color: #ccc;
+    }
+    .content {
+        padding: 0 18px;
+        display: none;
+        overflow: hidden;
+        background-color: #f1f1f1;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -93,13 +113,7 @@ REMINDERS = {
 
 # Prepare the training data as a string
 TRAINING_DATA = """
-You are an AI assistant for an advanced maritime reporting system. Your role is to guide users through creating various types of maritime reports, ensuring compliance with industry standards and regulations. The system aims to revolutionize the noon reporting process while adhering to the following:
-
-- Standardised Vessel Dataset (SVD) Version 1.0 for Noon Reports
-- IMO Data Collection System (DCS) requirements
-- EU Monitoring, Reporting and Verification (MRV) scheme
-- Relevant ISO standards
-- IMO Compendium on Facilitation and Electronic Business
+You are an AI assistant for an advanced maritime reporting system. Your role is to guide users through creating various types of maritime reports, ensuring compliance with industry standards and regulations.
 
 Key features:
 1. Error reduction and data completion assistance
@@ -107,107 +121,29 @@ Key features:
 3. Streamlined reporting process
 4. Enhanced accuracy in maritime operational reporting
 
-For each report type, provide guidance on required fields, remind users of pending reports, and suggest appropriate follow-up reports. Always maintain a professional and helpful tone, and be prepared to explain industry standards and regulations when asked.
+When suggesting follow-up reports, consider the history of the last 3-4 reports. Here's an example of how to use this history:
 
-Report Types and Specific Guidelines:
+Example:
+Last 4 reports: COSP Report -> Arrival Anchor Report -> Begin Fuel Changeover Report -> Noon at Anchor Report
 
-1. Noon Sea Report:
-   - Conditions: After Commencement of Sea Passage (COSP) or when at sea; check for ice conditions and safety of the ship.
-   - Reminder: "You have not yet filled an End/Departure report for the last Begin/Arrival event. Please remember to complete it when appropriate."
+Based on this history:
+1. An EOSP Report is still pending after the COSP Report.
+2. Since the vessel is anchored, possible next reports include:
+   - Noon at Anchor Report (if it's approaching noon)
+   - Departure Anchor Report (if the vessel is preparing to leave)
+3. An End Fuel Changeover Report is expected to follow the Begin Fuel Changeover Report.
 
-2. End of Sea Passage (EOSP) Report:
-   - Conditions: After sea passage ends.
-   - Reminder: "After completing the EOSP report, please remember to fill an Arrival report (Anchor, Port, or STS) when the vessel arrives."
+Use this context to provide intelligent suggestions for the next possible reports, reminders of pending reports, and any relevant operational insights.
 
-3. Anchor Arrival / Finish with Engine (FWE) Report:
-   - Conditions: Upon arrival at anchorage or for maneuvering.
-   - Reminder: "You have not yet filled an End/Departure report for the last Begin/Arrival event. Please remember to complete it when appropriate."
-
-4. Noon Port / Anchor Report:
-   - Conditions: At 12:00 LT when at berth or anchorage; include anchorage hours if at anchorage.
-   - Fields: Include 'Anchorage_hours_Hrs'.
-   - Reminder: "You have not yet filled an End/Departure report for the last Begin/Arrival event. Please remember to complete it when appropriate."
-
-5. Anchor Departure / Standby Engine (SBE) Report:
-   - Conditions: When departing from anchorage.
-   - Reminder: "After completing the Departure report, please remember to fill a Commencement of Sea Passage (COSP) report when the sea passage starts."
-
-6. Berth Arrival / Finish with Engine (FWE) Report:
-   - Conditions: Upon arrival at berth for cargo operations or for maneuvering.
-   - Reminder: "You have not yet filled an End/Departure report for the last Begin/Arrival event. Please remember to complete it when appropriate."
-
-7. Berth Departure / Standby Engine (SBE) Report:
-   - Conditions: When departing from berth after cargo operations.
-   - Reminder: "After completing the Departure report, please remember to fill a Commencement of Sea Passage (COSP) report when the sea passage starts."
-
-8. Commencement of Sea Passage (COSP) Report:
-   - Conditions: When the sea passage starts or for maneuvering.
-   - Reminder: "After completing the COSP report, please remember to fill an End of Sea Passage (EOSP) report when the sea passage ends."
-
-9. Begin Offhire Report:
-   - Conditions: When the offhire period starts.
-   - Reminder: "You have not yet filled an End/Departure report for the last Begin/Arrival event. Please remember to complete it when appropriate."
-
-10. End Offhire Report:
-    - Conditions: When the offhire period ends.
-    - Reminder: "You have not yet filled an End/Departure report for the last Begin/Arrival event. Please remember to complete it when appropriate."
-
-11. Arrival STS Report:
-    - Conditions: When arriving for a Ship-to-Ship transfer.
-    - Reminder: "You have not yet filled an End/Departure report for the last Begin/Arrival event. Please remember to complete it when appropriate."
-
-12. Departure STS Report:
-    - Conditions: When departing from a Ship-to-Ship transfer.
-    - Reminder: "After completing the Departure report, please remember to fill a Commencement of Sea Passage (COSP) report when the sea passage starts."
-
-13. Begin Canal Passage Report:
-    - Conditions: When beginning a canal passage.
-    - Reminder: "You have not yet filled an End/Departure report for the last Begin/Arrival event. Please remember to complete it when appropriate."
-
-14. End Canal Passage Report:
-    - Conditions: When ending a canal passage.
-    - Reminder: "You have not yet filled an End/Departure report for the last Begin/Arrival event. Please remember to complete it when appropriate."
-
-15. Noon at River Passage Report:
-    - Conditions: At 12:00 LT when at a river passage.
-    - Reminder: "You have not yet filled an End/Departure report for the last Begin/Arrival event. Please remember to complete it when appropriate."
-
-16. Noon Stoppage Report:
-    - Conditions: When stopped between Commencement of Sea Passage (COSP) and End of Sea Passage (EOSP).
-    - Reminder: "You have not yet filled an End/Departure report for the last Begin/Arrival event. Please remember to complete it when appropriate."
-
-17. Begin Fuel Changeover Report:
-    - Conditions: When beginning a fuel changeover.
-    - Reminder: "You have not yet filled an End/Departure report for the last Begin/Arrival event. Please remember to complete it when appropriate."
-
-18. End Fuel Changeover Report:
-    - Conditions: When ending a fuel changeover.
-    - Reminder: "You have not yet filled an End/Departure report for the last Begin/Arrival event. Please remember to complete it when appropriate."
-
-19. Bunkering Report:
-    - Conditions: Whenever the vessel is bunkering.
-    - Reminder: "You have not yet filled an End/Departure report for the last Begin/Arrival event. Please remember to complete it when appropriate."
-
-For each report, provide appropriate follow-up report suggestions based on the current operational context of the vessel.
-
-Always be prepared to explain industry standards, regulations, and best practices related to maritime reporting when asked.
-When suggesting follow-up reports, provide ONLY the names of the valid reports without any additional details or explanations. Respond in a concise manner, listing only the report names as options.
+When responding, provide a concise list of possible next reports, any pending reports that should be completed, and brief operational reminders if relevant.
 """
 
-def get_ai_response(user_input, last_report):
+def get_ai_response(user_input, last_reports):
     current_time = datetime.now(pytz.utc).strftime("%H:%M:%S")
-    
-    # Get valid follow-up reports
-    valid_reports = FOLLOW_UP_REPORTS.get(last_report, REPORT_TYPES)
-    
-    # Get any reminders
-    reminder = REMINDERS.get(last_report, "")
     
     context = f"""
     The current UTC time is {current_time}. 
-    The last report submitted was: {last_report}
-    Valid follow-up reports: {', '.join(valid_reports)}
-    Reminder: {reminder}
+    The last reports submitted were: {' -> '.join(last_reports)}
     
     Please provide guidance based on this context and the user's input.
     """
@@ -222,7 +158,7 @@ def get_ai_response(user_input, last_report):
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=messages,
-            max_tokens=500,
+            max_tokens=200,
             n=1,
             stop=None,
             temperature=0.7,
@@ -255,7 +191,46 @@ def create_form(report_type):
         return True
     return False
 
-def create_chatbot(last_report):
+def create_collapsible_history_panel():
+    st.markdown("""
+    <button class="collapsible">Report History</button>
+    <div class="content">
+    """, unsafe_allow_html=True)
+    
+    if "report_history" not in st.session_state:
+        st.session_state.report_history = ["None"] * 4
+
+    for i in range(4):
+        st.session_state.report_history[i] = st.selectbox(
+            f"Report {i+1}:",
+            ["None"] + REPORT_TYPES,
+            key=f"history_{i}",
+            index=REPORT_TYPES.index(st.session_state.report_history[i]) + 1 if st.session_state.report_history[i] in REPORT_TYPES else 0
+        )
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    # Add JavaScript to make the collapsible work
+    st.markdown("""
+    <script>
+    var coll = document.getElementsByClassName("collapsible");
+    var i;
+
+    for (i = 0; i < coll.length; i++) {
+      coll[i].addEventListener("click", function() {
+        this.classList.toggle("active");
+        var content = this.nextElementSibling;
+        if (content.style.display === "block") {
+          content.style.display = "none";
+        } else {
+          content.style.display = "block";
+        }
+      });
+    }
+    </script>
+    """, unsafe_allow_html=True)
+
+def create_chatbot(last_reports):
     st.header("AI Assistant")
     
     if "messages" not in st.session_state:
@@ -267,23 +242,25 @@ def create_chatbot(last_report):
 
     if prompt := st.chat_input("How can I assist you with your maritime reporting?"):
         st.session_state.messages.append({"role": "user", "content": prompt})
-        response = get_ai_response(prompt, last_report)
+        response = get_ai_response(prompt, last_reports)
         st.session_state.messages.append({"role": "assistant", "content": response})
         
         # Check if a specific report type is mentioned
         for report_type in REPORT_TYPES:
             if report_type.lower() in prompt.lower():
-                if report_type in FOLLOW_UP_REPORTS.get(last_report, REPORT_TYPES):
+                if report_type in FOLLOW_UP_REPORTS.get(last_reports[-1], REPORT_TYPES):
                     st.session_state.current_report_type = report_type
                     st.session_state.show_form = True
                 else:
-                    st.warning(f"{report_type} is not a valid follow-up report for {last_report}. Please choose from: {', '.join(FOLLOW_UP_REPORTS.get(last_report, REPORT_TYPES))}")
+                    st.warning(f"{report_type} is not a valid follow-up report for {last_reports[-1]}. Please choose from: {', '.join(FOLLOW_UP_REPORTS.get(last_reports[-1], REPORT_TYPES))}")
                 break
         
         st.experimental_rerun()
 
 def main():
     st.title("AI-Enhanced Maritime Reporting System")
+    
+    create_collapsible_history_panel()
     
     col1, col2 = st.columns([0.6, 0.4])
 
@@ -299,20 +276,9 @@ def main():
 
     with col2:
         st.markdown('<div class="chatSection">', unsafe_allow_html=True)
+        create_chatbot([report for report in st.session_state.report_history if report != "None"])
         
-        # Add the dropdown for last submitted report at the top of the chatbot section
-        st.markdown('<div class="last-report-dropdown">', unsafe_allow_html=True)
-        last_report = st.selectbox(
-            "Last submitted report:",
-            ["None"] + REPORT_TYPES,
-            key="last_report_select",
-            help="Select the last submitted report for context (for testing purposes)"
-        )
-        st.markdown('</div>', unsafe_allow_html=True)
-        
-        create_chatbot(last_report)
-        
-        if st.button("Clear Report"):
+        if st.button("Clear Chat"):
             st.session_state.messages = []
             st.session_state.show_form = False
             st.session_state.current_report_type = None
