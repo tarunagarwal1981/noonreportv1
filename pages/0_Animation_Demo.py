@@ -321,7 +321,7 @@ def create_chatbot(last_reports):
         st.session_state.messages.append({"role": "assistant", "content": response})
         
         # Check if a specific report type is agreed upon
-                for report_type in REPORT_TYPES:
+            for report_type in REPORT_TYPES:
             if f"Agreed. The form for {report_type}" in response:
                 if is_valid_report_sequence(last_reports, report_type):
                     st.session_state.current_report_type = report_type
