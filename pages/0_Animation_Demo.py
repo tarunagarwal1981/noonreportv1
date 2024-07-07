@@ -51,7 +51,6 @@ st.markdown("""
         color: #666;
         margin-bottom: 2px;
     }
-    .stWarning { font-size: 0.9em !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -209,30 +208,33 @@ def create_fields(fields, prefix):
             st.markdown(f'<p class="field-prompt">{field}</p>', unsafe_allow_html=True)
             
             if field == "Vessel Name":
-                st.text_input("", value=generate_random_vessel_name(), key=field_key)
+                st.text_input(field, value=generate_random_vessel_name(), key=field_key)
             elif field == "Vessel IMO":
-                st.text_input("", value=generate_random_imo(), key=field_key)
+                st.text_input(field, value=generate_random_imo(), key=field_key)
             elif "Date" in field:
-                st.date_input("", key=field_key)
+                st.date_input(field, key=field_key)
             elif "Time" in field:
-                st.time_input("", key=field_key)
+                st.time_input(field, key=field_key)
             elif field in VALIDATION_RULES:
                 min_val, max_val = VALIDATION_RULES[field]["min"], VALIDATION_RULES[field]["max"]
-                value = st.number_input("", min_value=min_val, max_value=max_val, key=field_key)
+                value = st.number_input(field, min_value=min_val, max_value=max_val, key=field_key)
                 if value < min_val or value > max_val:
                     st.warning(f"{field} should be between {min_val} and {max_val}")
             elif any(unit in field for unit in ["(%)", "(mt)", "(kW)", "(°C)", "(bar)", "(g/kWh)", "(knots)", "(meters)", "(seconds)", "(degrees)"]):
-                st.number_input("", key=field_key)
+                st.number_input(field, key=field_key)
             elif "Direction" in field and "degrees" not in field:
-                st.selectbox("", options=["N", "NE", "E", "SE", "S", "SW", "W", "NW"], key=field_key)
+                st.selectbox(field, options=["N", "NE", "E", "SE", "S", "SW", "W", "NW"], key=field_key)
             else:
-                st.text_input("", key=field_key)
+                st.text_input(field, key=field_key)
             
             # Add specific validation for Main Engine consumption
             if field.startswith("ME ") and field.endswith(" (mt)"):
                 value = st.session_state.get(field_key, 0)
-                if value > 15:
-                    st.warning("Since ME is running at more than 50% load, Boiler consumption is expected to be zero.")
+                total_me_consumption = sum(st.session_state.get(f"{prefix}_me_{fuel.lower()}_(mt)", 0) for fuel in ["LFO", "MGO", "LNG", "Other"])
+                if total_me_consumption > 25:
+                    st.warning("The total consumption of ME exceeds the expected values (25 mt).", icon="⚠️")
+                if total_me_consumption > 15 and "Boiler" in fields:
+                    st.warning("Since ME is running at more than 50% load, Boiler consumption is expected to be zero.", icon="⚠️")
 
 def create_form(report_type):
     st.header(f"New {report_type}")
@@ -242,9 +244,6 @@ def create_form(report_type):
     if not report_structure:
         st.error(f"No structure defined for report type: {report_type}")
         return False
-    
-    total_me_consumption = 0
-    boiler_warning_shown = False
     
     for section in report_structure:
         with st.expander(section, expanded=False):  # Set expanded to False to collapse by default
@@ -259,15 +258,6 @@ def create_form(report_type):
                 create_fields(fields, f"{report_type}_{section}")
             else:
                 st.error(f"Unexpected field type for section {section}: {type(fields)}")
-            
-            if section == "Fuel Consumption":
-                for fuel in ["ME LFO (mt)", "ME MGO (mt)", "ME LNG (mt)", "ME Other (mt)"]:
-                    fuel_key = f"{report_type}_Fuel_Consumption_Main_Engine_{fuel.lower().replace(' ', '_')}"
-                    if fuel_key in st.session_state:
-                        total_me_consumption += st.session_state[fuel_key]
-                if total_me_consumption > 15 and not boiler_warning_shown:
-                    st.warning("Since ME is running at more than 50% load, Boiler consumption is expected to be zero.", icon="⚠️")
-                    boiler_warning_shown = True
 
     if st.button("Submit Report"):
         if validate_report(report_type):
@@ -321,7 +311,7 @@ def create_collapsible_history_panel():
             )
             updated_history.append(selected_report)
 
-        # Update session state outside of the loop
+                # Update session state outside of the loop
         st.session_state.report_history = [report for report in updated_history if report != "None"]
 
         st.markdown('</div>', unsafe_allow_html=True)
@@ -413,4 +403,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
