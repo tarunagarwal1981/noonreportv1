@@ -9,7 +9,7 @@ import re
 # Set page config
 st.set_page_config(layout="wide", page_title="AI-Enhanced Maritime Reporting System")
 
-# Custom CSS for compact layout and collapsible panel
+# Custom CSS for compact layout and history panel
 st.markdown("""
 <style>
     .reportSection { padding-right: 1rem; }
@@ -30,32 +30,19 @@ st.markdown("""
         box-shadow: none !important;
         margin-bottom: 0.5rem !important;
     }
-    .last-report-dropdown {
-        font-size: 0.8em;
-        margin-bottom: 1rem;
-    }
-    .last-report-dropdown > div > div > div {
-        padding: 0.2rem 0.5rem;
-    }
-    .collapsible {
+    .history-panel {
         background-color: #f1f1f1;
-        color: #444;
-        cursor: pointer;
-        padding: 18px;
-        width: 100%;
-        border: none;
-        text-align: left;
-        outline: none;
-        font-size: 15px;
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        max-width: 300px;
     }
-    .active, .collapsible:hover {
-        background-color: #ccc;
+    .history-panel h3 {
+        margin-top: 0;
+        margin-bottom: 10px;
     }
-    .content {
-        padding: 0 18px;
-        display: none;
-        overflow: hidden;
-        background-color: #f1f1f1;
+    .history-select {
+        margin-bottom: 5px;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -192,43 +179,22 @@ def create_form(report_type):
     return False
 
 def create_collapsible_history_panel():
-    st.markdown("""
-    <button class="collapsible">Report History</button>
-    <div class="content">
-    """, unsafe_allow_html=True)
-    
-    if "report_history" not in st.session_state:
-        st.session_state.report_history = ["None"] * 4
+    with st.expander("Report History (for testing)", expanded=False):
+        st.markdown('<div class="history-panel">', unsafe_allow_html=True)
+        st.markdown("<h3>Recent Reports</h3>", unsafe_allow_html=True)
+        
+        if "report_history" not in st.session_state:
+            st.session_state.report_history = ["None"] * 4
 
-    for i in range(4):
-        st.session_state.report_history[i] = st.selectbox(
-            f"Report {i+1}:",
-            ["None"] + REPORT_TYPES,
-            key=f"history_{i}",
-            index=REPORT_TYPES.index(st.session_state.report_history[i]) + 1 if st.session_state.report_history[i] in REPORT_TYPES else 0
-        )
+        for i in range(4):
+            st.session_state.report_history[i] = st.selectbox(
+                f"Report {i+1}:",
+                ["None"] + REPORT_TYPES,
+                key=f"history_{i}",
+                index=REPORT_TYPES.index(st.session_state.report_history[i]) + 1 if st.session_state.report_history[i] in REPORT_TYPES else 0
+            )
 
-    st.markdown("</div>", unsafe_allow_html=True)
-
-    # Add JavaScript to make the collapsible work
-    st.markdown("""
-    <script>
-    var coll = document.getElementsByClassName("collapsible");
-    var i;
-
-    for (i = 0; i < coll.length; i++) {
-      coll[i].addEventListener("click", function() {
-        this.classList.toggle("active");
-        var content = this.nextElementSibling;
-        if (content.style.display === "block") {
-          content.style.display = "none";
-        } else {
-          content.style.display = "block";
-        }
-      });
-    }
-    </script>
-    """, unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
 def create_chatbot(last_reports):
     st.header("AI Assistant")
@@ -260,9 +226,7 @@ def create_chatbot(last_reports):
 def main():
     st.title("AI-Enhanced Maritime Reporting System")
     
-    create_collapsible_history_panel()
-    
-    col1, col2 = st.columns([0.6, 0.4])
+    col1, col2 = st.columns([0.7, 0.3])
 
     with col1:
         st.markdown('<div class="reportSection">', unsafe_allow_html=True)
@@ -275,6 +239,7 @@ def main():
         st.markdown('</div>', unsafe_allow_html=True)
 
     with col2:
+        create_collapsible_history_panel()
         st.markdown('<div class="chatSection">', unsafe_allow_html=True)
         create_chatbot([report for report in st.session_state.report_history if report != "None"])
         
