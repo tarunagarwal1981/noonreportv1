@@ -137,8 +137,9 @@ SECTION_FIELDS = {
 }
 
 # Prepare the training data as a string
+# Update the TRAINING_DATA
 TRAINING_DATA = f"""
-You are an AI assistant for an advanced maritime reporting system. Your role is to guide users through creating various types of maritime reports, ensuring compliance with industry standards and regulations.
+You are an AI assistant for an advanced maritime reporting system, with the knowledge and experience of a seasoned maritime seafarer. Your role is to guide users through creating various types of maritime reports, ensuring compliance with industry standards and regulations while maintaining a logical sequence of events.
 
 Valid report types: {', '.join(REPORT_TYPES)}
 
@@ -148,13 +149,19 @@ Key features:
 3. Streamlined reporting process
 4. Enhanced accuracy in maritime operational reporting
 
-When suggesting follow-up reports, consider the history of the last 3-4 reports. Only suggest reports from the list provided above.
+When suggesting follow-up reports, carefully consider the history of the last 3-4 reports and the logical sequence of maritime operations. Only suggest reports from the provided list that make sense given the current context and previous reports. For example:
+
+1. An "Arrival STS" report must precede a "Departure STS" report.
+2. "Begin of sea passage" should follow a departure-type report (e.g., "Departure", "Departure STS", "End Anchoring/Drifting").
+3. "Noon" reports are regular and can follow most report types during a voyage.
+4. "Begin" type reports (e.g., "Begin of offhire", "Begin fuel change over") must be followed by their corresponding "End" reports before suggesting unrelated reports.
+5. If there no Begin report then End report should not be suggested.
 
 When a user agrees to create a specific report, inform them that the form will appear on the left side of the page with the relevant sections for that report type.
 
 Provide concise and helpful guidance throughout the report creation process. If a user agrees to create a report, respond with "Agreed. The form for [REPORT TYPE] will now appear on the left side of the page."
 
-Remember to provide appropriate reminders and follow-up suggestions based on the current report context.
+Remember to provide appropriate reminders and follow-up suggestions based on the current report context and the logical sequence of maritime operations.
 """
 
 def generate_random_vessel_name():
@@ -173,7 +180,8 @@ def get_ai_response(user_input, last_reports):
     The last reports submitted were: {' -> '.join(last_reports)}
     
     Please provide guidance based on this context and the user's input.
-    Remember to only suggest reports from the provided list.
+    Remember to only suggest reports from the provided list that make logical sense given the previous reports and maritime operations.
+    Use your knowledge as an experienced seafarer to ensure the suggested reports follow a realistic sequence of events.
     """
     
     messages = [
@@ -186,7 +194,7 @@ def get_ai_response(user_input, last_reports):
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=messages,
-            max_tokens=200,
+            max_tokens=300,
             n=1,
             stop=None,
             temperature=0.7,
@@ -268,12 +276,47 @@ def create_chatbot(last_reports):
         # Check if a specific report type is agreed upon
         for report_type in REPORT_TYPES:
             if f"Agreed. The form for {report_type}" in response:
-                st.session_state.current_report_type = report_type
-                st.session_state.show_form = True
-                break
+                if is_valid_report_sequence(last_reports, report_type):
+                    st.session_state.current_report_type = report_type
+                    st.session_state.show_form = True
+                    break
+                else:
+                    st.warning(f"Invalid report sequence. {report_type} cannot follow the previous reports.")
         
         st.experimental_rerun()
 
+# Add a new function to check if the report sequence is valid
+def is_valid_report_sequence(last_reports, new_report):
+    if not last_reports:
+        return True
+    
+    last_report = last_reports[-1]
+    
+    # Define rules for report sequences
+    sequence_rules = {
+        "Arrival STS": ["Departure STS"],
+        "Begin of offhire": ["End of offhire"],
+        "Begin fuel change over": ["End fuel change over"],
+        "Begin canal passage": ["End canal passage"],
+        "Begin Anchoring/Drifting": ["End Anchoring/Drifting"],
+        "Begin of deviation": ["End of deviation"],
+        "Departure": ["Begin of sea passage", "Noon (Position) - Sea passage"],
+        "Departure STS": ["Begin of sea passage", "Noon (Position) - Sea passage"],
+        "End Anchoring/Drifting": ["Begin of sea passage", "Noon (Position) - Sea passage"],
+    }
+    
+    # Check if the new report is valid based on the last report
+    if last_report in sequence_rules:
+        return new_report in sequence_rules[last_report] or new_report.startswith("Noon")
+    
+    # Allow "Noon" reports after most report types
+    if new_report.startswith("Noon"):
+        return True
+    
+    # For reports not explicitly defined in rules, allow them if they're not breaking any sequence
+    return new_report not in [item for sublist in sequence_rules.values() for item in sublist]
+
+# Update the main function to pass the correct history to create_chatbot
 def main():
     st.title("AI-Enhanced Maritime Reporting System")
     
@@ -284,6 +327,9 @@ def main():
         if 'show_form' in st.session_state and st.session_state.show_form:
             if create_form(st.session_state.current_report_type):
                 st.session_state.show_form = False
+                if "report_history" not in st.session_state:
+                    st.session_state.report_history = []
+                st.session_state.report_history = [st.session_state.current_report_type] + st.session_state.report_history[:3]
                 st.experimental_rerun()
         else:
             st.write("Please use the AI Assistant to initiate a report.")
@@ -292,16 +338,15 @@ def main():
     with col2:
         create_collapsible_history_panel()
         st.markdown('<div class="chatSection">', unsafe_allow_html=True)
-        create_chatbot([report for report in st.session_state.report_history if report != "None"])
+        create_chatbot(st.session_state.report_history)
         
         if st.button("Clear Chat"):
             st.session_state.messages = []
             st.session_state.show_form = False
             st.session_state.current_report_type = None
-            st.session_state.report_history = ["None"] * 4
+            st.session_state.report_history = []
             st.experimental_rerun()
         
         st.markdown('</div>', unsafe_allow_html=True)
-
 if __name__ == "__main__":
     main()
