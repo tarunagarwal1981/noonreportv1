@@ -1,16 +1,13 @@
 import streamlit as st
-import pandas as pd
-from datetime import datetime, time
-import random
-import string
-import pytz
-import re
 import openai
+from datetime import datetime, time
+import pytz
 import json
 import os
+import re
 
 # Set page config
-st.set_page_config(layout="wide", page_title="Maritime Reporting System")
+st.set_page_config(layout="wide", page_title="AI-Enhanced Maritime Reporting System")
 
 # Custom CSS for compact layout
 st.markdown("""
@@ -48,57 +45,115 @@ if not openai.api_key:
 
 # Define report types and their sequences
 REPORT_TYPES = [
-    "Arrival", "Departure", "Begin of sea passage", "End of sea passage",
-    "Noon (Position) - Sea passage", "Drifting", "Anchor Arrival / FWE",
-    "Noon Port / Anchor", "Anchor/STS Departure / SBE", "Berth Arrival / FWE",
-    "Berth Departure / SBE", "Begin fuel change over", "End fuel change over",
-    "Entering special area", "Leaving special area", "Begin offhire", "End offhire",
-    "Begin canal passage", "End canal passage", "Begin Anchoring/Drifting",
-    "End Anchoring/Drifting", "Noon (Position) - Port", "Noon (Position) - River",
-    "Noon (Position) - Stoppage", "ETA update", "Change destination (Deviation)",
-    "Begin of deviation", "End of deviation", "Other event"
+    "Noon Sea Report", "End of Sea Passage (EOSP) Report", "Anchor Arrival / Finish with Engine (FWE) Report",
+    "Noon Port / Anchor Report", "Anchor Departure / Standby Engine (SBE) Report",
+    "Berth Arrival / Finish with Engine (FWE) Report", "Berth Departure / Standby Engine (SBE) Report",
+    "Commencement of Sea Passage (COSP) Report", "Begin Offhire Report", "End Offhire Report",
+    "Arrival STS Report", "Departure STS Report", "Begin Canal Passage Report", "End Canal Passage Report",
+    "Noon at River Passage Report", "Noon Stoppage Report", "Begin Fuel Changeover Report",
+    "End Fuel Changeover Report", "Bunkering Report"
 ]
 
-FOLLOW_UP_REPORTS = {
-    "Arrival": ["Departure", "Noon (Position) - Port", "Begin fuel change over", "End fuel change over", "Bunkering", "Off hire"],
-    "Departure": ["Begin of sea passage", "Noon (Position) - Port", "ArrivalSTS", "DepartureSTS", "Begin canal passage", "End canal passage", "Begin Anchoring/Drifting", "End Anchoring/Drifting", "Noon (Position) - River", "Noon (Position) - Stoppage", "Begin fuel change over", "End fuel change over", "Entering special area", "Leaving special area"],
-    "Begin of sea passage": ["Noon (Position) - Sea passage", "End of sea passage", "Begin fuel change over", "End fuel change over", "Entering special area", "Leaving special area"],
-    "End of sea passage": ["Anchor Arrival / FWE", "Berth Arrival / FWE", "Begin Anchoring/Drifting"],
-    "Noon (Position) - Sea passage": ["Noon (Position) - Sea passage", "End of sea passage", "Begin fuel change over", "End fuel change over", "Entering special area", "Leaving special area"],
-    "Drifting": ["End Anchoring/Drifting", "Begin of sea passage"],
-    "Anchor Arrival / FWE": ["Noon Port / Anchor", "Anchor/STS Departure / SBE", "Begin fuel change over", "End fuel change over"],
-    "Noon Port / Anchor": ["Noon Port / Anchor", "Anchor/STS Departure / SBE", "Begin fuel change over", "End fuel change over"],
-    "Anchor/STS Departure / SBE": ["Begin of sea passage", "Berth Arrival / FWE"],
-    "Berth Arrival / FWE": ["Noon (Position) - Port", "Berth Departure / SBE", "Begin fuel change over", "End fuel change over"],
-    "Berth Departure / SBE": ["Begin of sea passage", "Anchor Arrival / FWE"]
-}
-
-REQUIRED_FOLLOW_UPS = {
-    "Begin fuel change over": "End fuel change over",
-    "Entering special area": "Leaving special area",
-    "Begin offhire": "End offhire",
-    "Begin canal passage": "End canal passage",
-    "Begin Anchoring/Drifting": "End Anchoring/Drifting",
-    "Begin of deviation": "End of deviation"
-}
-
 # Prepare the training data as a string
-TRAINING_DATA = f"""
-You are an AI assistant for a maritime reporting system. Your role is to guide users through creating various types of maritime reports, ensuring they follow the correct sequence and rules.
+TRAINING_DATA = """
+You are an AI assistant for an advanced maritime reporting system. Your role is to guide users through creating various types of maritime reports, ensuring compliance with industry standards and regulations. The system aims to revolutionize the noon reporting process while adhering to the following:
 
-Report Types: {json.dumps(REPORT_TYPES)}
-Follow-up Reports: {json.dumps(FOLLOW_UP_REPORTS)}
-Required Follow-ups: {json.dumps(REQUIRED_FOLLOW_UPS)}
+- Standardised Vessel Dataset (SVD) Version 1.0 for Noon Reports
+- IMO Data Collection System (DCS) requirements
+- EU Monitoring, Reporting and Verification (MRV) scheme
+- Relevant ISO standards
+- IMO Compendium on Facilitation and Electronic Business
 
-Rules:
-1. Check if there are any pending reports before allowing new report creation.
-2. Validate the sequence of reports based on the FOLLOW_UP_REPORTS dictionary.
-3. Noon reports can only be created between 11:00 and 13:00 LT.
-4. When a valid report type is requested, inform the user that the report can be initiated.
-5. Provide guidance on which reports can be created based on the last report.
-6. If an invalid report sequence is requested, inform the user and suggest valid options.
+Key features:
+1. Error reduction and data completion assistance
+2. Insights generation based on reported data
+3. Streamlined reporting process
+4. Enhanced accuracy in maritime operational reporting
 
-Always maintain a professional and helpful tone. If you're unsure about something, it's okay to say so and offer to provide the information you do have.
+For each report type, provide guidance on required fields, remind users of pending reports, and suggest appropriate follow-up reports. Always maintain a professional and helpful tone, and be prepared to explain industry standards and regulations when asked.
+
+Report Types and Specific Guidelines:
+
+1. Noon Sea Report:
+   - Conditions: After Commencement of Sea Passage (COSP) or when at sea; check for ice conditions and safety of the ship.
+   - Reminder: "You have not yet filled an End/Departure report for the last Begin/Arrival event. Please remember to complete it when appropriate."
+
+2. End of Sea Passage (EOSP) Report:
+   - Conditions: After sea passage ends.
+   - Reminder: "After completing the EOSP report, please remember to fill an Arrival report (Anchor, Port, or STS) when the vessel arrives."
+
+3. Anchor Arrival / Finish with Engine (FWE) Report:
+   - Conditions: Upon arrival at anchorage or for maneuvering.
+   - Reminder: "You have not yet filled an End/Departure report for the last Begin/Arrival event. Please remember to complete it when appropriate."
+
+4. Noon Port / Anchor Report:
+   - Conditions: At 12:00 LT when at berth or anchorage; include anchorage hours if at anchorage.
+   - Fields: Include 'Anchorage_hours_Hrs'.
+   - Reminder: "You have not yet filled an End/Departure report for the last Begin/Arrival event. Please remember to complete it when appropriate."
+
+5. Anchor Departure / Standby Engine (SBE) Report:
+   - Conditions: When departing from anchorage.
+   - Reminder: "After completing the Departure report, please remember to fill a Commencement of Sea Passage (COSP) report when the sea passage starts."
+
+6. Berth Arrival / Finish with Engine (FWE) Report:
+   - Conditions: Upon arrival at berth for cargo operations or for maneuvering.
+   - Reminder: "You have not yet filled an End/Departure report for the last Begin/Arrival event. Please remember to complete it when appropriate."
+
+7. Berth Departure / Standby Engine (SBE) Report:
+   - Conditions: When departing from berth after cargo operations.
+   - Reminder: "After completing the Departure report, please remember to fill a Commencement of Sea Passage (COSP) report when the sea passage starts."
+
+8. Commencement of Sea Passage (COSP) Report:
+   - Conditions: When the sea passage starts or for maneuvering.
+   - Reminder: "After completing the COSP report, please remember to fill an End of Sea Passage (EOSP) report when the sea passage ends."
+
+9. Begin Offhire Report:
+   - Conditions: When the offhire period starts.
+   - Reminder: "You have not yet filled an End/Departure report for the last Begin/Arrival event. Please remember to complete it when appropriate."
+
+10. End Offhire Report:
+    - Conditions: When the offhire period ends.
+    - Reminder: "You have not yet filled an End/Departure report for the last Begin/Arrival event. Please remember to complete it when appropriate."
+
+11. Arrival STS Report:
+    - Conditions: When arriving for a Ship-to-Ship transfer.
+    - Reminder: "You have not yet filled an End/Departure report for the last Begin/Arrival event. Please remember to complete it when appropriate."
+
+12. Departure STS Report:
+    - Conditions: When departing from a Ship-to-Ship transfer.
+    - Reminder: "After completing the Departure report, please remember to fill a Commencement of Sea Passage (COSP) report when the sea passage starts."
+
+13. Begin Canal Passage Report:
+    - Conditions: When beginning a canal passage.
+    - Reminder: "You have not yet filled an End/Departure report for the last Begin/Arrival event. Please remember to complete it when appropriate."
+
+14. End Canal Passage Report:
+    - Conditions: When ending a canal passage.
+    - Reminder: "You have not yet filled an End/Departure report for the last Begin/Arrival event. Please remember to complete it when appropriate."
+
+15. Noon at River Passage Report:
+    - Conditions: At 12:00 LT when at a river passage.
+    - Reminder: "You have not yet filled an End/Departure report for the last Begin/Arrival event. Please remember to complete it when appropriate."
+
+16. Noon Stoppage Report:
+    - Conditions: When stopped between Commencement of Sea Passage (COSP) and End of Sea Passage (EOSP).
+    - Reminder: "You have not yet filled an End/Departure report for the last Begin/Arrival event. Please remember to complete it when appropriate."
+
+17. Begin Fuel Changeover Report:
+    - Conditions: When beginning a fuel changeover.
+    - Reminder: "You have not yet filled an End/Departure report for the last Begin/Arrival event. Please remember to complete it when appropriate."
+
+18. End Fuel Changeover Report:
+    - Conditions: When ending a fuel changeover.
+    - Reminder: "You have not yet filled an End/Departure report for the last Begin/Arrival event. Please remember to complete it when appropriate."
+
+19. Bunkering Report:
+    - Conditions: Whenever the vessel is bunkering.
+    - Reminder: "You have not yet filled an End/Departure report for the last Begin/Arrival event. Please remember to complete it when appropriate."
+
+For each report, provide appropriate follow-up report suggestions based on the current operational context of the vessel.
+
+Always be prepared to explain industry standards, regulations, and best practices related to maritime reporting when asked.
 """
 
 def get_ai_response(user_input, last_report):
@@ -114,7 +169,7 @@ def get_ai_response(user_input, last_report):
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=messages,
-            max_tokens=300,
+            max_tokens=500,
             n=1,
             stop=None,
             temperature=0.7,
@@ -123,105 +178,71 @@ def get_ai_response(user_input, last_report):
     except Exception as e:
         return f"I'm sorry, but I encountered an error while processing your request: {str(e)}. Please try again later."
 
-def generate_random_vessel_name():
-    adjectives = ['Swift', 'Majestic', 'Brave', 'Stellar', 'Royal']
-    nouns = ['Voyager', 'Explorer', 'Mariner', 'Adventurer', 'Navigator']
-    return f"{random.choice(adjectives)} {random.choice(nouns)}"
-
-def generate_random_imo():
-    return ''.join(random.choices(string.digits, k=7))
-
-def create_form():
-    st.header(f"New {st.session_state.current_report_type} Report")
+def create_form(report_type):
+    st.header(f"New {report_type}")
     
-    with st.expander("Vessel Data", expanded=False):
-        col1, col2 = st.columns(2)
-        with col1:
-            st.text_input("Vessel Name", value=generate_random_vessel_name(), key="vessel_name_input")
-        with col2:
-            st.text_input("Vessel IMO", value=generate_random_imo(), key="vessel_imo_input")
+    # Add form fields based on the report type
+    # This is a placeholder and should be expanded based on specific requirements for each report type
+    with st.expander("Vessel Data", expanded=True):
+        st.text_input("Vessel Name", key="vessel_name")
+        st.text_input("IMO Number", key="imo_number")
 
-    with st.expander("Voyage Data", expanded=False):
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            st.date_input("Local Date", key="local_date_input")
-        with col2:
-            st.time_input("Local Time", key="local_time_input")
-        with col3:
-            st.selectbox("UTC Offset", [f"{i:+d}" for i in range(-12, 13)], key="utc_offset_input")
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            st.text_input("Voyage ID", key="voyage_id_input")
-        with col2:
-            st.text_input("Segment ID", key="segment_id_input")
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            st.text_input("From Port", key="from_port_input")
-        with col2:
-            st.text_input("To Port", key="to_port_input")
+    with st.expander("Report Details", expanded=True):
+        st.date_input("Report Date", key="report_date")
+        st.time_input("Report Time (UTC)", key="report_time")
 
-    # Add more sections as needed, ensuring unique keys for each input
+    with st.expander("Position", expanded=True):
+        st.number_input("Latitude", min_value=-90.0, max_value=90.0, key="latitude")
+        st.number_input("Longitude", min_value=-180.0, max_value=180.0, key="longitude")
 
-    if st.button("Submit Report", key="submit_report_button"):
-        st.success(f"{st.session_state.current_report_type} report submitted successfully!")
-        st.session_state.show_form = False
-        st.experimental_rerun()
+    # Add more expandable sections for other report details
+
+    if st.button("Submit Report"):
+        st.success(f"{report_type} submitted successfully!")
+        return True
+    return False
 
 def create_chatbot():
     st.header("AI Assistant")
     
-    if "last_report" not in st.session_state:
-        st.session_state.last_report = REPORT_TYPES[0]
-
-    last_report = st.selectbox("Select last report", REPORT_TYPES, key="last_report_select")
-
     if "messages" not in st.session_state:
         st.session_state.messages = []
+    
+    if "last_report" not in st.session_state:
+        st.session_state.last_report = "No previous report"
 
-    for i, message in enumerate(st.session_state.messages):
+    for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
-    if prompt := st.chat_input("How can I assist you with your maritime reporting?", key="chat_input"):
+    if prompt := st.chat_input("How can I assist you with your maritime reporting?"):
         st.session_state.messages.append({"role": "user", "content": prompt})
-        response = get_ai_response(prompt, last_report)
+        response = get_ai_response(prompt, st.session_state.last_report)
         st.session_state.messages.append({"role": "assistant", "content": response})
         
-        # Check if the user's input matches any report type
-        mentioned_report = next((report for report in REPORT_TYPES if report.lower() in prompt.lower()), None)
-        
-        if mentioned_report:
-            st.session_state.current_report_type = mentioned_report
-            st.session_state.show_form = True
-            st.info(f"Initiating {mentioned_report} report. Please fill out the form on the left.")
-        elif "Initiating" in response and "report" in response:
-            report_type = re.search(r"Initiating (.*?) report", response)
-            if report_type:
-                st.session_state.current_report_type = report_type.group(1)
+        # Check if a specific report type is mentioned
+        for report_type in REPORT_TYPES:
+            if report_type.lower() in prompt.lower():
+                st.session_state.current_report_type = report_type
                 st.session_state.show_form = True
-                st.info(f"Initiating {report_type.group(1)} report. Please fill out the form on the left.")
+                break
         
-        st.experimental_rerun()
-
-    if st.button("Clear Chat", key="clear_chat_button"):
-        st.session_state.messages = []
-        st.session_state.show_form = False
-        st.session_state.current_report_type = None
         st.experimental_rerun()
 
 def main():
     st.title("AI-Enhanced Maritime Reporting System")
     
-    col1, col2 = st.columns([0.7, 0.3])
+    col1, col2 = st.columns([0.6, 0.4])
 
     with col1:
         st.markdown('<div class="reportSection">', unsafe_allow_html=True)
         if 'show_form' in st.session_state and st.session_state.show_form:
-            create_form()
+            if create_form(st.session_state.current_report_type):
+                st.session_state.last_report = st.session_state.current_report_type
+                st.session_state.show_form = False
+                st.experimental_rerun()
         else:
-            st.write("Please use the chatbot to initiate a report.")
+            st.write("Please use the AI Assistant to initiate a report.")
         st.markdown('</div>', unsafe_allow_html=True)
 
     with col2:
