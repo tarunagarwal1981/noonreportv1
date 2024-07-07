@@ -5,6 +5,8 @@ import pytz
 import json
 import os
 import re
+import random
+import string
 
 # Set page config
 st.set_page_config(layout="wide", page_title="AI-Enhanced Maritime Reporting System")
@@ -57,49 +59,48 @@ if not openai.api_key:
     st.error("OpenAI API key not found. Please set it in Streamlit secrets or as an environment variable.")
     st.stop()
 
-# Define report types and their sequences
+# Define report types
 REPORT_TYPES = [
-    "Noon Sea Report", "End of Sea Passage (EOSP) Report", "Anchor Arrival / Finish with Engine (FWE) Report",
-    "Noon Port / Anchor Report", "Anchor Departure / Standby Engine (SBE) Report",
-    "Berth Arrival / Finish with Engine (FWE) Report", "Berth Departure / Standby Engine (SBE) Report",
-    "Commencement of Sea Passage (COSP) Report", "Begin Offhire Report", "End Offhire Report",
-    "Arrival STS Report", "Departure STS Report", "Begin Canal Passage Report", "End Canal Passage Report",
-    "Noon at River Passage Report", "Noon Stoppage Report", "Begin Fuel Changeover Report",
-    "End Fuel Changeover Report", "Bunkering Report"
+    "Arrival", "Departure", "Begin of offhire", "End of offhire", "Arrival STS",
+    "Departure STS", "STS", "Begin canal passage", "End canal passage",
+    "Begin of sea passage", "End of sea passage", "Begin Anchoring/Drifting",
+    "End Anchoring/Drifting", "Noon (Position) - Sea passage", "Noon (Position) - Port",
+    "Noon (Position) - River", "Noon (Position) - Stoppage", "ETA update",
+    "Begin fuel change over", "End fuel change over", "Change destination (Deviation)",
+    "Begin of deviation", "End of deviation", "Entering special area", "Leaving special area"
 ]
 
-FOLLOW_UP_REPORTS = {
-    "Noon Sea Report": ["Noon Sea Report", "End of Sea Passage (EOSP) Report", "Begin Fuel Changeover Report", "End Fuel Changeover Report"],
-    "End of Sea Passage (EOSP) Report": ["Anchor Arrival / Finish with Engine (FWE) Report", "Berth Arrival / Finish with Engine (FWE) Report", "Begin Anchoring/Drifting"],
-    "Anchor Arrival / Finish with Engine (FWE) Report": ["Noon Port / Anchor Report", "Anchor Departure / Standby Engine (SBE) Report", "Begin Fuel Changeover Report", "End Fuel Changeover Report"],
-    "Noon Port / Anchor Report": ["Noon Port / Anchor Report", "Anchor Departure / Standby Engine (SBE) Report", "Begin Fuel Changeover Report", "End Fuel Changeover Report"],
-    "Anchor Departure / Standby Engine (SBE) Report": ["Commencement of Sea Passage (COSP) Report", "Berth Arrival / Finish with Engine (FWE) Report"],
-    "Berth Arrival / Finish with Engine (FWE) Report": ["Noon Port / Anchor Report", "Berth Departure / Standby Engine (SBE) Report", "Begin Fuel Changeover Report", "End Fuel Changeover Report"],
-    "Berth Departure / Standby Engine (SBE) Report": ["Commencement of Sea Passage (COSP) Report", "Anchor Arrival / Finish with Engine (FWE) Report"],
-    "Commencement of Sea Passage (COSP) Report": ["Noon Sea Report", "End of Sea Passage (EOSP) Report"],
-    "Begin Offhire Report": ["End Offhire Report"],
-    "End Offhire Report": ["Begin Offhire Report"],
-    "Arrival STS Report": ["Departure STS Report", "Begin Fuel Changeover Report", "End Fuel Changeover Report"],
-    "Departure STS Report": ["Commencement of Sea Passage (COSP) Report"],
-    "Begin Canal Passage Report": ["End Canal Passage Report"],
-    "End Canal Passage Report": ["Commencement of Sea Passage (COSP) Report", "Berth Arrival / Finish with Engine (FWE) Report"],
-    "Noon at River Passage Report": ["Noon at River Passage Report", "End Canal Passage Report"],
-    "Noon Stoppage Report": ["Noon Stoppage Report", "Commencement of Sea Passage (COSP) Report"],
-    "Begin Fuel Changeover Report": ["End Fuel Changeover Report"],
-    "End Fuel Changeover Report": ["Begin Fuel Changeover Report"],
-    "Bunkering Report": ["Bunkering Report", "End Fuel Changeover Report"]
-}
-
-REMINDERS = {
-    "Begin Fuel Changeover Report": "Remember to submit an End Fuel Changeover Report when the changeover is complete.",
-    "Commencement of Sea Passage (COSP) Report": "Don't forget to submit regular Noon Sea Reports and an End of Sea Passage (EOSP) Report when appropriate.",
-    "Anchor Arrival / Finish with Engine (FWE) Report": "Remember to submit Noon Port / Anchor Reports daily while at anchor.",
-    "Begin Canal Passage Report": "Don't forget to submit an End Canal Passage Report when the canal passage is complete.",
-    "Begin Offhire Report": "Remember to submit an End Offhire Report when the offhire period is over.",
+# Define sections for each report type
+REPORT_SECTIONS = {
+    "Arrival": ["Vessel Data", "Voyage Data", "Event Data", "Position", "Cargo", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"],
+    "Departure": ["Vessel Data", "Voyage Data", "Event Data", "Position", "Cargo", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"],
+    "Begin of offhire": ["Vessel Data", "Voyage Data", "Event Data", "Position", "Cargo", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"],
+    "End of offhire": ["Vessel Data", "Voyage Data", "Event Data", "Position", "Cargo", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"],
+    "Arrival STS": ["Vessel Data", "Voyage Data", "Event Data", "Position", "Cargo", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"],
+    "Departure STS": ["Vessel Data", "Voyage Data", "Event Data", "Position", "Cargo", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"],
+    "STS": ["Vessel Data", "Voyage Data", "Event Data", "Position", "Cargo", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"],
+    "Begin canal passage": ["Vessel Data", "Voyage Data", "Event Data", "Position", "Cargo", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"],
+    "End canal passage": ["Vessel Data", "Voyage Data", "Event Data", "Position", "Cargo", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"],
+    "Begin of sea passage": ["Vessel Data", "Voyage Data", "Event Data", "Position", "Cargo", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"],
+    "End of sea passage": ["Vessel Data", "Voyage Data", "Event Data", "Position", "Cargo", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"],
+    "Begin Anchoring/Drifting": ["Vessel Data", "Voyage Data", "Event Data", "Position", "Cargo", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"],
+    "End Anchoring/Drifting": ["Vessel Data", "Voyage Data", "Event Data", "Position", "Cargo", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"],
+    "Noon (Position) - Sea passage": ["Vessel Data", "Voyage Data", "Event Data", "Position", "Cargo", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"],
+    "Noon (Position) - Port": ["Vessel Data", "Voyage Data", "Event Data", "Position", "Cargo", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"],
+    "Noon (Position) - River": ["Vessel Data", "Voyage Data", "Event Data", "Position", "Cargo", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"],
+    "Noon (Position) - Stoppage": ["Vessel Data", "Voyage Data", "Event Data", "Position", "Cargo", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"],
+    "ETA update": ["Vessel Data", "Voyage Data", "Position"],
+    "Begin fuel change over": ["Vessel Data", "Voyage Data", "Event Data", "Position", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"],
+    "End fuel change over": ["Vessel Data", "Voyage Data", "Event Data", "Position", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"],
+    "Change destination (Deviation)": ["Vessel Data", "Voyage Data", "Event Data", "Position", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"],
+    "Begin of deviation": ["Vessel Data", "Voyage Data", "Event Data", "Position", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"],
+    "End of deviation": ["Vessel Data", "Voyage Data", "Event Data", "Position", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"],
+    "Entering special area": ["Vessel Data", "Voyage Data", "Event Data", "Position", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"],
+    "Leaving special area": ["Vessel Data", "Voyage Data", "Event Data", "Position", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"]
 }
 
 # Prepare the training data as a string
-TRAINING_DATA = """
+TRAINING_DATA = f"""
 You are an AI assistant for an advanced maritime reporting system. Your role is to guide users through creating various types of maritime reports, ensuring compliance with industry standards and regulations.
 
 Key features:
@@ -108,22 +109,22 @@ Key features:
 3. Streamlined reporting process
 4. Enhanced accuracy in maritime operational reporting
 
-When suggesting follow-up reports, consider the history of the last 3-4 reports. Here's an example of how to use this history:
+The valid report types are: {', '.join(REPORT_TYPES)}
 
-Example:
-Last 4 reports: COSP Report -> Arrival Anchor Report -> Begin Fuel Changeover Report -> Noon at Anchor Report
+When suggesting follow-up reports, consider the history of the last 3-4 reports. Only suggest reports from the list provided above. Do not suggest any reports that are not in this list.
 
-Based on this history:
-1. An EOSP Report is still pending after the COSP Report.
-2. Since the vessel is anchored, possible next reports include:
-   - Noon at Anchor Report (if it's approaching noon)
-   - Departure Anchor Report (if the vessel is preparing to leave)
-3. An End Fuel Changeover Report is expected to follow the Begin Fuel Changeover Report.
+When a user agrees to create a specific report, inform them that the form will appear on the left side of the page with the relevant sections for that report type.
 
-Use this context to provide intelligent suggestions for the next possible reports, reminders of pending reports, and any relevant operational insights.
-
-When responding, provide a concise list of possible next reports, any pending reports that should be completed, and brief operational reminders if relevant.
+Provide concise and helpful guidance throughout the report creation process.
 """
+
+def generate_random_vessel_name():
+    adjectives = ['Swift', 'Majestic', 'Brave', 'Stellar', 'Royal']
+    nouns = ['Voyager', 'Explorer', 'Mariner', 'Adventurer', 'Navigator']
+    return f"{random.choice(adjectives)} {random.choice(nouns)}"
+
+def generate_random_imo():
+    return ''.join(random.choices(string.digits, k=7))
 
 def get_ai_response(user_input, last_reports):
     current_time = datetime.now(pytz.utc).strftime("%H:%M:%S")
@@ -133,6 +134,7 @@ def get_ai_response(user_input, last_reports):
     The last reports submitted were: {' -> '.join(last_reports)}
     
     Please provide guidance based on this context and the user's input.
+    Remember to only suggest reports from the provided list.
     """
     
     messages = [
@@ -157,21 +159,23 @@ def get_ai_response(user_input, last_reports):
 def create_form(report_type):
     st.header(f"New {report_type}")
     
-    # Add form fields based on the report type
-    # This is a placeholder and should be expanded based on specific requirements for each report type
-    with st.expander("Vessel Data", expanded=True):
-        st.text_input("Vessel Name", key="vessel_name")
-        st.text_input("IMO Number", key="imo_number")
-
-    with st.expander("Report Details", expanded=True):
-        st.date_input("Report Date", key="report_date")
-        st.time_input("Report Time (UTC)", key="report_time")
-
-    with st.expander("Position", expanded=True):
-        st.number_input("Latitude", min_value=-90.0, max_value=90.0, key="latitude")
-        st.number_input("Longitude", min_value=-180.0, max_value=180.0, key="longitude")
-
-    # Add more expandable sections for other report details
+    sections = REPORT_SECTIONS.get(report_type, [])
+    
+    for section in sections:
+        with st.expander(section, expanded=False):
+            if section == "Vessel Data":
+                st.text_input("Vessel Name", value=generate_random_vessel_name(), key=f"{report_type}_vessel_name")
+                st.text_input("IMO Number", value=generate_random_imo(), key=f"{report_type}_imo_number")
+            elif section == "Voyage Data":
+                st.date_input("Local Date", key=f"{report_type}_local_date")
+                st.time_input("Local Time", key=f"{report_type}_local_time")
+                st.selectbox("UTC Offset", options=[f"{i:+d}" for i in range(-12, 13)], key=f"{report_type}_utc_offset")
+                st.text_input("Voyage ID", key=f"{report_type}_voyage_id")
+                st.text_input("Segment ID", key=f"{report_type}_segment_id")
+                st.text_input("From Port", key=f"{report_type}_from_port")
+                st.text_input("To Port", key=f"{report_type}_to_port")
+            # Add more sections with their respective fields
+            # ...
 
     if st.button("Submit Report"):
         st.success(f"{report_type} submitted successfully!")
@@ -214,11 +218,8 @@ def create_chatbot(last_reports):
         # Check if a specific report type is mentioned
         for report_type in REPORT_TYPES:
             if report_type.lower() in prompt.lower():
-                if report_type in FOLLOW_UP_REPORTS.get(last_reports[-1], REPORT_TYPES):
-                    st.session_state.current_report_type = report_type
-                    st.session_state.show_form = True
-                else:
-                    st.warning(f"{report_type} is not a valid follow-up report for {last_reports[-1]}. Please choose from: {', '.join(FOLLOW_UP_REPORTS.get(last_reports[-1], REPORT_TYPES))}")
+                st.session_state.current_report_type = report_type
+                st.session_state.show_form = True
                 break
         
         st.experimental_rerun()
@@ -247,6 +248,7 @@ def main():
             st.session_state.messages = []
             st.session_state.show_form = False
             st.session_state.current_report_type = None
+            st.session_state.report_history = ["None"] * 4
             st.experimental_rerun()
         
         st.markdown('</div>', unsafe_allow_html=True)
