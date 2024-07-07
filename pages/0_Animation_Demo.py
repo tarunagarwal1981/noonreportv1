@@ -332,13 +332,26 @@ def create_chatbot():
         response = get_ai_response(prompt, last_report)
         st.session_state.messages.append({"role": "assistant", "content": response})
         
-        # Check if the AI suggests creating a report
-        if "Initiating" in response and "report" in response:
+        # Check if the user's input matches any report type
+        mentioned_report = next((report for report in REPORT_TYPES if report.lower() in prompt.lower()), None)
+        
+        if mentioned_report:
+            st.session_state.current_report_type = mentioned_report
+            st.session_state.show_form = True
+            st.info(f"Initiating {mentioned_report} report. Please fill out the form on the left.")
+        elif "Initiating" in response and "report" in response:
             report_type = re.search(r"Initiating (.*?) report", response)
             if report_type:
                 st.session_state.current_report_type = report_type.group(1)
                 st.session_state.show_form = True
+                st.info(f"Initiating {report_type.group(1)} report. Please fill out the form on the left.")
         
+        st.experimental_rerun()
+
+    if st.button("Clear Chat"):
+        st.session_state.messages = []
+        st.session_state.show_form = False
+        st.session_state.current_report_type = None
         st.experimental_rerun()
 
     if st.button("Clear Chat"):
