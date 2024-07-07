@@ -54,6 +54,36 @@ REPORT_TYPES = [
     "End Fuel Changeover Report", "Bunkering Report"
 ]
 
+FOLLOW_UP_REPORTS = {
+    "Noon Sea Report": ["Noon Sea Report", "End of Sea Passage (EOSP) Report", "Begin Fuel Changeover Report", "End Fuel Changeover Report"],
+    "End of Sea Passage (EOSP) Report": ["Anchor Arrival / Finish with Engine (FWE) Report", "Berth Arrival / Finish with Engine (FWE) Report", "Begin Anchoring/Drifting"],
+    "Anchor Arrival / Finish with Engine (FWE) Report": ["Noon Port / Anchor Report", "Anchor Departure / Standby Engine (SBE) Report", "Begin Fuel Changeover Report", "End Fuel Changeover Report"],
+    "Noon Port / Anchor Report": ["Noon Port / Anchor Report", "Anchor Departure / Standby Engine (SBE) Report", "Begin Fuel Changeover Report", "End Fuel Changeover Report"],
+    "Anchor Departure / Standby Engine (SBE) Report": ["Commencement of Sea Passage (COSP) Report", "Berth Arrival / Finish with Engine (FWE) Report"],
+    "Berth Arrival / Finish with Engine (FWE) Report": ["Noon Port / Anchor Report", "Berth Departure / Standby Engine (SBE) Report", "Begin Fuel Changeover Report", "End Fuel Changeover Report"],
+    "Berth Departure / Standby Engine (SBE) Report": ["Commencement of Sea Passage (COSP) Report", "Anchor Arrival / Finish with Engine (FWE) Report"],
+    "Commencement of Sea Passage (COSP) Report": ["Noon Sea Report", "End of Sea Passage (EOSP) Report"],
+    "Begin Offhire Report": ["End Offhire Report"],
+    "End Offhire Report": ["Begin Offhire Report"],
+    "Arrival STS Report": ["Departure STS Report", "Begin Fuel Changeover Report", "End Fuel Changeover Report"],
+    "Departure STS Report": ["Commencement of Sea Passage (COSP) Report"],
+    "Begin Canal Passage Report": ["End Canal Passage Report"],
+    "End Canal Passage Report": ["Commencement of Sea Passage (COSP) Report", "Berth Arrival / Finish with Engine (FWE) Report"],
+    "Noon at River Passage Report": ["Noon at River Passage Report", "End Canal Passage Report"],
+    "Noon Stoppage Report": ["Noon Stoppage Report", "Commencement of Sea Passage (COSP) Report"],
+    "Begin Fuel Changeover Report": ["End Fuel Changeover Report"],
+    "End Fuel Changeover Report": ["Begin Fuel Changeover Report"],
+    "Bunkering Report": ["Bunkering Report", "End Fuel Changeover Report"]
+}
+
+REMINDERS = {
+    "Begin Fuel Changeover Report": "Remember to submit an End Fuel Changeover Report when the changeover is complete.",
+    "Commencement of Sea Passage (COSP) Report": "Don't forget to submit regular Noon Sea Reports and an End of Sea Passage (EOSP) Report when appropriate.",
+    "Anchor Arrival / Finish with Engine (FWE) Report": "Remember to submit Noon Port / Anchor Reports daily while at anchor.",
+    "Begin Canal Passage Report": "Don't forget to submit an End Canal Passage Report when the canal passage is complete.",
+    "Begin Offhire Report": "Remember to submit an End Offhire Report when the offhire period is over.",
+}
+
 # Prepare the training data as a string
 TRAINING_DATA = """
 You are an AI assistant for an advanced maritime reporting system. Your role is to guide users through creating various types of maritime reports, ensuring compliance with industry standards and regulations. The system aims to revolutionize the noon reporting process while adhering to the following:
@@ -159,9 +189,24 @@ Always be prepared to explain industry standards, regulations, and best practice
 def get_ai_response(user_input, last_report):
     current_time = datetime.now(pytz.utc).strftime("%H:%M:%S")
     
+    # Get valid follow-up reports
+    valid_reports = FOLLOW_UP_REPORTS.get(last_report, REPORT_TYPES)
+    
+    # Get any reminders
+    reminder = REMINDERS.get(last_report, "")
+    
+    context = f"""
+    The current UTC time is {current_time}. 
+    The last report submitted was: {last_report}
+    Valid follow-up reports: {', '.join(valid_reports)}
+    Reminder: {reminder}
+    
+    Please provide guidance based on this context and the user's input.
+    """
+    
     messages = [
         {"role": "system", "content": TRAINING_DATA},
-        {"role": "system", "content": f"The current UTC time is {current_time}. The last report submitted was: {last_report}"},
+        {"role": "system", "content": context},
         {"role": "user", "content": user_input}
     ]
 
@@ -202,14 +247,11 @@ def create_form(report_type):
         return True
     return False
 
-def create_chatbot():
+def create_chatbot(last_report):
     st.header("AI Assistant")
     
     if "messages" not in st.session_state:
         st.session_state.messages = []
-    
-    if "last_report" not in st.session_state:
-        st.session_state.last_report = "No previous report"
 
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
@@ -217,14 +259,17 @@ def create_chatbot():
 
     if prompt := st.chat_input("How can I assist you with your maritime reporting?"):
         st.session_state.messages.append({"role": "user", "content": prompt})
-        response = get_ai_response(prompt, st.session_state.last_report)
+        response = get_ai_response(prompt, last_report)
         st.session_state.messages.append({"role": "assistant", "content": response})
         
         # Check if a specific report type is mentioned
         for report_type in REPORT_TYPES:
             if report_type.lower() in prompt.lower():
-                st.session_state.current_report_type = report_type
-                st.session_state.show_form = True
+                if report_type in FOLLOW_UP_REPORTS.get(last_report, REPORT_TYPES):
+                    st.session_state.current_report_type = report_type
+                    st.session_state.show_form = True
+                else:
+                    st.warning(f"{report_type} is not a valid follow-up report for {last_report}. Please choose from: {', '.join(FOLLOW_UP_REPORTS.get(last_report, REPORT_TYPES))}")
                 break
         
         st.experimental_rerun()
@@ -232,13 +277,15 @@ def create_chatbot():
 def main():
     st.title("AI-Enhanced Maritime Reporting System")
     
+    # Add dropdown for selecting last submitted report
+    last_report = st.selectbox("Select last submitted report (for testing)", ["None"] + REPORT_TYPES, key="last_report_select")
+    
     col1, col2 = st.columns([0.6, 0.4])
 
     with col1:
         st.markdown('<div class="reportSection">', unsafe_allow_html=True)
         if 'show_form' in st.session_state and st.session_state.show_form:
             if create_form(st.session_state.current_report_type):
-                st.session_state.last_report = st.session_state.current_report_type
                 st.session_state.show_form = False
                 st.experimental_rerun()
         else:
@@ -247,7 +294,14 @@ def main():
 
     with col2:
         st.markdown('<div class="chatSection">', unsafe_allow_html=True)
-        create_chatbot()
+        create_chatbot(last_report)
+        
+        if st.button("Clear Report"):
+            st.session_state.messages = []
+            st.session_state.show_form = False
+            st.session_state.current_report_type = None
+            st.experimental_rerun()
+        
         st.markdown('</div>', unsafe_allow_html=True)
 
 if __name__ == "__main__":
