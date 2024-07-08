@@ -6,18 +6,6 @@ import os
 import random
 import string
 
-
-PORTS = [
-    "Singapore", "Rotterdam", "Shanghai", "Ningbo-Zhoushan", "Guangzhou Harbor", "Busan",
-    "Qingdao", "Hong Kong", "Tianjin", "Port Klang", "Antwerp", "Dubai Ports", "Xiamen",
-    "Kaohsiung", "Hamburg", "Los Angeles", "Tanjung Pelepas", "Laem Chabang", "New York-New Jersey",
-    "Dalian", "Tanjung Priok", "Valencia", "Colombo", "Ho Chi Minh City", "Algeciras"
-]
-
-VESSEL_PREFIXES = ["MV", "SS", "MT", "MSC", "CMA CGM", "OOCL", "Maersk", "Evergreen", "Cosco", "NYK"]
-VESSEL_NAMES = ["Horizon", "Voyager", "Pioneer", "Adventurer", "Explorer", "Discovery", "Navigator", "Endeavour", "Challenger", "Trailblazer"]
-
-
 # Set page config
 st.set_page_config(layout="wide", page_title="AI-Enhanced Maritime Reporting System")
 
@@ -91,7 +79,17 @@ if not openai.api_key:
     st.error("OpenAI API key not found. Please set it in Streamlit secrets or as an environment variable.")
     st.stop()
 
-# Define report types
+# Define constants
+PORTS = [
+    "Singapore", "Rotterdam", "Shanghai", "Ningbo-Zhoushan", "Guangzhou Harbor", "Busan",
+    "Qingdao", "Hong Kong", "Tianjin", "Port Klang", "Antwerp", "Dubai Ports", "Xiamen",
+    "Kaohsiung", "Hamburg", "Los Angeles", "Tanjung Pelepas", "Laem Chabang", "New York-New Jersey",
+    "Dalian", "Tanjung Priok", "Valencia", "Colombo", "Ho Chi Minh City", "Algeciras"
+]
+
+VESSEL_PREFIXES = ["MV", "SS", "MT", "MSC", "CMA CGM", "OOCL", "Maersk", "Evergreen", "Cosco", "NYK"]
+VESSEL_NAMES = ["Horizon", "Voyager", "Pioneer", "Adventurer", "Explorer", "Discovery", "Navigator", "Endeavour", "Challenger", "Trailblazer"]
+
 REPORT_TYPES = [
     "Arrival", "Departure", "Begin of offhire", "End of offhire", "Arrival STS",
     "Departure STS", "STS", "Begin canal passage", "End canal passage",
@@ -102,11 +100,9 @@ REPORT_TYPES = [
     "Begin of deviation", "End of deviation", "Entering special area", "Leaving special area"
 ]
 
-# Define report structures
 REPORT_STRUCTURES = {report_type: ["Vessel Data", "Voyage Data", "Event Data", "Position", "Cargo", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"] for report_type in REPORT_TYPES}
 REPORT_STRUCTURES["ETA update"] = ["Vessel Data", "Voyage Data", "Position"]
 
-# Define section fields
 SECTION_FIELDS = {
     "Vessel Data": ["Vessel Name", "Vessel IMO"],
     "Voyage Data": ["Local Date", "Local Time", "UTC Offset", "Voyage ID", "Segment ID", "From Port", "To Port"],
@@ -143,7 +139,6 @@ SECTION_FIELDS = {
     }
 }
 
-# Define validation rules
 VALIDATION_RULES = {
     "ME LFO (mt)": {"min": 0, "max": 25},
     "ME MGO (mt)": {"min": 0, "max": 25},
@@ -159,33 +154,28 @@ VALIDATION_RULES = {
     "Boiler Other (mt)": {"min": 0, "max": 4},
 }
 
-# Prepare the training data as a string
-TRAINING_DATA = f"""
-You are an AI assistant for an advanced maritime reporting system, with the knowledge and experience of a seasoned maritime seafarer. Your role is to guide users through creating various types of maritime reports, ensuring compliance with industry standards and regulations while maintaining a logical sequence of events. 
-Keep your responses as short and crisp and easy to understand as possible. While suggesting the reports just suggest the name of the reports not their explanations.
-Valid report types: {', '.join(REPORT_TYPES)}
+# Helper functions
+def generate_random_vessel_name():
+    return f"{random.choice(VESSEL_PREFIXES)} {random.choice(VESSEL_NAMES)}"
 
-Key features:
-1. Error reduction and data completion assistance
-2. Insights generation based on reported data
-3. Streamlined reporting process
-4. Enhanced accuracy in maritime operational reporting
+def generate_random_imo():
+    return ''.join(random.choices(string.digits, k=7))
 
-When suggesting follow-up reports, carefully consider the history of the last 3-4 reports and the logical sequence of maritime operations. Only suggest reports from the provided list that make sense given the current context and previous reports. For example:
+def generate_random_position():
+    lat_deg = random.randint(0, 89)
+    lat_min = round(random.uniform(0, 59.99), 2)
+    lat_dir = random.choice(['N', 'S'])
+    lon_deg = random.randint(0, 179)
+    lon_min = round(random.uniform(0, 59.99), 2)
+    lon_dir = random.choice(['E', 'W'])
+    return lat_deg, lat_min, lat_dir, lon_deg, lon_min, lon_dir
 
-1. An "Arrival STS" report must precede a "Departure STS" report.
-2. "Begin of sea passage" should follow a departure-type report (e.g., "Departure", "Departure STS", "End Anchoring/Drifting").
-3. "Noon" reports are regular and can follow most report types during a voyage.
-4. "Begin" type reports (e.g., "Begin of offhire", "Begin fuel change over") must be followed by their corresponding "End" reports before suggesting unrelated reports.
-5. If "Begin" report is not there then "End" report should not be suggested.
+def generate_random_consumption():
+    me_lfo = round(random.uniform(20, 25), 1)
+    ae_lfo = round(random.uniform(2, 3), 1)
+    return me_lfo, ae_lfo
 
-When a user agrees to create a specific report, inform them that the form will appear on the left side of the page with the relevant sections for that report type.
-
-Provide concise and helpful guidance throughout the report creation process. If a user agrees to create a report, respond with "Agreed. The form for [REPORT TYPE] will now appear on the left side of the page."
-
-Remember to provide appropriate reminders and follow-up suggestions based on the current report context and the logical sequence of maritime operations.
-"""
-
+# Chatbot functions
 def get_ai_response(user_input, last_reports):
     current_time = datetime.now(pytz.utc).strftime("%H:%M:%S")
     
@@ -199,7 +189,7 @@ def get_ai_response(user_input, last_reports):
     """
     
     messages = [
-        {"role": "system", "content": TRAINING_DATA},
+        {"role": "system", "content": "You are an AI assistant for an advanced maritime reporting system, with the knowledge and experience of a seasoned maritime seafarer."},
         {"role": "system", "content": context},
         {"role": "user", "content": user_input}
     ]
@@ -217,26 +207,57 @@ def get_ai_response(user_input, last_reports):
     except Exception as e:
         return f"I'm sorry, but I encountered an error while processing your request: {str(e)}. Please try again later."
 
-def generate_random_position():
-    lat_deg = random.randint(0, 89)
-    lat_min = round(random.uniform(0, 59.99), 2)
-    lat_dir = random.choice(['N', 'S'])
-    lon_deg = random.randint(0, 179)
-    lon_min = round(random.uniform(0, 59.99), 2)
-    lon_dir = random.choice(['E', 'W'])
-    return lat_deg, lat_min, lat_dir, lon_deg, lon_min, lon_dir
+def get_form_filling_response(field_name, field_type, current_value):
+    if current_value:
+        return None  # Skip fields that are already filled
+    
+    prompt = f"Ask the user to provide a value for the {field_name} field. The field type is {field_type}. Provide a short, conversational request for input."
 
-def generate_random_consumption():
-    me_lfo = round(random.uniform(20, 25), 1)
-    ae_lfo = round(random.uniform(2, 3), 1)
-    return me_lfo, ae_lfo
+    messages = [
+        {"role": "system", "content": "You are an AI assistant helping to fill out a maritime report form."},
+        {"role": "user", "content": prompt}
+    ]
 
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=messages,
+            max_tokens=100,
+            n=1,
+            stop=None,
+            temperature=0.7,
+        )
+        return response.choices[0].message['content'].strip()
+    except Exception as e:
+        return f"Could you please provide a value for the {field_name} field?"
 
-def generate_random_vessel_name():
-    return f"{random.choice(VESSEL_PREFIXES)} {random.choice(VESSEL_NAMES)}"
+def fill_form_with_chatbot(report_type):
+    st.session_state.form_filling = True
+    st.session_state.current_field_index = 0
+    st.session_state.form_fields = []
 
-def generate_random_imo():
-    return ''.join(random.choices(string.digits, k=7))
+    for section in REPORT_STRUCTURES[report_type]:
+        fields = SECTION_FIELDS.get(section, {})
+        if isinstance(fields, dict):
+            for subsection, subfields in fields.items():
+                st.session_state.form_fields.extend([(f, f"{section}_{subsection}") for f in subfields])
+        elif isinstance(fields, list):
+            st.session_state.form_fields.extend([(f, section) for f in fields])
+
+    # Skip already filled fields
+    while st.session_state.current_field_index < len(st.session_state.form_fields):
+        field, section = st.session_state.form_fields[st.session_state.current_field_index]
+        field_key = f"{report_type}_{section}_{field.lower().replace(' ', '_')}"
+        if field_key in st.session_state and st.session_state[field_key]:
+            st.session_state.current_field_index += 1
+        else:
+            break
+
+def update_form_field(field, value):
+    section = next((s for s in SECTION_FIELDS if field in SECTION_FIELDS[s]), None)
+    if section:
+        key = f"{st.session_state.current_report_type}_{section}_{field.lower().replace(' ', '_')}"
+        st.session_state[key] = value
 
 def create_fields(fields, prefix, report_type):
     cols = st.columns(4)  # Create 4 columns
@@ -367,7 +388,6 @@ def create_fields(fields, prefix, report_type):
     if me_total_consumption > 15 and not boiler_message_shown:
         st.markdown('<p class="info-message">Since Main Engine is running at more than 50% load, Boiler consumption is expected to be zero.</p>', unsafe_allow_html=True)
 
-
 def create_form(report_type):
     st.header(f"New {report_type}")
     
@@ -398,7 +418,7 @@ def create_form(report_type):
         else:
             st.error("Please correct the errors in the report before submitting.")
     return False
-    
+
 def validate_report(report_type):
     # Validation logic here
     # For example, checking if all required fields are filled and if the data is consistent (e.g., ROB calculations)
@@ -446,7 +466,73 @@ def create_collapsible_history_panel():
 
         st.markdown('</div>', unsafe_allow_html=True)
 
+def create_chatbot(last_reports):
+    st.header("AI Assistant")
+    
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
 
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+
+    if "form_filling" not in st.session_state:
+        st.session_state.form_filling = False
+
+    if st.session_state.form_filling:
+        while st.session_state.current_field_index < len(st.session_state.form_fields):
+            field, section = st.session_state.form_fields[st.session_state.current_field_index]
+            field_key = f"{st.session_state.current_report_type}_{section}_{field.lower().replace(' ', '_')}"
+            current_value = st.session_state.get(field_key, "")
+            
+            if current_value:
+                st.session_state.current_field_index += 1
+                continue
+            
+            if "last_bot_message" not in st.session_state:
+                response = get_form_filling_response(field, "text", current_value)
+                if response:
+                    st.session_state.last_bot_message = response
+                    st.session_state.messages.append({"role": "assistant", "content": response})
+                else:
+                    st.session_state.current_field_index += 1
+                    continue
+            
+            if prompt := st.chat_input(f"Provide value for {field}"):
+                st.session_state.messages.append({"role": "user", "content": prompt})
+                update_form_field(field, prompt)
+                st.session_state.current_field_index += 1
+                st.session_state.last_bot_message = None
+                st.experimental_rerun()
+            break
+        else:
+            st.session_state.form_filling = False
+            st.session_state.messages.append({"role": "assistant", "content": "Form completed. Do you want to submit?"})
+            st.experimental_rerun()
+    else:
+        if prompt := st.chat_input("How can I assist you with your maritime reporting?"):
+            st.session_state.messages.append({"role": "user", "content": prompt})
+            response = get_ai_response(prompt, last_reports)
+            st.session_state.messages.append({"role": "assistant", "content": response})
+            
+            for report_type in REPORT_TYPES:
+                if f"Agreed. The form for {report_type}" in response:
+                    if is_valid_report_sequence(last_reports, report_type):
+                        st.session_state.current_report_type = report_type
+                        st.session_state.show_form = True
+                        fill_form_with_chatbot(report_type)
+                        break
+                    else:
+                        st.warning(f"Invalid report sequence. {report_type} cannot follow the previous reports.")
+            
+            st.experimental_rerun()
+
+    if st.button("Clear Chat"):
+        st.session_state.messages = []
+        st.session_state.current_report_type = None
+        st.session_state.report_history = []
+        st.session_state.form_filling = False
+        st.experimental_rerun()
 
 def is_valid_report_sequence(last_reports, new_report):
     if not last_reports:
@@ -478,118 +564,6 @@ def is_valid_report_sequence(last_reports, new_report):
     # For reports not explicitly defined in rules, allow them if they're not breaking any sequence
     return new_report not in [item for sublist in sequence_rules.values() for item in sublist]
 
-def get_form_filling_response(field_name, field_type, current_value):
-    prompt = f"Ask the user to provide a value for the {field_name} field. The field type is {field_type}. "
-    if current_value:
-        prompt += f"The current value is {current_value}. "
-    prompt += "Provide a short, conversational request for input."
-
-    messages = [
-        {"role": "system", "content": "You are an AI assistant helping to fill out a maritime report form."},
-        {"role": "user", "content": prompt}
-    ]
-
-    try:
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=messages,
-            max_tokens=100,
-            n=1,
-            stop=None,
-            temperature=0.7,
-        )
-        return response.choices[0].message['content'].strip()
-    except Exception as e:
-        return f"Could you please provide a value for the {field_name} field?"
-
-# New function to handle form filling process
-def fill_form_with_chatbot(report_type):
-    st.session_state.form_filling = True
-    st.session_state.current_field_index = 0
-    st.session_state.form_fields = []
-
-    for section in REPORT_STRUCTURES[report_type]:
-        fields = SECTION_FIELDS.get(section, {})
-        if isinstance(fields, dict):
-            for subsection, subfields in fields.items():
-                st.session_state.form_fields.extend([(f, f"{section}_{subsection}") for f in subfields])
-        elif isinstance(fields, list):
-            st.session_state.form_fields.extend([(f, section) for f in fields])
-
-def update_form_field(field, value):
-    section = next((s for s in SECTION_FIELDS if field in SECTION_FIELDS[s]), None)
-    if section:
-        key = f"{st.session_state.current_report_type}_{section}_{field.lower().replace(' ', '_')}"
-        st.session_state[key] = value
-
-def create_chatbot(last_reports):
-    st.header("AI Assistant")
-    
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
-
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
-
-    if "form_filling" not in st.session_state:
-        st.session_state.form_filling = False
-
-    if st.session_state.form_filling:
-        if st.session_state.current_field_index < len(st.session_state.form_fields):
-            field, section = st.session_state.form_fields[st.session_state.current_field_index]
-            field_key = f"{st.session_state.current_report_type}_{section}_{field.lower().replace(' ', '_')}"
-            current_value = st.session_state.get(field_key, "")
-            
-            if "last_bot_message" not in st.session_state:
-                response = get_form_filling_response(field, "text", current_value)
-                st.session_state.last_bot_message = response
-                st.session_state.messages.append({"role": "assistant", "content": response})
-            
-            if prompt := st.chat_input(f"Provide value for {field}"):
-                st.session_state.messages.append({"role": "user", "content": prompt})
-                update_form_field(field, prompt)
-                st.session_state.current_field_index += 1
-                st.session_state.last_bot_message = None
-                
-                if st.session_state.current_field_index < len(st.session_state.form_fields):
-                    next_field, next_section = st.session_state.form_fields[st.session_state.current_field_index]
-                    response = get_form_filling_response(next_field, "text", "")
-                    st.session_state.messages.append({"role": "assistant", "content": response})
-                else:
-                    st.session_state.messages.append({"role": "assistant", "content": "Form completed. Do you want to submit?"})
-                    st.session_state.form_filling = False
-                
-                st.experimental_rerun()
-        else:
-            st.session_state.form_filling = False
-            st.experimental_rerun()
-    else:
-        if prompt := st.chat_input("How can I assist you with your maritime reporting?"):
-            st.session_state.messages.append({"role": "user", "content": prompt})
-            response = get_ai_response(prompt, last_reports)
-            st.session_state.messages.append({"role": "assistant", "content": response})
-            
-            for report_type in REPORT_TYPES:
-                if f"Agreed. The form for {report_type}" in response:
-                    if is_valid_report_sequence(last_reports, report_type):
-                        st.session_state.current_report_type = report_type
-                        st.session_state.show_form = True
-                        fill_form_with_chatbot(report_type)
-                        break
-                    else:
-                        st.warning(f"Invalid report sequence. {report_type} cannot follow the previous reports.")
-            
-            st.experimental_rerun()
-
-    if st.button("Clear Chat"):
-        st.session_state.messages = []
-        st.session_state.current_report_type = None
-        st.session_state.report_history = []
-        st.session_state.form_filling = False
-        st.experimental_rerun()
-
-# Main function remains mostly unchanged
 def main():
     st.title("OptiLog - AI-Enhanced Maritime Reporting System")
     
