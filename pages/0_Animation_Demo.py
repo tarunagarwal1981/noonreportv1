@@ -413,21 +413,27 @@ def get_ai_response(user_input, last_reports):
 def create_chatbot(last_reports):
     st.header("AI Assistant")
     
+    # Initialize chat history if it doesn't exist
     if "messages" not in st.session_state:
         st.session_state.messages = []
     
+    # Create a container for the chat messages
     chat_container = st.container()
-    with chat_container:
-        st.markdown('<div class="chat-container">', unsafe_allow_html=True)
+    
+    # Create an empty element to update with chat messages
+    chat_placeholder = st.empty()
+    
+    # Display chat messages
+    with chat_placeholder.container():
         for message in st.session_state.messages:
             if message["role"] == "user":
                 st.markdown(f'<div class="user-message">You: {message["content"]}</div>', unsafe_allow_html=True)
             else:
                 st.markdown(f'<div class="assistant-message">AI: {message["content"]}</div>', unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
     
+    # User input
     user_input = st.text_input("Type your message here:", key="user_input")
-    if st.button("Send"):
+    if st.button("Send") or user_input:
         if user_input:
             st.session_state.messages.append({"role": "user", "content": user_input})
             
@@ -435,22 +441,20 @@ def create_chatbot(last_reports):
                 response = fill_form_fields(user_input, st.session_state.current_report_type)
             else:
                 response = get_ai_response(user_input, last_reports)
-                
-                for report_type in REPORT_TYPES:
-                    if f"Agreed. The form for {report_type}" in response:
-                        if is_valid_report_sequence(last_reports, report_type):
-                            st.session_state.current_report_type = report_type
-                            st.session_state.show_form = True
-                            if 'chatbot_filled_fields' not in st.session_state:
-                                st.session_state.chatbot_filled_fields = {}
-                            response += "\n\nSome fields have been automatically filled. Let's go through the remaining fields. What would you like to fill first?"
-                            break
-                        else:
-                            st.warning(f"Invalid report sequence. {report_type} cannot follow the previous reports.")
             
             st.session_state.messages.append({"role": "assistant", "content": response})
-            st.experimental_rerun()
-
+            
+            # Clear the input box
+            st.session_state.user_input = ""
+            
+            # Update the chat display
+            with chat_placeholder.container():
+                for message in st.session_state.messages:
+                    if message["role"] == "user":
+                        st.markdown(f'<div class="user-message">You: {message["content"]}</div>', unsafe_allow_html=True)
+                    else:
+                        st.markdown(f'<div class="assistant-message">AI: {message["content"]}</div>', unsafe_allow_html=True)
+                        
 def fill_form_fields(user_input, report_type):
     report_structure = REPORT_STRUCTURES.get(report_type, [])
     all_fields = []
