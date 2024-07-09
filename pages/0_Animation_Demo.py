@@ -127,15 +127,24 @@ st.markdown("""
         margin-bottom: 10px;
         display: inline-block;
     }
-    .stChatFloatingInputContainer {
-        bottom: 20px;
-    }
     .chat-container {
         height: 400px;
         overflow-y: auto;
         border: 1px solid #ddd;
         padding: 10px;
         margin-bottom: 20px;
+        border-radius: 5px;
+    }
+    .user-message {
+        background-color: #e6f2ff;
+        padding: 5px;
+        margin: 5px 0;
+        border-radius: 5px;
+    }
+    .assistant-message {
+        background-color: #f0f0f0;
+        padding: 5px;
+        margin: 5px 0;
         border-radius: 5px;
     }
 </style>
@@ -411,32 +420,36 @@ def create_chatbot(last_reports):
     with chat_container:
         st.markdown('<div class="chat-container">', unsafe_allow_html=True)
         for message in st.session_state.messages:
-            with st.chat_message(message["role"]):
-                st.markdown(message["content"])
+            if message["role"] == "user":
+                st.markdown(f'<div class="user-message">You: {message["content"]}</div>', unsafe_allow_html=True)
+            else:
+                st.markdown(f'<div class="assistant-message">AI: {message["content"]}</div>', unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
     
-    if prompt := st.chat_input("How can I assist you with your maritime reporting?"):
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        
-        if hasattr(st.session_state, 'current_report_type') and st.session_state.current_report_type:
-            response = fill_form_fields(prompt, st.session_state.current_report_type)
-        else:
-            response = get_ai_response(prompt, last_reports)
+    user_input = st.text_input("Type your message here:", key="user_input")
+    if st.button("Send"):
+        if user_input:
+            st.session_state.messages.append({"role": "user", "content": user_input})
             
-            for report_type in REPORT_TYPES:
-                if f"Agreed. The form for {report_type}" in response:
-                    if is_valid_report_sequence(last_reports, report_type):
-                        st.session_state.current_report_type = report_type
-                        st.session_state.show_form = True
-                        if 'chatbot_filled_fields' not in st.session_state:
-                            st.session_state.chatbot_filled_fields = {}
-                        response += "\n\nSome fields have been automatically filled. Let's go through the remaining fields. What would you like to fill first?"
-                        break
-                    else:
-                        st.warning(f"Invalid report sequence. {report_type} cannot follow the previous reports.")
-        
-        st.session_state.messages.append({"role": "assistant", "content": response})
-        st.experimental_rerun()
+            if hasattr(st.session_state, 'current_report_type') and st.session_state.current_report_type:
+                response = fill_form_fields(user_input, st.session_state.current_report_type)
+            else:
+                response = get_ai_response(user_input, last_reports)
+                
+                for report_type in REPORT_TYPES:
+                    if f"Agreed. The form for {report_type}" in response:
+                        if is_valid_report_sequence(last_reports, report_type):
+                            st.session_state.current_report_type = report_type
+                            st.session_state.show_form = True
+                            if 'chatbot_filled_fields' not in st.session_state:
+                                st.session_state.chatbot_filled_fields = {}
+                            response += "\n\nSome fields have been automatically filled. Let's go through the remaining fields. What would you like to fill first?"
+                            break
+                        else:
+                            st.warning(f"Invalid report sequence. {report_type} cannot follow the previous reports.")
+            
+            st.session_state.messages.append({"role": "assistant", "content": response})
+            st.experimental_rerun()
 
 def fill_form_fields(user_input, report_type):
     report_structure = REPORT_STRUCTURES.get(report_type, [])
@@ -563,4 +576,4 @@ def main():
         st.markdown('</div>', unsafe_allow_html=True)
 
 if __name__ == "__main__":
-    main()    
+    main()
