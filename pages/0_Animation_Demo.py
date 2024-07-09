@@ -270,7 +270,7 @@ def create_fields(fields, prefix, report_type):
                 position_fields_processed += 1
             elif field == "Longitude Minutes":
                 value = st.number_input(field, value=lon_min, min_value=0.0, max_value=59.99, format="%.2f", key=field_key)
-                                position_fields_processed += 1
+                position_fields_processed += 1
             elif field == "Longitude Direction":
                 value = st.selectbox(field, options=["E", "W"], index=["E", "W"].index(lon_dir), key=field_key)
                 position_fields_processed += 1
