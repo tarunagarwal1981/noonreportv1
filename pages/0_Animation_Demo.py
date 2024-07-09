@@ -420,11 +420,8 @@ def create_chatbot(last_reports):
     # Create a container for the chat messages
     chat_container = st.container()
     
-    # Create an empty element to update with chat messages
-    chat_placeholder = st.empty()
-    
     # Display chat messages
-    with chat_placeholder.container():
+    with chat_container:
         for message in st.session_state.messages:
             if message["role"] == "user":
                 st.markdown(f'<div class="user-message">You: {message["content"]}</div>', unsafe_allow_html=True)
@@ -433,7 +430,7 @@ def create_chatbot(last_reports):
     
     # User input
     user_input = st.text_input("Type your message here:", key="user_input")
-    if st.button("Send") or user_input:
+    if st.button("Send") or (user_input and user_input != st.session_state.get('last_input', '')):
         if user_input:
             st.session_state.messages.append({"role": "user", "content": user_input})
             
@@ -444,16 +441,11 @@ def create_chatbot(last_reports):
             
             st.session_state.messages.append({"role": "assistant", "content": response})
             
-            # Clear the input box
-            st.session_state.user_input = ""
+            # Store the last input to prevent duplicate processing
+            st.session_state.last_input = user_input
             
-            # Update the chat display
-            with chat_placeholder.container():
-                for message in st.session_state.messages:
-                    if message["role"] == "user":
-                        st.markdown(f'<div class="user-message">You: {message["content"]}</div>', unsafe_allow_html=True)
-                    else:
-                        st.markdown(f'<div class="assistant-message">AI: {message["content"]}</div>', unsafe_allow_html=True)
+            # Force a rerun to update the chat display
+            st.experimental_rerun()
                         
 def fill_form_fields(user_input, report_type):
     report_structure = REPORT_STRUCTURES.get(report_type, [])
