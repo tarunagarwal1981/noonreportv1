@@ -449,116 +449,86 @@ def create_collapsible_history_panel():
 def create_chatbot(last_reports):
     st.header("AI Assistant")
     
-    # Custom HTML and JavaScript for the chat interface
-    chat_html = """
+    # Custom CSS for the chat interface
+    st.markdown("""
     <style>
-    #chat-container {
-        width: 100%;
-        height: 400px;
+    .chat-container {
         border: 1px solid #ddd;
-        display: flex;
-        flex-direction: column;
+        border-radius: 5px;
+        padding: 10px;
+        margin-bottom: 10px;
     }
-    #chat-messages {
-        flex: 1;
+    .chat-messages {
+        height: 300px;
         overflow-y: auto;
         padding: 10px;
-        display: flex;
-        flex-direction: column-reverse;
-    }
-    .message {
-        margin-bottom: 10px;
-        padding: 8px;
+        background-color: #f9f9f9;
         border-radius: 5px;
     }
     .user-message {
         background-color: #e6f3ff;
-        align-self: flex-end;
+        padding: 8px;
+        border-radius: 5px;
+        margin-bottom: 5px;
     }
     .assistant-message {
         background-color: #f0f0f0;
-        align-self: flex-start;
+        padding: 8px;
+        border-radius: 5px;
+        margin-bottom: 5px;
     }
-    #chat-input {
-        width: 100%;
-        padding: 10px;
-        border: none;
-        border-top: 1px solid #ddd;
+    .stTextInput>div>div>input {
+        background-color: white;
     }
     </style>
-    <div id="chat-container">
-        <div id="chat-messages"></div>
-        <input type="text" id="chat-input" placeholder="Type your message here...">
-    </div>
-    <script>
-    const chatMessages = document.getElementById('chat-messages');
-    const chatInput = document.getElementById('chat-input');
+    """, unsafe_allow_html=True)
     
-    function addMessage(content, isUser) {
-        const messageDiv = document.createElement('div');
-        messageDiv.classList.add('message');
-        messageDiv.classList.add(isUser ? 'user-message' : 'assistant-message');
-        messageDiv.textContent = content;
-        chatMessages.insertBefore(messageDiv, chatMessages.firstChild);
-    }
+    # Create a container for the entire chat interface
+    chat_container = st.container()
     
-    chatInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            const message = chatInput.value.trim();
-            if (message) {
-                addMessage(message, true);
-                chatInput.value = '';
-                // Send message to Streamlit
-                sendMessageToStreamlit(message);
-            }
-        }
-    });
-    
-    function sendMessageToStreamlit(message) {
-        Streamlit.setComponentValue(message);
-    }
-    
-    function updateChatFromPython(messages) {
-        chatMessages.innerHTML = '';
-        messages.forEach(msg => {
-            addMessage(msg.content, msg.role === 'user');
-        });
-    }
-    
-    // Initialize with Streamlit
-    Streamlit.setComponentReady();
-    </script>
-    """
-    
-    # Use Streamlit component for the chat interface
-    user_message = st.components.v1.html(chat_html, height=450, key="chat_interface")
-    
-    if user_message:
-        if "messages" not in st.session_state:
-            st.session_state.messages = []
+    with chat_container:
+        # Chat messages area
+        st.markdown('<div class="chat-container">', unsafe_allow_html=True)
+        chat_messages = st.container()
         
-        st.session_state.messages.append({"role": "user", "content": user_message})
-        response = get_ai_response(user_message, last_reports)
-        st.session_state.messages.append({"role": "assistant", "content": response})
-        
-        # Check if a specific report type is agreed upon
-        for report_type in REPORT_TYPES:
-            if f"Agreed. The form for {report_type}" in response:
-                if is_valid_report_sequence(last_reports, report_type):
-                    st.session_state.current_report_type = report_type
-                    st.session_state.show_form = True
-                    break
+        with chat_messages:
+            st.markdown('<div class="chat-messages">', unsafe_allow_html=True)
+            if "messages" not in st.session_state:
+                st.session_state.messages = []
+            
+            for message in reversed(st.session_state.messages):  # Display messages in reverse order
+                if message["role"] == "user":
+                    st.markdown(f'<div class="user-message">{message["content"]}</div>', unsafe_allow_html=True)
                 else:
-                    st.warning(f"Invalid report sequence. {report_type} cannot follow the previous reports.")
+                    st.markdown(f'<div class="assistant-message">{message["content"]}</div>', unsafe_allow_html=True)
+            
+            st.markdown('</div>', unsafe_allow_html=True)
         
-        # Update the chat interface with the new messages
-        st.components.v1.html(f"""
-        <script>
-        updateChatFromPython({st.session_state.messages});
-        </script>
-        """, height=0)
+        st.markdown('</div>', unsafe_allow_html=True)
         
-        st.experimental_rerun()
+        # Input area
+        user_input = st.text_input("Type your message here...", key="user_input")
+        
+        if user_input:
+            st.session_state.messages.append({"role": "user", "content": user_input})
+            response = get_ai_response(user_input, last_reports)
+            st.session_state.messages.append({"role": "assistant", "content": response})
+            
+            # Check if a specific report type is agreed upon
+            for report_type in REPORT_TYPES:
+                if f"Agreed. The form for {report_type}" in response:
+                    if is_valid_report_sequence(last_reports, report_type):
+                        st.session_state.current_report_type = report_type
+                        st.session_state.show_form = True
+                        break
+                    else:
+                        st.warning(f"Invalid report sequence. {report_type} cannot follow the previous reports.")
+            
+            # Clear the input field
+            st.session_state.user_input = ""
+            
+            st.experimental_rerun()
+
 
 def is_valid_report_sequence(last_reports, new_report):
     if not last_reports:
