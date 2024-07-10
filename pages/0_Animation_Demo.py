@@ -6,7 +6,6 @@ import os
 import random
 import string
 
-
 PORTS = [
     "Singapore", "Rotterdam", "Shanghai", "Ningbo-Zhoushan", "Guangzhou Harbor", "Busan",
     "Qingdao", "Hong Kong", "Tianjin", "Port Klang", "Antwerp", "Dubai Ports", "Xiamen",
@@ -23,9 +22,8 @@ st.set_page_config(layout="wide", page_title="AI-Enhanced Maritime Reporting Sys
 # Custom CSS for compact layout, history panel, and field prompts
 st.markdown("""
 <style>
-    .reportSection, .chatSection { height: 80vh; overflow-y: auto; }
-    .chatSection { border-left: 1px solid #e0e0e0; padding-left: 1rem; }
     .reportSection { padding-right: 1rem; }
+    .chatSection { padding-left: 1rem; border-left: 1px solid #e0e0e0; }
     .stButton > button { width: 100%; }
     .main .block-container { padding-top: 2rem; padding-bottom: 2rem; max-width: 100%; }
     h1, h2, h3 { margin-top: 0; font-size: 1.5em; line-height: 1.3; padding: 0.5rem 0; }
@@ -77,6 +75,13 @@ st.markdown("""
         margin-top: 5px;
         margin-bottom: 10px;
         display: inline-block;
+    }
+    .scrollable-box {
+        max-height: 500px;
+        overflow-y: scroll;
+        padding: 1rem;
+        border: 1px solid #ccc;
+        border-radius: 5px;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -138,8 +143,7 @@ SECTION_FIELDS = {
         "Current": ["Current Direction (degrees)", "Current Speed (knots)"],
         "Temperature": ["Air Temperature (°C)", "Sea Temperature (°C)"]
     },
-    Draft": {
-        "Actual": ["Actual Forward Draft (m)", "Actual Aft Draft (m)", "Displacement (mt)", "Water Depth (m)"]
+    "Draft": {        "Actual": ["Actual Forward Draft (m)", "Actual Aft Draft (m)", "Displacement (mt)", "Water Depth (m)"]
     }
 }
 
@@ -231,7 +235,6 @@ def generate_random_consumption():
     ae_lfo = round(random.uniform(2, 3), 1)
     return me_lfo, ae_lfo
 
-
 def generate_random_vessel_name():
     return f"{random.choice(VESSEL_PREFIXES)} {random.choice(VESSEL_NAMES)}"
 
@@ -303,7 +306,7 @@ def create_fields(fields, prefix, report_type):
                 value = st.selectbox(field, options=["N", "S"], index=["N", "S"].index(lat_dir), key=field_key)
                 position_fields_processed += 1
             elif field == "Longitude Degrees":
-                value = st.number_input(field, value=lon_deg, min_value=0, max_value=179, key=field_key)
+                                value = st.number_input(field, value=lon_deg, min_value=0, max_value=179, key=field_key)
                 position_fields_processed += 1
             elif field == "Longitude Minutes":
                 value = st.number_input(field, value=lon_min, min_value=0.0, max_value=59.99, format="%.2f", key=field_key)
@@ -366,7 +369,6 @@ def create_fields(fields, prefix, report_type):
     # Check if we need to display the Boiler message after all fields have been processed
     if me_total_consumption > 15 and not boiler_message_shown:
         st.markdown('<p class="info-message">Since Main Engine is running at more than 50% load, Boiler consumption is expected to be zero.</p>', unsafe_allow_html=True)
-
 
 def create_form(report_type):
     st.header(f"New {report_type}")
@@ -448,13 +450,13 @@ def create_collapsible_history_panel():
 
 def create_chatbot(last_reports):
     st.header("AI Assistant")
-    
+
+    st.markdown('<div class="scrollable-box">', unsafe_allow_html=True)
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
     for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
+        st.chat_message(message["role"]).write(message["content"])
 
     if prompt := st.chat_input("How can I assist you with your maritime reporting?"):
         st.session_state.messages.append({"role": "user", "content": prompt})
@@ -472,6 +474,7 @@ def create_chatbot(last_reports):
                     st.warning(f"Invalid report sequence. {report_type} cannot follow the previous reports.")
         
         st.experimental_rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
 
 def is_valid_report_sequence(last_reports, new_report):
     if not last_reports:
@@ -485,7 +488,7 @@ def is_valid_report_sequence(last_reports, new_report):
         "Begin of offhire": ["End of offhire"],
         "Begin fuel change over": ["End fuel change over"],
         "Begin canal passage": ["End canal passage"],
-                "Begin Anchoring/Drifting": ["End Anchoring/Drifting"],
+        "Begin Anchoring/Drifting": ["End Anchoring/Drifting"],
         "Begin of deviation": ["End of deviation"],
         "Departure": ["Begin of sea passage", "Noon (Position) - Sea passage"],
         "Departure STS": ["Begin of sea passage", "Noon (Position) - Sea passage"],
@@ -521,7 +524,7 @@ def main():
 
     with col2:
         create_collapsible_history_panel()
-        st.markdown('<div class="chatSection">', unsafe_allow_html=True)
+        st.markdown('<div class="chatSection scrollable-box">', unsafe_allow_html=True)
         create_chatbot(st.session_state.report_history)
         
         if st.button("Clear Chat"):
@@ -534,4 +537,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
+
 
