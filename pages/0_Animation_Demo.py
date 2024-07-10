@@ -17,15 +17,15 @@ PORTS = [
 VESSEL_PREFIXES = ["MV", "SS", "MT", "MSC", "CMA CGM", "OOCL", "Maersk", "Evergreen", "Cosco", "NYK"]
 VESSEL_NAMES = ["Horizon", "Voyager", "Pioneer", "Adventurer", "Explorer", "Discovery", "Navigator", "Endeavour", "Challenger", "Trailblazer"]
 
-
 # Set page config
 st.set_page_config(layout="wide", page_title="AI-Enhanced Maritime Reporting System")
 
 # Custom CSS for compact layout, history panel, and field prompts
 st.markdown("""
 <style>
+    .reportSection, .chatSection { height: 80vh; overflow-y: auto; }
+    .chatSection { border-left: 1px solid #e0e0e0; padding-left: 1rem; }
     .reportSection { padding-right: 1rem; }
-    .chatSection { padding-left: 1rem; border-left: 1px solid #e0e0e0; }
     .stButton > button { width: 100%; }
     .main .block-container { padding-top: 2rem; padding-bottom: 2rem; max-width: 100%; }
     h1, h2, h3 { margin-top: 0; font-size: 1.5em; line-height: 1.3; padding: 0.5rem 0; }
@@ -138,7 +138,7 @@ SECTION_FIELDS = {
         "Current": ["Current Direction (degrees)", "Current Speed (knots)"],
         "Temperature": ["Air Temperature (°C)", "Sea Temperature (°C)"]
     },
-    "Draft": {
+    Draft": {
         "Actual": ["Actual Forward Draft (m)", "Actual Aft Draft (m)", "Displacement (mt)", "Water Depth (m)"]
     }
 }
@@ -186,18 +186,16 @@ Provide concise and helpful guidance throughout the report creation process. If 
 Remember to provide appropriate reminders and follow-up suggestions based on the current report context and the logical sequence of maritime operations.
 """
 
-def get_ai_response(user_input, last_reports, unfilled_fields):
+def get_ai_response(user_input, last_reports):
     current_time = datetime.now(pytz.utc).strftime("%H:%M:%S")
     
     context = f"""
     The current UTC time is {current_time}. 
     The last reports submitted were: {' -> '.join(last_reports)}
-    The following fields still need to be filled: {', '.join(unfilled_fields)}
     
-    Please guide the user through filling out the form. Ask for one field at a time,
-    starting with the first unfilled field. Provide context and explanation for each field.
-    If the user provides a value, confirm it and move to the next field.
-    If the user asks to skip a field, move to the next one.
+    Please provide guidance based on this context and the user's input.
+    Remember to only suggest reports from the provided list that make logical sense given the previous reports and maritime operations.
+    Use your knowledge as an experienced seafarer to ensure the suggested reports follow a realistic sequence of events.
     """
     
     messages = [
@@ -213,45 +211,11 @@ def get_ai_response(user_input, last_reports, unfilled_fields):
             max_tokens=300,
             n=1,
             stop=None,
-            temperature=0.7,
+            temperature=1.0,
         )
         return response.choices[0].message['content'].strip()
     except Exception as e:
         return f"I'm sorry, but I encountered an error while processing your request: {str(e)}. Please try again later."
-
-def get_unfilled_fields(report_type):
-    unfilled_fields = []
-    for section in REPORT_STRUCTURES.get(report_type, []):
-        fields = SECTION_FIELDS.get(section, {})
-        if isinstance(fields, dict):
-            for subsection, subfields in fields.items():
-                for field in subfields:
-                    field_key = f"{report_type}_{section}_{subsection}_{field.lower().replace(' ', '_')}"
-                    if field_key not in st.session_state or not st.session_state[field_key]:
-                        unfilled_fields.append(field)
-        elif isinstance(fields, list):
-            for field in fields:
-                field_key = f"{report_type}_{section}_{field.lower().replace(' ', '_')}"
-                if field_key not in st.session_state or not st.session_state[field_key]:
-                    unfilled_fields.append(field)
-    return unfilled_fields
-
-def update_field_value(report_type, field_name, value):
-    for section in REPORT_STRUCTURES.get(report_type, []):
-        fields = SECTION_FIELDS.get(section, {})
-        if isinstance(fields, dict):
-            for subsection, subfields in fields.items():
-                if field_name in subfields:
-                    field_key = f"{report_type}_{section}_{subsection}_{field_name.lower().replace(' ', '_')}"
-                    st.session_state[field_key] = value
-                    return True
-        elif isinstance(fields, list):
-            if field_name in fields:
-                field_key = f"{report_type}_{section}_{field_name.lower().replace(' ', '_')}"
-                st.session_state[field_key] = value
-                return True
-    return False
-
 
 def generate_random_position():
     lat_deg = random.randint(0, 89)
@@ -487,13 +451,6 @@ def create_chatbot(last_reports):
     
     if "messages" not in st.session_state:
         st.session_state.messages = []
-    
-    if "current_field" not in st.session_state:
-        st.session_state.current_field = None
-    
-    # Initialize current_report_type if it doesn't exist
-    if "current_report_type" not in st.session_state:
-        st.session_state.current_report_type = None
 
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
@@ -501,27 +458,7 @@ def create_chatbot(last_reports):
 
     if prompt := st.chat_input("How can I assist you with your maritime reporting?"):
         st.session_state.messages.append({"role": "user", "content": prompt})
-        
-        if st.session_state.current_report_type:
-            unfilled_fields = get_unfilled_fields(st.session_state.current_report_type)
-            response = get_ai_response(prompt, last_reports, unfilled_fields)
-            
-            if st.session_state.current_field:
-                # Try to update the field with the user's input
-                if update_field_value(st.session_state.current_report_type, st.session_state.current_field, prompt):
-                    response += f"\n\nUpdated {st.session_state.current_field} with value: {prompt}"
-                    st.session_state.current_field = None
-                else:
-                    response += f"\n\nFailed to update {st.session_state.current_field}. Please try again."
-            
-            # Check if the AI is asking for a specific field
-            for field in unfilled_fields:
-                if field.lower() in response.lower():
-                    st.session_state.current_field = field
-                    break
-        else:
-            response = get_ai_response(prompt, last_reports, [])
-        
+        response = get_ai_response(prompt, last_reports)
         st.session_state.messages.append({"role": "assistant", "content": response})
         
         # Check if a specific report type is agreed upon
@@ -535,7 +472,7 @@ def create_chatbot(last_reports):
                     st.warning(f"Invalid report sequence. {report_type} cannot follow the previous reports.")
         
         st.experimental_rerun()
-        
+
 def is_valid_report_sequence(last_reports, new_report):
     if not last_reports:
         return True
@@ -548,7 +485,7 @@ def is_valid_report_sequence(last_reports, new_report):
         "Begin of offhire": ["End of offhire"],
         "Begin fuel change over": ["End fuel change over"],
         "Begin canal passage": ["End canal passage"],
-        "Begin Anchoring/Drifting": ["End Anchoring/Drifting"],
+                "Begin Anchoring/Drifting": ["End Anchoring/Drifting"],
         "Begin of deviation": ["End of deviation"],
         "Departure": ["Begin of sea passage", "Noon (Position) - Sea passage"],
         "Departure STS": ["Begin of sea passage", "Noon (Position) - Sea passage"],
@@ -572,15 +509,11 @@ def main():
     if "report_history" not in st.session_state:
         st.session_state.report_history = []
     
-    # Initialize current_report_type if it doesn't exist
-    if "current_report_type" not in st.session_state:
-        st.session_state.current_report_type = None
-    
     col1, col2 = st.columns([0.7, 0.3])
 
     with col1:
         st.markdown('<div class="reportSection">', unsafe_allow_html=True)
-        if st.session_state.current_report_type:
+        if 'current_report_type' in st.session_state:
             create_form(st.session_state.current_report_type)
         else:
             st.write("Please use the AI Assistant to initiate a report.")
@@ -594,7 +527,6 @@ def main():
         if st.button("Clear Chat"):
             st.session_state.messages = []
             st.session_state.current_report_type = None
-            st.session_state.current_field = None
             st.session_state.report_history = []
             st.experimental_rerun()
         
@@ -602,3 +534,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
