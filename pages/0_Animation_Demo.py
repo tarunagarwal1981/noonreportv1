@@ -6,6 +6,7 @@ import os
 import random
 import string
 
+
 PORTS = [
     "Singapore", "Rotterdam", "Shanghai", "Ningbo-Zhoushan", "Guangzhou Harbor", "Busan",
     "Qingdao", "Hong Kong", "Tianjin", "Port Klang", "Antwerp", "Dubai Ports", "Xiamen",
@@ -15,6 +16,7 @@ PORTS = [
 
 VESSEL_PREFIXES = ["MV", "SS", "MT", "MSC", "CMA CGM", "OOCL", "Maersk", "Evergreen", "Cosco", "NYK"]
 VESSEL_NAMES = ["Horizon", "Voyager", "Pioneer", "Adventurer", "Explorer", "Discovery", "Navigator", "Endeavour", "Challenger", "Trailblazer"]
+
 
 # Set page config
 st.set_page_config(layout="wide", page_title="AI-Enhanced Maritime Reporting System")
@@ -76,13 +78,6 @@ st.markdown("""
         margin-bottom: 10px;
         display: inline-block;
     }
-    .scrollable-box {
-        max-height: 500px;
-        overflow-y: scroll;
-        padding: 1rem;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -143,7 +138,8 @@ SECTION_FIELDS = {
         "Current": ["Current Direction (degrees)", "Current Speed (knots)"],
         "Temperature": ["Air Temperature (°C)", "Sea Temperature (°C)"]
     },
-    "Draft": {        "Actual": ["Actual Forward Draft (m)", "Actual Aft Draft (m)", "Displacement (mt)", "Water Depth (m)"]
+    "Draft": {
+        "Actual": ["Actual Forward Draft (m)", "Actual Aft Draft (m)", "Displacement (mt)", "Water Depth (m)"]
     }
 }
 
@@ -234,6 +230,7 @@ def generate_random_consumption():
     me_lfo = round(random.uniform(20, 25), 1)
     ae_lfo = round(random.uniform(2, 3), 1)
     return me_lfo, ae_lfo
+
 
 def generate_random_vessel_name():
     return f"{random.choice(VESSEL_PREFIXES)} {random.choice(VESSEL_NAMES)}"
@@ -370,6 +367,7 @@ def create_fields(fields, prefix, report_type):
     if me_total_consumption > 15 and not boiler_message_shown:
         st.markdown('<p class="info-message">Since Main Engine is running at more than 50% load, Boiler consumption is expected to be zero.</p>', unsafe_allow_html=True)
 
+
 def create_form(report_type):
     st.header(f"New {report_type}")
     
@@ -450,31 +448,57 @@ def create_collapsible_history_panel():
 
 def create_chatbot(last_reports):
     st.header("AI Assistant")
-
-    st.markdown('<div class="scrollable-box">', unsafe_allow_html=True)
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
-
-    for message in st.session_state.messages:
-        st.chat_message(message["role"]).write(message["content"])
-
-    if prompt := st.chat_input("How can I assist you with your maritime reporting?"):
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        response = get_ai_response(prompt, last_reports)
-        st.session_state.messages.append({"role": "assistant", "content": response})
+    
+    # Create a container for the entire chat interface
+    chat_container = st.container()
+    
+    # Create a container for the scrollable chat area
+    with chat_container:
+        # Set a fixed height for the chat area and make it scrollable
+        chat_area = st.container()
+        chat_area.markdown(
+            """
+            <style>
+            .chat-area {
+                height: 400px;
+                overflow-y: scroll;
+                border: 1px solid #ddd;
+                padding: 10px;
+                margin-bottom: 10px;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
         
-        # Check if a specific report type is agreed upon
-        for report_type in REPORT_TYPES:
-            if f"Agreed. The form for {report_type}" in response:
-                if is_valid_report_sequence(last_reports, report_type):
-                    st.session_state.current_report_type = report_type
-                    st.session_state.show_form = True
-                    break
-                else:
-                    st.warning(f"Invalid report sequence. {report_type} cannot follow the previous reports.")
-        
-        st.experimental_rerun()
-    st.markdown('</div>', unsafe_allow_html=True)
+        with chat_area:
+            st.markdown('<div class="chat-area">', unsafe_allow_html=True)
+            if "messages" not in st.session_state:
+                st.session_state.messages = []
+
+            for message in st.session_state.messages:
+                with st.chat_message(message["role"]):
+                    st.markdown(message["content"])
+            st.markdown('</div>', unsafe_allow_html=True)
+    
+    # Create a container for the input box
+    with chat_container:
+        if prompt := st.chat_input("How can I assist you with your maritime reporting?"):
+            st.session_state.messages.append({"role": "user", "content": prompt})
+            response = get_ai_response(prompt, last_reports)
+            st.session_state.messages.append({"role": "assistant", "content": response})
+            
+            # Check if a specific report type is agreed upon
+            for report_type in REPORT_TYPES:
+                if f"Agreed. The form for {report_type}" in response:
+                    if is_valid_report_sequence(last_reports, report_type):
+                        st.session_state.current_report_type = report_type
+                        st.session_state.show_form = True
+                        break
+                    else:
+                        st.warning(f"Invalid report sequence. {report_type} cannot follow the previous reports.")
+            
+            st.experimental_rerun()
 
 def is_valid_report_sequence(last_reports, new_report):
     if not last_reports:
@@ -524,7 +548,7 @@ def main():
 
     with col2:
         create_collapsible_history_panel()
-        st.markdown('<div class="chatSection scrollable-box">', unsafe_allow_html=True)
+        st.markdown('<div class="chatSection">', unsafe_allow_html=True)
         create_chatbot(st.session_state.report_history)
         
         if st.button("Clear Chat"):
@@ -537,6 +561,5 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
 
-
+Version 4 of 4
