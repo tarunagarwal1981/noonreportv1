@@ -483,32 +483,16 @@ def create_chatbot(last_reports):
     </style>
     """, unsafe_allow_html=True)
     
+    # Initialize session state
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+    
     # Create a container for the entire chat interface
     chat_container = st.container()
     
-    with chat_container:
-        # Chat messages area
-        st.markdown('<div class="chat-container">', unsafe_allow_html=True)
-        chat_messages = st.container()
-        
-        with chat_messages:
-            st.markdown('<div class="chat-messages">', unsafe_allow_html=True)
-            if "messages" not in st.session_state:
-                st.session_state.messages = []
-            
-            for message in reversed(st.session_state.messages):  # Display messages in reverse order
-                if message["role"] == "user":
-                    st.markdown(f'<div class="user-message">{message["content"]}</div>', unsafe_allow_html=True)
-                else:
-                    st.markdown(f'<div class="assistant-message">{message["content"]}</div>', unsafe_allow_html=True)
-            
-            st.markdown('</div>', unsafe_allow_html=True)
-        
-        st.markdown('</div>', unsafe_allow_html=True)
-        
-        # Input area
-        user_input = st.text_input("Type your message here...", key="user_input")
-        
+    # Function to handle sending messages
+    def send_message():
+        user_input = st.session_state.user_input
         if user_input:
             st.session_state.messages.append({"role": "user", "content": user_input})
             response = get_ai_response(user_input, last_reports)
@@ -524,7 +508,29 @@ def create_chatbot(last_reports):
                     else:
                         st.warning(f"Invalid report sequence. {report_type} cannot follow the previous reports.")
             
-            st.experimental_rerun()
+            # Clear the input
+            st.session_state.user_input = ""
+    
+    with chat_container:
+        # Chat messages area
+        st.markdown('<div class="chat-container">', unsafe_allow_html=True)
+        chat_messages = st.container()
+        
+        # Display messages
+        with chat_messages:
+            st.markdown('<div class="chat-messages">', unsafe_allow_html=True)
+            for message in st.session_state.messages:
+                if message["role"] == "user":
+                    st.markdown(f'<div class="user-message">{message["content"]}</div>', unsafe_allow_html=True)
+                else:
+                    st.markdown(f'<div class="assistant-message">{message["content"]}</div>', unsafe_allow_html=True)
+            st.markdown('</div>', unsafe_allow_html=True)
+        
+        st.markdown('</div>', unsafe_allow_html=True)
+        
+        # Input area with callback
+        st.text_input("Type your message here...", key="user_input", on_change=send_message)
+
 
 
 def is_valid_report_sequence(last_reports, new_report):
@@ -588,4 +594,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-    main()
+
