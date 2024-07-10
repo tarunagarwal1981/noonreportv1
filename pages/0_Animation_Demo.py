@@ -524,9 +524,6 @@ def create_chatbot(last_reports):
                     else:
                         st.warning(f"Invalid report sequence. {report_type} cannot follow the previous reports.")
             
-            # Clear the input field
-            st.session_state.user_input = ""
-            
             st.experimental_rerun()
 
 
@@ -590,4 +587,5 @@ def main():
         st.markdown('</div>', unsafe_allow_html=True)
 
 if __name__ == "__main__":
+    main()
     main()
