@@ -449,88 +449,32 @@ def create_collapsible_history_panel():
 def create_chatbot(last_reports):
     st.header("AI Assistant")
     
-    # Custom CSS for the chat interface
-    st.markdown("""
-    <style>
-    .chat-container {
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        padding: 10px;
-        margin-bottom: 10px;
-    }
-    .chat-messages {
-        height: 300px;
-        overflow-y: auto;
-        padding: 10px;
-        background-color: #f9f9f9;
-        border-radius: 5px;
-    }
-    .user-message {
-        background-color: #e6f3ff;
-        padding: 8px;
-        border-radius: 5px;
-        margin-bottom: 5px;
-    }
-    .assistant-message {
-        background-color: #f0f0f0;
-        padding: 8px;
-        border-radius: 5px;
-        margin-bottom: 5px;
-    }
-    .stTextInput>div>div>input {
-        background-color: white;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-    
-    # Initialize session state
     if "messages" not in st.session_state:
-        st.session_state.messages = []
-    
-    # Create a container for the entire chat interface
-    chat_container = st.container()
-    
-    # Function to handle sending messages
-    def send_message():
-        user_input = st.session_state.user_input
-        if user_input:
-            st.session_state.messages.append({"role": "user", "content": user_input})
-            response = get_ai_response(user_input, last_reports)
-            st.session_state.messages.append({"role": "assistant", "content": response})
-            
-            # Check if a specific report type is agreed upon
-            for report_type in REPORT_TYPES:
-                if f"Agreed. The form for {report_type}" in response:
-                    if is_valid_report_sequence(last_reports, report_type):
-                        st.session_state.current_report_type = report_type
-                        st.session_state.show_form = True
-                        break
-                    else:
-                        st.warning(f"Invalid report sequence. {report_type} cannot follow the previous reports.")
-            
-            # Clear the input
-            st.session_state.user_input = ""
-    
-    with chat_container:
-        # Chat messages area
-        st.markdown('<div class="chat-container">', unsafe_allow_html=True)
-        chat_messages = st.container()
-        
-        # Display messages
-        with chat_messages:
-            st.markdown('<div class="chat-messages">', unsafe_allow_html=True)
-            for message in st.session_state.messages:
-                if message["role"] == "user":
-                    st.markdown(f'<div class="user-message">{message["content"]}</div>', unsafe_allow_html=True)
-                else:
-                    st.markdown(f'<div class="assistant-message">{message["content"]}</div>', unsafe_allow_html=True)
-            st.markdown('</div>', unsafe_allow_html=True)
-        
-        st.markdown('</div>', unsafe_allow_html=True)
-        
-        # Input area with callback
-        st.text_input("Type your message here...", key="user_input", on_change=send_message)
+        st.session_state.messages = [{"role": "assistant", "content": "How can I assist you with your maritime reporting?"}]
 
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+
+    if prompt := st.chat_input("Type your message here..."):
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        with st.chat_message("user"):
+            st.markdown(prompt)
+
+        response = get_ai_response(prompt, last_reports)
+        st.session_state.messages.append({"role": "assistant", "content": response})
+        with st.chat_message("assistant"):
+            st.markdown(response)
+
+        # Check if a specific report type is agreed upon
+        for report_type in REPORT_TYPES:
+            if f"Agreed. The form for {report_type}" in response:
+                if is_valid_report_sequence(last_reports, report_type):
+                    st.session_state.current_report_type = report_type
+                    st.session_state.show_form = True
+                    break
+                else:
+                    st.warning(f"Invalid report sequence. {report_type} cannot follow the previous reports.")
 
 
 def is_valid_report_sequence(last_reports, new_report):
@@ -585,7 +529,7 @@ def main():
         create_chatbot(st.session_state.report_history)
         
         if st.button("Clear Chat"):
-            st.session_state.messages = []
+            st.session_state.messages = [{"role": "assistant", "content": "How can I assist you with your maritime reporting?"}]
             st.session_state.current_report_type = None
             st.session_state.report_history = []
             st.experimental_rerun()
@@ -594,4 +538,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
