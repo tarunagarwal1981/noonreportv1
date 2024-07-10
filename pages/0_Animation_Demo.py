@@ -455,24 +455,29 @@ def create_chatbot(last_reports):
     # Create a container for the scrollable chat area
     with chat_container:
         # Set a fixed height for the chat area and make it scrollable
-        chat_area = st.container()
-        chat_area.markdown(
+        st.markdown(
             """
             <style>
-            .chat-area {
+            .chat-box {
                 height: 400px;
-                overflow-y: scroll;
+                overflow-y: auto;
                 border: 1px solid #ddd;
                 padding: 10px;
                 margin-bottom: 10px;
+                background-color: white;
+            }
+            .chat-box .element-container {
+                margin-bottom: 5px;
             }
             </style>
             """,
             unsafe_allow_html=True
         )
         
-        with chat_area:
-            st.markdown('<div class="chat-area">', unsafe_allow_html=True)
+        chat_box = st.empty()
+        
+        with chat_box.container():
+            st.markdown('<div class="chat-box">', unsafe_allow_html=True)
             if "messages" not in st.session_state:
                 st.session_state.messages = []
 
@@ -481,7 +486,7 @@ def create_chatbot(last_reports):
                     st.markdown(message["content"])
             st.markdown('</div>', unsafe_allow_html=True)
     
-    # Create a container for the input box
+    # Create a container for the input box outside the chat box
     with chat_container:
         if prompt := st.chat_input("How can I assist you with your maritime reporting?"):
             st.session_state.messages.append({"role": "user", "content": prompt})
@@ -561,5 +566,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
