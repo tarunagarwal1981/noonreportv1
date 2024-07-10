@@ -490,6 +490,10 @@ def create_chatbot(last_reports):
     
     if "current_field" not in st.session_state:
         st.session_state.current_field = None
+    
+    # Initialize current_report_type if it doesn't exist
+    if "current_report_type" not in st.session_state:
+        st.session_state.current_report_type = None
 
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
@@ -531,6 +535,7 @@ def create_chatbot(last_reports):
                     st.warning(f"Invalid report sequence. {report_type} cannot follow the previous reports.")
         
         st.experimental_rerun()
+        
 def is_valid_report_sequence(last_reports, new_report):
     if not last_reports:
         return True
@@ -567,11 +572,15 @@ def main():
     if "report_history" not in st.session_state:
         st.session_state.report_history = []
     
+    # Initialize current_report_type if it doesn't exist
+    if "current_report_type" not in st.session_state:
+        st.session_state.current_report_type = None
+    
     col1, col2 = st.columns([0.7, 0.3])
 
     with col1:
         st.markdown('<div class="reportSection">', unsafe_allow_html=True)
-        if 'current_report_type' in st.session_state:
+        if st.session_state.current_report_type:
             create_form(st.session_state.current_report_type)
         else:
             st.write("Please use the AI Assistant to initiate a report.")
