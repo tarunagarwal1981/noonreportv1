@@ -449,60 +449,96 @@ def create_collapsible_history_panel():
 def create_chatbot(last_reports):
     st.header("AI Assistant")
     
-    # Create a container for the entire chat interface
-    chat_container = st.container()
+    # Custom HTML and JavaScript for the chat interface
+    chat_html = """
+    <style>
+    #chat-container {
+        width: 100%;
+        height: 400px;
+        border: 1px solid #ddd;
+        display: flex;
+        flex-direction: column;
+    }
+    #chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 10px;
+        display: flex;
+        flex-direction: column-reverse;
+    }
+    .message {
+        margin-bottom: 10px;
+        padding: 8px;
+        border-radius: 5px;
+    }
+    .user-message {
+        background-color: #e6f3ff;
+        align-self: flex-end;
+    }
+    .assistant-message {
+        background-color: #f0f0f0;
+        align-self: flex-start;
+    }
+    #chat-input {
+        width: 100%;
+        padding: 10px;
+        border: none;
+        border-top: 1px solid #ddd;
+    }
+    </style>
+    <div id="chat-container">
+        <div id="chat-messages"></div>
+        <input type="text" id="chat-input" placeholder="Type your message here...">
+    </div>
+    <script>
+    const chatMessages = document.getElementById('chat-messages');
+    const chatInput = document.getElementById('chat-input');
     
-    # Set up the layout for the chat box and input
-    with chat_container:
-        # Custom CSS for the chat box
-        st.markdown("""
-        <style>
-        .chat-box {
-            border: 1px solid #ddd;
-            height: 400px;
-            overflow-y: auto;
-            padding: 10px;
-            background-color: white;
-        }
-        .user-message {
-            background-color: #e6f3ff;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 10px;
-        }
-        .assistant-message {
-            background-color: #f0f0f0;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 10px;
-        }
-        </style>
-        """, unsafe_allow_html=True)
-        
-        # Create a placeholder for the chat box
-        chat_box = st.empty()
-        
-        # Create the input field outside and below the chat box
-        prompt = st.text_input("How can I assist you with your maritime reporting?", key="chat_input")
-        
-        # Display messages in the chat box
-        with chat_box.container():
-            st.markdown('<div class="chat-box">', unsafe_allow_html=True)
-            if "messages" not in st.session_state:
-                st.session_state.messages = []
-            
-            for message in st.session_state.messages:
-                if message["role"] == "user":
-                    st.markdown(f'<div class="user-message">{message["content"]}</div>', unsafe_allow_html=True)
-                else:
-                    st.markdown(f'<div class="assistant-message">{message["content"]}</div>', unsafe_allow_html=True)
-            
-            st.markdown('</div>', unsafe_allow_html=True)
+    function addMessage(content, isUser) {
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('message');
+        messageDiv.classList.add(isUser ? 'user-message' : 'assistant-message');
+        messageDiv.textContent = content;
+        chatMessages.insertBefore(messageDiv, chatMessages.firstChild);
+    }
     
-    # Handle user input and generate response
-    if prompt:
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        response = get_ai_response(prompt, last_reports)
+    chatInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            const message = chatInput.value.trim();
+            if (message) {
+                addMessage(message, true);
+                chatInput.value = '';
+                // Send message to Streamlit
+                sendMessageToStreamlit(message);
+            }
+        }
+    });
+    
+    function sendMessageToStreamlit(message) {
+        Streamlit.setComponentValue(message);
+    }
+    
+    function updateChatFromPython(messages) {
+        chatMessages.innerHTML = '';
+        messages.forEach(msg => {
+            addMessage(msg.content, msg.role === 'user');
+        });
+    }
+    
+    // Initialize with Streamlit
+    Streamlit.setComponentReady();
+    </script>
+    """
+    
+    # Use Streamlit component for the chat interface
+    user_message = st.components.v1.html(chat_html, height=450, key="chat_interface")
+    
+    if user_message:
+        if "messages" not in st.session_state:
+            st.session_state.messages = []
+        
+        st.session_state.messages.append({"role": "user", "content": user_message})
+        response = get_ai_response(user_message, last_reports)
         st.session_state.messages.append({"role": "assistant", "content": response})
         
         # Check if a specific report type is agreed upon
@@ -514,6 +550,13 @@ def create_chatbot(last_reports):
                     break
                 else:
                     st.warning(f"Invalid report sequence. {report_type} cannot follow the previous reports.")
+        
+        # Update the chat interface with the new messages
+        st.components.v1.html(f"""
+        <script>
+        updateChatFromPython({st.session_state.messages});
+        </script>
+        """, height=0)
         
         st.experimental_rerun()
 
