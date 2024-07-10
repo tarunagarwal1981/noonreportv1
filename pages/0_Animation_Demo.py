@@ -452,58 +452,70 @@ def create_chatbot(last_reports):
     # Create a container for the entire chat interface
     chat_container = st.container()
     
-    # Create a container for the scrollable chat area
+    # Set up the layout for the chat box and input
     with chat_container:
-        # Set a fixed height for the chat area and make it scrollable
-        st.markdown(
-            """
-            <style>
-            .chat-box {
-                height: 400px;
-                overflow-y: auto;
-                border: 1px solid #ddd;
-                padding: 10px;
-                margin-bottom: 10px;
-                background-color: white;
-            }
-            .chat-box .element-container {
-                margin-bottom: 5px;
-            }
-            </style>
-            """,
-            unsafe_allow_html=True
-        )
+        # Custom CSS for the chat box
+        st.markdown("""
+        <style>
+        .chat-box {
+            border: 1px solid #ddd;
+            height: 400px;
+            overflow-y: auto;
+            padding: 10px;
+            background-color: white;
+        }
+        .user-message {
+            background-color: #e6f3ff;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        .assistant-message {
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        </style>
+        """, unsafe_allow_html=True)
         
+        # Create a placeholder for the chat box
         chat_box = st.empty()
         
+        # Create the input field outside and below the chat box
+        prompt = st.text_input("How can I assist you with your maritime reporting?", key="chat_input")
+        
+        # Display messages in the chat box
         with chat_box.container():
             st.markdown('<div class="chat-box">', unsafe_allow_html=True)
             if "messages" not in st.session_state:
                 st.session_state.messages = []
-
+            
             for message in st.session_state.messages:
-                with st.chat_message(message["role"]):
-                    st.markdown(message["content"])
+                if message["role"] == "user":
+                    st.markdown(f'<div class="user-message">{message["content"]}</div>', unsafe_allow_html=True)
+                else:
+                    st.markdown(f'<div class="assistant-message">{message["content"]}</div>', unsafe_allow_html=True)
+            
             st.markdown('</div>', unsafe_allow_html=True)
     
-    # Create a container for the input box outside the chat box
-    with chat_container:
-        if prompt := st.chat_input("How can I assist you with your maritime reporting?"):
-            st.session_state.messages.append({"role": "user", "content": prompt})
-            response = get_ai_response(prompt, last_reports)
-            st.session_state.messages.append({"role": "assistant", "content": response})
-            
-            # Check if a specific report type is agreed upon
-            for report_type in REPORT_TYPES:
-                if f"Agreed. The form for {report_type}" in response:
-                    if is_valid_report_sequence(last_reports, report_type):
-                        st.session_state.current_report_type = report_type
-                        st.session_state.show_form = True
-                        break
-                    else:
-                        st.warning(f"Invalid report sequence. {report_type} cannot follow the previous reports.")
-            
-            st.experimental_rerun()
+    # Handle user input and generate response
+    if prompt:
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        response = get_ai_response(prompt, last_reports)
+        st.session_state.messages.append({"role": "assistant", "content": response})
+        
+        # Check if a specific report type is agreed upon
+        for report_type in REPORT_TYPES:
+            if f"Agreed. The form for {report_type}" in response:
+                if is_valid_report_sequence(last_reports, report_type):
+                    st.session_state.current_report_type = report_type
+                    st.session_state.show_form = True
+                    break
+                else:
+                    st.warning(f"Invalid report sequence. {report_type} cannot follow the previous reports.")
+        
+        st.experimental_rerun()
 
 def is_valid_report_sequence(last_reports, new_report):
     if not last_reports:
