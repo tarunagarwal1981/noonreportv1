@@ -449,23 +449,65 @@ def create_collapsible_history_panel():
 def create_chatbot(last_reports):
     st.header("AI Assistant")
     
-    if "messages" not in st.session_state:
-        st.session_state.messages = [{"role": "assistant", "content": "How can I assist you with your maritime reporting?"}]
-
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
-
-    if prompt := st.chat_input("Type your message here..."):
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.markdown(prompt)
-
-        response = get_ai_response(prompt, last_reports)
+    # Custom CSS for chat layout
+    st.markdown("""
+    <style>
+    .chat-container {
+        display: flex;
+        flex-direction: column;
+        height: 400px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+    }
+    .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 10px;
+        display: flex;
+        flex-direction: column-reverse;
+    }
+    .chat-input {
+        padding: 10px;
+        background-color: #f0f0f0;
+    }
+    .stTextInput > div > div > input {
+        background-color: white;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    # Chat container
+    chat_container = st.container()
+    
+    with chat_container:
+        # Chat messages area
+        st.markdown('<div class="chat-container">', unsafe_allow_html=True)
+        
+        # Input area (fixed at bottom)
+        with st.container():
+            st.markdown('<div class="chat-input">', unsafe_allow_html=True)
+            user_input = st.text_input("Type your message here...", key="user_input")
+            st.markdown('</div>', unsafe_allow_html=True)
+        
+        # Messages area (scrollable)
+        with st.container():
+            st.markdown('<div class="chat-messages">', unsafe_allow_html=True)
+            if "messages" not in st.session_state:
+                st.session_state.messages = [{"role": "assistant", "content": "How can I assist you with your maritime reporting?"}]
+            
+            for message in reversed(st.session_state.messages):
+                with st.chat_message(message["role"]):
+                    st.markdown(message["content"])
+            st.markdown('</div>', unsafe_allow_html=True)
+        
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    # Handle user input
+    if user_input:
+        st.session_state.messages.append({"role": "user", "content": user_input})
+        response = get_ai_response(user_input, last_reports)
         st.session_state.messages.append({"role": "assistant", "content": response})
-        with st.chat_message("assistant"):
-            st.markdown(response)
-
+        
         # Check if a specific report type is agreed upon
         for report_type in REPORT_TYPES:
             if f"Agreed. The form for {report_type}" in response:
@@ -475,7 +517,10 @@ def create_chatbot(last_reports):
                     break
                 else:
                     st.warning(f"Invalid report sequence. {report_type} cannot follow the previous reports.")
-
+        
+        # Clear the input
+        st.session_state.user_input = ""
+        st.experimental_rerun()
 
 def is_valid_report_sequence(last_reports, new_report):
     if not last_reports:
