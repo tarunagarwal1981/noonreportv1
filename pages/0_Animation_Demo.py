@@ -315,9 +315,9 @@ def create_fields(fields, prefix, report_type):
             elif field == "UTC Offset":
                 value = st.text_input(field, value=chatbot_value or utc_offset, key=field_key)
             elif field == "From Port":
-                value = st.selectbox(field, options=PORTS, index=PORTS.index(chatbot_value or from_port), key=field_key)
+                value = st.selectbox(field, options=PORTS, index=PORTS.index(chatbot_value) if chatbot_value in PORTS else PORTS.index(from_port), key=field_key)
             elif field == "To Port":
-                value = st.selectbox(field, options=PORTS, index=PORTS.index(chatbot_value or to_port), key=field_key)
+                value = st.selectbox(field, options=PORTS, index=PORTS.index(chatbot_value) if chatbot_value in PORTS else PORTS.index(to_port), key=field_key)
             elif field == "Voyage ID":
                 value = st.text_input(field, value=chatbot_value or voyage_id, key=field_key)
             elif field == "Segment ID":
@@ -325,22 +325,22 @@ def create_fields(fields, prefix, report_type):
             elif field == "Event Type":
                 value = st.text_input(field, value=chatbot_value or report_type, key=field_key)
             elif field == "Latitude Degrees":
-                value = st.number_input(field, value=float(chatbot_value or lat_deg), min_value=0, max_value=89, key=field_key)
+                value = st.number_input(field, value=float(chatbot_value) if chatbot_value is not None else lat_deg, min_value=0, max_value=89, key=field_key)
                 position_fields_processed += 1
             elif field == "Latitude Minutes":
-                value = st.number_input(field, value=float(chatbot_value or lat_min), min_value=0.0, max_value=59.99, format="%.2f", key=field_key)
+                value = st.number_input(field, value=float(chatbot_value) if chatbot_value is not None else lat_min, min_value=0.0, max_value=59.99, format="%.2f", key=field_key)
                 position_fields_processed += 1
             elif field == "Latitude Direction":
-                value = st.selectbox(field, options=["N", "S"], index=["N", "S"].index(chatbot_value or lat_dir), key=field_key)
+                value = st.selectbox(field, options=["N", "S"], index=["N", "S"].index(chatbot_value) if chatbot_value in ["N", "S"] else ["N", "S"].index(lat_dir), key=field_key)
                 position_fields_processed += 1
             elif field == "Longitude Degrees":
-                value = st.number_input(field, value=float(chatbot_value or lon_deg), min_value=0, max_value=179, key=field_key)
+                value = st.number_input(field, value=float(chatbot_value) if chatbot_value is not None else lon_deg, min_value=0, max_value=179, key=field_key)
                 position_fields_processed += 1
             elif field == "Longitude Minutes":
-                value = st.number_input(field, value=float(chatbot_value or lon_min), min_value=0.0, max_value=59.99, format="%.2f", key=field_key)
+                value = st.number_input(field, value=float(chatbot_value) if chatbot_value is not None else lon_min, min_value=0.0, max_value=59.99, format="%.2f", key=field_key)
                 position_fields_processed += 1
             elif field == "Longitude Direction":
-                value = st.selectbox(field, options=["E", "W"], index=["E", "W"].index(chatbot_value or lon_dir), key=field_key)
+                value = st.selectbox(field, options=["E", "W"], index=["E", "W"].index(chatbot_value) if chatbot_value in ["E", "W"] else ["E", "W"].index(lon_dir), key=field_key)
                 position_fields_processed += 1
                 
                 # Display AIS position message after all position fields have been processed
@@ -349,9 +349,9 @@ def create_fields(fields, prefix, report_type):
             
             elif field in ["ME LFO (mt)", "ME MGO (mt)", "ME LNG (mt)", "ME Other (mt)"]:
                 if field == "ME LFO (mt)":
-                    value = st.number_input(field, value=float(chatbot_value or me_lfo), min_value=0.0, max_value=25.0, step=0.1, key=field_key)
+                    value = st.number_input(field, value=float(chatbot_value) if chatbot_value is not None else me_lfo, min_value=0.0, max_value=25.0, step=0.1, key=field_key)
                 else:
-                    value = st.number_input(field, value=float(chatbot_value or 0), min_value=0.0, max_value=25.0, step=0.1, key=field_key)
+                    value = st.number_input(field, value=float(chatbot_value) if chatbot_value is not None else 0, min_value=0.0, max_value=25.0, step=0.1, key=field_key)
                 
                 me_total_consumption += value
                 
@@ -362,9 +362,9 @@ def create_fields(fields, prefix, report_type):
                     me_fields_processed = True
             elif field in ["AE LFO (mt)", "AE MGO (mt)", "AE LNG (mt)", "AE Other (mt)"]:
                 if field == "AE LFO (mt)":
-                    value = st.number_input(field, value=float(chatbot_value or ae_lfo), min_value=0.0, max_value=3.0, step=0.1, key=field_key)
+                    value = st.number_input(field, value=float(chatbot_value) if chatbot_value is not None else ae_lfo, min_value=0.0, max_value=3.0, step=0.1, key=field_key)
                 else:
-                    value = st.number_input(field, value=float(chatbot_value or 0), min_value=0.0, max_value=3.0, step=0.1, key=field_key)
+                    value = st.number_input(field, value=float(chatbot_value) if chatbot_value is not None else 0, min_value=0.0, max_value=3.0, step=0.1, key=field_key)
                 
                 ae_total_consumption += value
                 
@@ -374,7 +374,7 @@ def create_fields(fields, prefix, report_type):
                     st.markdown('<p class="info-message">MFM figures since last report</p>', unsafe_allow_html=True)
                     ae_fields_processed = True
             elif field.startswith("Boiler"):
-                value = st.number_input(field, value=float(chatbot_value or 0), min_value=0.0, max_value=4.0, step=0.1, key=field_key)
+                value = st.number_input(field, value=float(chatbot_value) if chatbot_value is not None else 0, min_value=0.0, max_value=4.0, step=0.1, key=field_key)
                 
                 # Display Boiler consumption message if ME total consumption > 15
                 if me_total_consumption > 15 and not boiler_message_shown:
@@ -382,15 +382,16 @@ def create_fields(fields, prefix, report_type):
                     boiler_message_shown = True
             elif field in VALIDATION_RULES:
                 min_val, max_val = VALIDATION_RULES[field]["min"], VALIDATION_RULES[field]["max"]
-                value = st.number_input(field, value=float(chatbot_value or min_val), min_value=min_val, max_value=max_val, key=field_key)
+                value = st.number_input(field, value=float(chatbot_value) if chatbot_value is not None else min_val, min_value=min_val, max_value=max_val, key=field_key)
                 
                 # Only show the warning if the value exceeds the maximum
                 if value > max_val:
                     st.markdown(f'<p class="small-warning">Value must be less than or equal to {max_val}</p>', unsafe_allow_html=True)
             elif any(unit in field for unit in ["(%)", "(mt)", "(kW)", "(°C)", "(bar)", "(g/kWh)", "(knots)", "(meters)", "(seconds)", "(degrees)"]):
-                value = st.number_input(field, value=float(chatbot_value or 0), key=field_key)
+                value = st.number_input(field, value=float(chatbot_value) if chatbot_value is not None else 0, key=field_key)
             elif "Direction" in field and "degrees" not in field:
-                value = st.selectbox(field, options=["N", "NE", "E", "SE", "S", "SW", "W", "NW"], index=(["N", "NE", "E", "SE", "S", "SW", "W", "NW"].index(chatbot_value) if chatbot_value else 0), key=field_key)
+                options = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
+                value = st.selectbox(field, options=options, index=options.index(chatbot_value) if chatbot_value in options else 0, key=field_key)
             else:
                 value = st.text_input(field, value=chatbot_value or "", key=field_key)
 
