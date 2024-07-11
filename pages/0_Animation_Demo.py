@@ -517,7 +517,7 @@ def create_chatbot(last_reports, vessel_type):
                     st.session_state.report_history.append(report_type)
                 break
         
-        st.experimental_rerun()
+       
         
 def is_valid_report_sequence(last_reports, new_report):
     if not last_reports:
