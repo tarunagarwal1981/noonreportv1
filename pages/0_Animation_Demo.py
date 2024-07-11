@@ -466,7 +466,7 @@ def get_ai_response(user_input, last_reports, vessel_type):
     
     context = f"""
     The current UTC time is {current_time}. 
-    The last reports submitted were: {' -> '.join(last_reports)}
+    The last reports submitted were: {', '.join(last_reports) if last_reports else 'No previous reports'}
     The vessel type is: {vessel_type}
     
     Please provide guidance based on this context and the user's input.
@@ -511,12 +511,9 @@ def create_chatbot(last_reports, vessel_type):
         # Check if a specific report type is agreed upon
         for report_type in REPORT_TYPES:
             if f"Agreed. The form for {report_type}" in response:
-                if is_valid_report_sequence(last_reports, report_type):
-                    st.session_state.current_report_type = report_type
-                    st.session_state.show_form = True
-                    break
-                else:
-                    st.warning(f"Invalid report sequence. {report_type} cannot follow the previous reports.")
+                st.session_state.current_report_type = report_type
+                st.session_state.show_form = True
+                break
         
         st.experimental_rerun()
 
