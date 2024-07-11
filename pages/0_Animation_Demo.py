@@ -395,6 +395,12 @@ def create_fields(fields, prefix, report_type):
     if me_total_consumption > 15 and not boiler_message_shown:
         st.markdown('<p class="info-message">Since Main Engine is running at more than 50% load, Boiler consumption is expected to be zero.</p>', unsafe_allow_html=True)
 
+def get_next_section(report_type, current_section):
+    sections = REPORT_STRUCTURES[report_type]
+    current_index = sections.index(current_section)
+    if current_index < len(sections) - 1:
+        return sections[current_index + 1]
+    return None
 
 def create_form(report_type):
     st.header(f"New {report_type}")
@@ -477,6 +483,31 @@ def create_collapsible_history_panel():
 
         st.markdown('</div>', unsafe_allow_html=True)
 
+def get_next_logical_report(last_report):
+    sequence_rules = {
+        "Arrival": ["Departure", "Begin of offhire"],
+        "Departure": ["Arrival", "Begin of sea passage", "Noon (Position) - Sea passage"],
+        "Begin of offhire": ["End of offhire"],
+        "End of offhire": ["Departure", "Begin of sea passage"],
+        "Arrival STS": ["Departure STS"],
+        "Departure STS": ["Arrival", "Begin of sea passage", "Noon (Position) - Sea passage"],
+        "Begin of sea passage": ["Noon (Position) - Sea passage", "End of sea passage"],
+        "End of sea passage": ["Arrival", "Noon (Position) - Port"],
+        "Begin Anchoring/Drifting": ["End Anchoring/Drifting", "Noon (Position) - Stoppage"],
+        "End Anchoring/Drifting": ["Departure", "Begin of sea passage"],
+        "Noon (Position) - Sea passage": ["Noon (Position) - Sea passage", "End of sea passage", "Arrival"],
+        "Noon (Position) - Port": ["Departure", "Noon (Position) - Port"],
+        "Noon (Position) - River": ["Noon (Position) - River", "Arrival"],
+        "Noon (Position) - Stoppage": ["End Anchoring/Drifting", "Noon (Position) - Stoppage"],
+        "Begin fuel change over": ["End fuel change over"],
+        "End fuel change over": ["Noon (Position) - Sea passage"],
+        "Begin of deviation": ["End of deviation"],
+        "End of deviation": ["Noon (Position) - Sea passage", "Arrival"],
+        "Entering special area": ["Leaving special area"],
+        "Leaving special area": ["Noon (Position) - Sea passage"]
+    }
+    return sequence_rules.get(last_report, ["Noon (Position) - Sea passage"])
+
 def initialize_session_state():
     if "messages" not in st.session_state:
         st.session_state.messages = []
@@ -488,6 +519,11 @@ def initialize_session_state():
         st.session_state.current_field = None
     if "show_form" not in st.session_state:
         st.session_state.show_form = False
+    if "report_history" not in st.session_state:
+        st.session_state.report_history = []
+    if "form_filling_mode" not in st.session_state:
+        st.session_state.form_filling_mode = False
+
 
 def create_chatbot(last_reports):
     st.header("AI Assistant")
@@ -504,41 +540,58 @@ def create_chatbot(last_reports):
         if prompt := st.chat_input("How can I assist you with your maritime reporting?"):
             st.session_state.messages.append({"role": "user", "content": prompt})
             
-            if st.session_state.current_report_type and st.session_state.current_section:
-                context = f"We are currently filling out the {st.session_state.current_report_type} report, in the {st.session_state.current_section} section. The current field being discussed is {st.session_state.current_field}."
-                response = get_ai_response(prompt, last_reports, context)
-                
-                if st.session_state.current_field:
-                    if "leave this field empty" in prompt.lower():
-                        st.session_state.current_field = None
-                    else:
-                        update_field_value(st.session_state.current_report_type, st.session_state.current_section, st.session_state.current_field, prompt)
-                        st.session_state.current_field = None
-                
-                empty_fields = get_empty_fields(st.session_state.current_report_type, st.session_state.current_section)
-                if not empty_fields:
-                    st.session_state.current_section = None
-                    response += "\n\nThis section is now complete. Let's move on to the next section."
-                elif not st.session_state.current_field:
-                    st.session_state.current_field = empty_fields[0]
-                    response += f"\n\nLet's fill in the {st.session_state.current_field} field. What value should we use?"
+            if st.session_state.form_filling_mode:
+                response = handle_form_filling(prompt, last_reports)
             else:
-                response = get_ai_response(prompt, last_reports, "")
-                
-                for report_type in REPORT_TYPES:
-                    if f"Agreed. The form for {report_type}" in response:
-                        if is_valid_report_sequence(last_reports, report_type):
-                            st.session_state.current_report_type = report_type
-                            st.session_state.show_form = True
-                            st.session_state.current_section = REPORT_STRUCTURES[report_type][0]
-                            response += f"\n\nLet's start filling out the {st.session_state.current_section} section."
-                            break
-                        else:
-                            st.warning(f"Invalid report sequence. {report_type} cannot follow the previous reports.")
+                response = handle_report_selection(prompt, last_reports)
             
             st.session_state.messages.append({"role": "assistant", "content": response})
             st.experimental_rerun()
 
+def handle_form_filling(prompt, last_reports):
+    context = f"We are currently filling out the {st.session_state.current_report_type} report, in the {st.session_state.current_section} section. The current field being discussed is {st.session_state.current_field}."
+    response = get_ai_response(prompt, last_reports, context)
+    
+    if st.session_state.current_field:
+        if "leave this field empty" in prompt.lower():
+            st.session_state.current_field = None
+        else:
+            update_field_value(st.session_state.current_report_type, st.session_state.current_section, st.session_state.current_field, prompt)
+            st.session_state.current_field = None
+    
+    empty_fields = get_empty_fields(st.session_state.current_report_type, st.session_state.current_section)
+    if not empty_fields:
+        st.session_state.current_section = get_next_section(st.session_state.current_report_type, st.session_state.current_section)
+        if st.session_state.current_section:
+            response += f"\n\nThis section is now complete. Let's move on to the {st.session_state.current_section} section."
+        else:
+            response += "\n\nAll sections are complete. You can now submit the report."
+            st.session_state.form_filling_mode = False
+    elif not st.session_state.current_field:
+        st.session_state.current_field = empty_fields[0]
+        response += f"\n\nLet's fill in the {st.session_state.current_field} field. What value should we use?"
+    
+    return response
+
+def handle_report_selection(prompt, last_reports):
+    if "new report" in prompt.lower():
+        if st.session_state.report_history:
+            last_report = st.session_state.report_history[-1]
+            next_reports = get_next_logical_report(last_report)
+            return f"Based on your last report ({last_report}), the next logical report(s) could be: {', '.join(next_reports)}. Which one would you like to create?"
+        else:
+            return "Since there is no recent report history, you can start with any report. What type of report would you like to create?"
+    elif any(report_type.lower() in prompt.lower() for report_type in REPORT_TYPES):
+        for report_type in REPORT_TYPES:
+            if report_type.lower() in prompt.lower():
+                st.session_state.current_report_type = report_type
+                st.session_state.show_form = True
+                st.session_state.current_section = REPORT_STRUCTURES[report_type][0]
+                st.session_state.form_filling_mode = True
+                return f"Agreed. The form for {report_type} will now appear on the left side of the page. Let's start filling out the {st.session_state.current_section} section."
+    else:
+        return get_ai_response(prompt, last_reports, "We are in the process of selecting a report type.")
+        
 def is_valid_report_sequence(last_reports, new_report):
     if not last_reports:
         return True
@@ -574,9 +627,6 @@ def main():
     
     initialize_session_state()
     
-    if "report_history" not in st.session_state:
-        st.session_state.report_history = []
-    
     col1, col2 = st.columns([0.7, 0.3])
 
     with col1:
@@ -599,9 +649,7 @@ def main():
             st.session_state.current_field = None
             st.session_state.show_form = False
             st.session_state.report_history = []
+            st.session_state.form_filling_mode = False
             st.experimental_rerun()
         
         st.markdown('</div>', unsafe_allow_html=True)
-
-if __name__ == "__main__":
-    main()
