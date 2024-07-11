@@ -234,12 +234,12 @@ def update_field_value(report_type, section, field, value):
         for subsection, subfields in fields.items():
             if field in subfields:
                 field_key = f"{report_type}_{section}_{subsection}_{field.lower().replace(' ', '_')}"
-                st.session_state[field_key] = value
+                st.session_state.chatbot_filled_values[field_key] = value
                 return True
     elif isinstance(fields, list):
         if field in fields:
             field_key = f"{report_type}_{section}_{field.lower().replace(' ', '_')}"
-            st.session_state[field_key] = value
+            st.session_state.chatbot_filled_values[field_key] = value
             return True
     
     return False
@@ -301,43 +301,46 @@ def create_fields(fields, prefix, report_type):
         with cols[i % 4]:  # This will cycle through the columns
             field_key = f"{prefix}_{field.lower().replace(' ', '_')}"
             
+            # Check if the field has been filled by the chatbot
+            chatbot_value = st.session_state.chatbot_filled_values.get(field_key)
+            
             if field == "Vessel Name":
-                value = st.text_input(field, value=vessel_name, key=field_key)
+                value = st.text_input(field, value=chatbot_value or vessel_name, key=field_key)
             elif field == "Vessel IMO":
-                value = st.text_input(field, value=imo_number, key=field_key)
+                value = st.text_input(field, value=chatbot_value or imo_number, key=field_key)
             elif field == "Local Date":
-                value = st.date_input(field, value=datetime.strptime(current_date, "%Y-%m-%d"), key=field_key)
+                value = st.date_input(field, value=datetime.strptime(chatbot_value or current_date, "%Y-%m-%d"), key=field_key)
             elif field == "Local Time":
-                value = st.time_input(field, value=datetime.strptime(current_time, "%H:%M").time(), key=field_key)
+                value = st.time_input(field, value=datetime.strptime(chatbot_value or current_time, "%H:%M").time(), key=field_key)
             elif field == "UTC Offset":
-                value = st.text_input(field, value=utc_offset, key=field_key)
+                value = st.text_input(field, value=chatbot_value or utc_offset, key=field_key)
             elif field == "From Port":
-                value = st.selectbox(field, options=PORTS, index=PORTS.index(from_port), key=field_key)
+                value = st.selectbox(field, options=PORTS, index=PORTS.index(chatbot_value or from_port), key=field_key)
             elif field == "To Port":
-                value = st.selectbox(field, options=PORTS, index=PORTS.index(to_port), key=field_key)
+                value = st.selectbox(field, options=PORTS, index=PORTS.index(chatbot_value or to_port), key=field_key)
             elif field == "Voyage ID":
-                value = st.text_input(field, value=voyage_id, key=field_key)
+                value = st.text_input(field, value=chatbot_value or voyage_id, key=field_key)
             elif field == "Segment ID":
-                value = st.text_input(field, value=segment_id, key=field_key)
+                value = st.text_input(field, value=chatbot_value or segment_id, key=field_key)
             elif field == "Event Type":
-                value = st.text_input(field, value=report_type, key=field_key)
+                value = st.text_input(field, value=chatbot_value or report_type, key=field_key)
             elif field == "Latitude Degrees":
-                value = st.number_input(field, value=lat_deg, min_value=0, max_value=89, key=field_key)
+                value = st.number_input(field, value=float(chatbot_value or lat_deg), min_value=0, max_value=89, key=field_key)
                 position_fields_processed += 1
             elif field == "Latitude Minutes":
-                value = st.number_input(field, value=lat_min, min_value=0.0, max_value=59.99, format="%.2f", key=field_key)
+                value = st.number_input(field, value=float(chatbot_value or lat_min), min_value=0.0, max_value=59.99, format="%.2f", key=field_key)
                 position_fields_processed += 1
             elif field == "Latitude Direction":
-                value = st.selectbox(field, options=["N", "S"], index=["N", "S"].index(lat_dir), key=field_key)
+                value = st.selectbox(field, options=["N", "S"], index=["N", "S"].index(chatbot_value or lat_dir), key=field_key)
                 position_fields_processed += 1
             elif field == "Longitude Degrees":
-                value = st.number_input(field, value=lon_deg, min_value=0, max_value=179, key=field_key)
+                value = st.number_input(field, value=float(chatbot_value or lon_deg), min_value=0, max_value=179, key=field_key)
                 position_fields_processed += 1
             elif field == "Longitude Minutes":
-                value = st.number_input(field, value=lon_min, min_value=0.0, max_value=59.99, format="%.2f", key=field_key)
+                value = st.number_input(field, value=float(chatbot_value or lon_min), min_value=0.0, max_value=59.99, format="%.2f", key=field_key)
                 position_fields_processed += 1
             elif field == "Longitude Direction":
-                value = st.selectbox(field, options=["E", "W"], index=["E", "W"].index(lon_dir), key=field_key)
+                value = st.selectbox(field, options=["E", "W"], index=["E", "W"].index(chatbot_value or lon_dir), key=field_key)
                 position_fields_processed += 1
                 
                 # Display AIS position message after all position fields have been processed
@@ -346,9 +349,9 @@ def create_fields(fields, prefix, report_type):
             
             elif field in ["ME LFO (mt)", "ME MGO (mt)", "ME LNG (mt)", "ME Other (mt)"]:
                 if field == "ME LFO (mt)":
-                    value = st.number_input(field, value=me_lfo, min_value=0.0, max_value=25.0, step=0.1, key=field_key)
+                    value = st.number_input(field, value=float(chatbot_value or me_lfo), min_value=0.0, max_value=25.0, step=0.1, key=field_key)
                 else:
-                    value = st.number_input(field, min_value=0.0, max_value=25.0, step=0.1, key=field_key)
+                    value = st.number_input(field, value=float(chatbot_value or 0), min_value=0.0, max_value=25.0, step=0.1, key=field_key)
                 
                 me_total_consumption += value
                 
@@ -359,9 +362,9 @@ def create_fields(fields, prefix, report_type):
                     me_fields_processed = True
             elif field in ["AE LFO (mt)", "AE MGO (mt)", "AE LNG (mt)", "AE Other (mt)"]:
                 if field == "AE LFO (mt)":
-                    value = st.number_input(field, value=ae_lfo, min_value=0.0, max_value=3.0, step=0.1, key=field_key)
+                    value = st.number_input(field, value=float(chatbot_value or ae_lfo), min_value=0.0, max_value=3.0, step=0.1, key=field_key)
                 else:
-                    value = st.number_input(field, min_value=0.0, max_value=3.0, step=0.1, key=field_key)
+                    value = st.number_input(field, value=float(chatbot_value or 0), min_value=0.0, max_value=3.0, step=0.1, key=field_key)
                 
                 ae_total_consumption += value
                 
@@ -371,7 +374,7 @@ def create_fields(fields, prefix, report_type):
                     st.markdown('<p class="info-message">MFM figures since last report</p>', unsafe_allow_html=True)
                     ae_fields_processed = True
             elif field.startswith("Boiler"):
-                value = st.number_input(field, min_value=0.0, max_value=4.0, step=0.1, key=field_key)
+                value = st.number_input(field, value=float(chatbot_value or 0), min_value=0.0, max_value=4.0, step=0.1, key=field_key)
                 
                 # Display Boiler consumption message if ME total consumption > 15
                 if me_total_consumption > 15 and not boiler_message_shown:
@@ -379,17 +382,17 @@ def create_fields(fields, prefix, report_type):
                     boiler_message_shown = True
             elif field in VALIDATION_RULES:
                 min_val, max_val = VALIDATION_RULES[field]["min"], VALIDATION_RULES[field]["max"]
-                value = st.number_input(field, min_value=min_val, max_value=max_val, key=field_key)
+                value = st.number_input(field, value=float(chatbot_value or min_val), min_value=min_val, max_value=max_val, key=field_key)
                 
                 # Only show the warning if the value exceeds the maximum
                 if value > max_val:
                     st.markdown(f'<p class="small-warning">Value must be less than or equal to {max_val}</p>', unsafe_allow_html=True)
             elif any(unit in field for unit in ["(%)", "(mt)", "(kW)", "(°C)", "(bar)", "(g/kWh)", "(knots)", "(meters)", "(seconds)", "(degrees)"]):
-                value = st.number_input(field, key=field_key)
+                value = st.number_input(field, value=float(chatbot_value or 0), key=field_key)
             elif "Direction" in field and "degrees" not in field:
-                value = st.selectbox(field, options=["N", "NE", "E", "SE", "S", "SW", "W", "NW"], key=field_key)
+                value = st.selectbox(field, options=["N", "NE", "E", "SE", "S", "SW", "W", "NW"], index=(["N", "NE", "E", "SE", "S", "SW", "W", "NW"].index(chatbot_value) if chatbot_value else 0), key=field_key)
             else:
-                value = st.text_input(field, key=field_key)
+                value = st.text_input(field, value=chatbot_value or "", key=field_key)
 
     # Check if we need to display the Boiler message after all fields have been processed
     if me_total_consumption > 15 and not boiler_message_shown:
@@ -523,8 +526,9 @@ def initialize_session_state():
         st.session_state.report_history = []
     if "form_filling_mode" not in st.session_state:
         st.session_state.form_filling_mode = False
-
-
+    if "chatbot_filled_values" not in st.session_state:
+        st.session_state.chatbot_filled_values = {}
+        
 def create_chatbot(last_reports):
     st.header("AI Assistant")
     
@@ -650,8 +654,10 @@ def main():
             st.session_state.show_form = False
             st.session_state.report_history = []
             st.session_state.form_filling_mode = False
+            st.session_state.chatbot_filled_values = {}  # Add this line
             st.experimental_rerun()
         
         st.markdown('</div>', unsafe_allow_html=True)
+
 if __name__ == "__main__":
-    main()          
+    main()
