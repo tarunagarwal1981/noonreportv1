@@ -186,20 +186,12 @@ Provide concise and helpful guidance throughout the report creation process. If 
 Remember to provide appropriate reminders and follow-up suggestions based on the current report context and the logical sequence of maritime operations.
 """
 
-def get_ai_response(user_input, last_reports):
+def get_ai_response(user_input, last_reports, context):
     current_time = datetime.now(pytz.utc).strftime("%H:%M:%S")
-    
-    context = f"""
-    The current UTC time is {current_time}. 
-    The last reports submitted were: {' -> '.join(last_reports)}
-    
-    Please provide guidance based on this context and the user's input.
-    Remember to only suggest reports from the provided list that make logical sense given the previous reports and maritime operations.
-    Use your knowledge as an experienced seafarer to ensure the suggested reports follow a realistic sequence of events.
-    """
     
     messages = [
         {"role": "system", "content": TRAINING_DATA},
+        {"role": "system", "content": f"The current UTC time is {current_time}. The last reports submitted were: {' -> '.join(last_reports)}"},
         {"role": "system", "content": context},
         {"role": "user", "content": user_input}
     ]
@@ -211,11 +203,47 @@ def get_ai_response(user_input, last_reports):
             max_tokens=300,
             n=1,
             stop=None,
-            temperature=1.0,
+            temperature=0.7,
         )
         return response.choices[0].message['content'].strip()
     except Exception as e:
         return f"I'm sorry, but I encountered an error while processing your request: {str(e)}. Please try again later."
+
+def get_empty_fields(report_type, section):
+    empty_fields = []
+    fields = SECTION_FIELDS.get(section, {})
+    
+    if isinstance(fields, dict):
+        for subsection, subfields in fields.items():
+            for field in subfields:
+                field_key = f"{report_type}_{section}_{subsection}_{field.lower().replace(' ', '_')}"
+                if field_key not in st.session_state or not st.session_state[field_key]:
+                    empty_fields.append(field)
+    elif isinstance(fields, list):
+        for field in fields:
+            field_key = f"{report_type}_{section}_{field.lower().replace(' ', '_')}"
+            if field_key not in st.session_state or not st.session_state[field_key]:
+                empty_fields.append(field)
+    
+    return empty_fields
+
+def update_field_value(report_type, section, field, value):
+    fields = SECTION_FIELDS.get(section, {})
+    
+    if isinstance(fields, dict):
+        for subsection, subfields in fields.items():
+            if field in subfields:
+                field_key = f"{report_type}_{section}_{subsection}_{field.lower().replace(' ', '_')}"
+                st.session_state[field_key] = value
+                return True
+    elif isinstance(fields, list):
+        if field in fields:
+            field_key = f"{report_type}_{section}_{field.lower().replace(' ', '_')}"
+            st.session_state[field_key] = value
+            return True
+    
+    return False
+
 
 def generate_random_position():
     lat_deg = random.randint(0, 89)
@@ -378,7 +406,7 @@ def create_form(report_type):
         return False
     
     for section in report_structure:
-        with st.expander(section, expanded=False):
+        with st.expander(section, expanded=(section == st.session_state.current_section)):
             st.subheader(section)
             fields = SECTION_FIELDS.get(section, {})
             
@@ -394,6 +422,9 @@ def create_form(report_type):
     if st.button("Submit Report"):
         if validate_report(report_type):
             st.success(f"{report_type} submitted successfully!")
+            st.session_state.current_report_type = None
+            st.session_state.current_section = None
+            st.session_state.current_field = None
             return True
         else:
             st.error("Please correct the errors in the report before submitting.")
@@ -449,78 +480,57 @@ def create_collapsible_history_panel():
 def create_chatbot(last_reports):
     st.header("AI Assistant")
     
-    # Custom CSS for chat layout
-    st.markdown("""
-    <style>
-    .chat-container {
-        display: flex;
-        flex-direction: column;
-        height: 400px;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-    }
-    .chat-messages {
-        flex: 1;
-        overflow-y: auto;
-        padding: 10px;
-        display: flex;
-        flex-direction: column-reverse;
-    }
-    .chat-input {
-        padding: 10px;
-        background-color: #f0f0f0;
-    }
-    .stTextInput > div > div > input {
-        background-color: white;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-    
-    # Chat container
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+    if "current_section" not in st.session_state:
+        st.session_state.current_section = None
+    if "current_field" not in st.session_state:
+        st.session_state.current_field = None
+
     chat_container = st.container()
     
     with chat_container:
-        # Chat messages area
-        st.markdown('<div class="chat-container">', unsafe_allow_html=True)
+        for message in st.session_state.messages:
+            with st.chat_message(message["role"]):
+                st.markdown(message["content"])
         
-        # Input area (fixed at bottom)
-        with st.container():
-            st.markdown('<div class="chat-input">', unsafe_allow_html=True)
-            user_input = st.text_input("Type your message here...", key="user_input")
-            st.markdown('</div>', unsafe_allow_html=True)
-        
-        # Messages area (scrollable)
-        with st.container():
-            st.markdown('<div class="chat-messages">', unsafe_allow_html=True)
-            if "messages" not in st.session_state:
-                st.session_state.messages = [{"role": "assistant", "content": "How can I assist you with your maritime reporting?"}]
+        if prompt := st.chat_input("How can I assist you with your maritime reporting?"):
+            st.session_state.messages.append({"role": "user", "content": prompt})
             
-            for message in reversed(st.session_state.messages):
-                with st.chat_message(message["role"]):
-                    st.markdown(message["content"])
-            st.markdown('</div>', unsafe_allow_html=True)
-        
-        st.markdown('</div>', unsafe_allow_html=True)
-    
-    # Handle user input
-    if user_input:
-        st.session_state.messages.append({"role": "user", "content": user_input})
-        response = get_ai_response(user_input, last_reports)
-        st.session_state.messages.append({"role": "assistant", "content": response})
-        
-        # Check if a specific report type is agreed upon
-        for report_type in REPORT_TYPES:
-            if f"Agreed. The form for {report_type}" in response:
-                if is_valid_report_sequence(last_reports, report_type):
-                    st.session_state.current_report_type = report_type
-                    st.session_state.show_form = True
-                    break
-                else:
-                    st.warning(f"Invalid report sequence. {report_type} cannot follow the previous reports.")
-        
-        # Clear the input
-        st.session_state.user_input = ""
-        st.experimental_rerun()
+            if st.session_state.current_report_type and st.session_state.current_section:
+                context = f"We are currently filling out the {st.session_state.current_report_type} report, in the {st.session_state.current_section} section. The current field being discussed is {st.session_state.current_field}."
+                response = get_ai_response(prompt, last_reports, context)
+                
+                if st.session_state.current_field:
+                    if "leave this field empty" in prompt.lower():
+                        st.session_state.current_field = None
+                    else:
+                        update_field_value(st.session_state.current_report_type, st.session_state.current_section, st.session_state.current_field, prompt)
+                        st.session_state.current_field = None
+                
+                empty_fields = get_empty_fields(st.session_state.current_report_type, st.session_state.current_section)
+                if not empty_fields:
+                    st.session_state.current_section = None
+                    response += "\n\nThis section is now complete. Let's move on to the next section."
+                elif not st.session_state.current_field:
+                    st.session_state.current_field = empty_fields[0]
+                    response += f"\n\nLet's fill in the {st.session_state.current_field} field. What value should we use?"
+            else:
+                response = get_ai_response(prompt, last_reports, "")
+                
+                for report_type in REPORT_TYPES:
+                    if f"Agreed. The form for {report_type}" in response:
+                        if is_valid_report_sequence(last_reports, report_type):
+                            st.session_state.current_report_type = report_type
+                            st.session_state.show_form = True
+                            st.session_state.current_section = REPORT_STRUCTURES[report_type][0]
+                            response += f"\n\nLet's start filling out the {st.session_state.current_section} section."
+                            break
+                        else:
+                            st.warning(f"Invalid report sequence. {report_type} cannot follow the previous reports.")
+            
+            st.session_state.messages.append({"role": "assistant", "content": response})
+            st.experimental_rerun()
 
 def is_valid_report_sequence(last_reports, new_report):
     if not last_reports:
@@ -574,8 +584,10 @@ def main():
         create_chatbot(st.session_state.report_history)
         
         if st.button("Clear Chat"):
-            st.session_state.messages = [{"role": "assistant", "content": "How can I assist you with your maritime reporting?"}]
+            st.session_state.messages = []
             st.session_state.current_report_type = None
+            st.session_state.current_section = None
+            st.session_state.current_field = None
             st.session_state.report_history = []
             st.experimental_rerun()
         
