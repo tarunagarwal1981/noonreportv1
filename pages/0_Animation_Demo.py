@@ -814,36 +814,7 @@ def create_fields(fields, prefix, report_type, vessel_type):
     if me_total_consumption > 15 and not boiler_message_shown:
         st.markdown('<p class="info-message">Since Main Engine is running at more than 50% load, Boiler consumption is expected to be zero.</p>', unsafe_allow_html=True)
 
-def create_form(report_type, vessel_type):
-    st.header(f"New {report_type} for {vessel_type}")
-    
-    report_structure = REPORT_STRUCTURES.get(report_type, [])
-    
-    if not report_structure:
-        st.error(f"No structure defined for report type: {report_type}")
-        return False
-    
-    for section in report_structure:
-        with st.expander(section, expanded=False):
-            st.subheader(section)
-            fields = get_section_fields(vessel_type).get(section, {})
-            
-            if isinstance(fields, dict):
-                for subsection, subfields in fields.items():
-                    st.subheader(subsection)
-                    create_fields(subfields, f"{report_type}_{section}_{subsection}", report_type, vessel_type)
-            elif isinstance(fields, list):
-                create_fields(fields, f"{report_type}_{section}", report_type, vessel_type)
-            else:
-                st.error(f"Unexpected field type for section {section}: {type(fields)}")
 
-    if st.button("Submit Report"):
-        if validate_report(report_type, vessel_type):
-            st.success(f"{report_type} for {vessel_type} submitted successfully!")
-            return True
-        else:
-            st.error("Please correct the errors in the report before submitting.")
-    return False
     
 def validate_report(report_type, vessel_type):
     # Validation logic here
@@ -866,32 +837,6 @@ def validate_report(report_type, vessel_type):
     
     return True  # If all validations pass
 
-def create_collapsible_history_panel():
-    with st.expander("Report History (for testing)", expanded=False):
-        st.markdown('<div class="history-panel">', unsafe_allow_html=True)
-        st.markdown("<h3>Recent Reports</h3>", unsafe_allow_html=True)
-        
-        if "report_history" not in st.session_state:
-            st.session_state.report_history = []
-
-        # Ensure we always have 4 slots for history, filling with "None" if needed
-        history = st.session_state.report_history + ["None"] * (4 - len(st.session_state.report_history))
-
-        updated_history = []
-        for i in range(4):
-            selected_report = st.selectbox(
-                f"Report {i+1}:",
-                ["None"] + REPORT_TYPES,
-                key=f"history_{i}",
-                index=REPORT_TYPES.index(history[i]) + 1 if history[i] in REPORT_TYPES else 0
-            )
-            updated_history.append(selected_report)
-
-        # Update session state outside of the loop
-        st.session_state.report_history = [report for report in updated_history if report != "None"]
-
-        st.markdown('</div>', unsafe_allow_html=True)
-
 def create_chatbot(last_reports):
     st.header("AI Assistant")
     
@@ -913,12 +858,62 @@ def create_chatbot(last_reports):
                 if is_valid_report_sequence(last_reports, report_type):
                     st.session_state.current_report_type = report_type
                     st.session_state.show_form = True
+                    if last_reports:
+                        st.session_state.report_history.append(report_type)
+                    else:
+                        st.session_state.report_history = [report_type]
                     break
                 else:
                     st.warning(f"Invalid report sequence. {report_type} cannot follow the previous reports.")
         
-        st.experimental_rerun()
+        st.rerun()
 
+def create_form(report_type, vessel_type):
+    st.header(f"New {report_type} for {vessel_type}")
+    
+    report_structure = REPORT_STRUCTURES.get(report_type, [])
+    
+    if not report_structure:
+        st.error(f"No structure defined for report type: {report_type}")
+        return False
+    
+    for section in report_structure:
+        with st.expander(section, expanded=True):
+            st.subheader(section)
+            fields = get_section_fields(vessel_type).get(section, {})
+            
+            if isinstance(fields, dict):
+                for subsection, subfields in fields.items():
+                    st.subheader(subsection)
+                    create_fields(subfields, f"{report_type}_{section}_{subsection}", report_type, vessel_type)
+            elif isinstance(fields, list):
+                create_fields(fields, f"{report_type}_{section}", report_type, vessel_type)
+            else:
+                st.error(f"Unexpected field type for section {section}: {type(fields)}")
+
+    if st.button("Submit Report"):
+        if validate_report(report_type, vessel_type):
+            st.success(f"{report_type} for {vessel_type} submitted successfully!")
+            st.session_state.show_form = False
+            st.session_state.current_report_type = None
+            return True
+        else:
+            st.error("Please correct the errors in the report before submitting.")
+    return False
+
+def create_collapsible_history_panel():
+    with st.expander("Report History", expanded=True):
+        st.markdown('<div class="history-panel">', unsafe_allow_html=True)
+        st.markdown("<h3>Recent Reports</h3>", unsafe_allow_html=True)
+        
+        if "report_history" not in st.session_state:
+            st.session_state.report_history = []
+
+        # Display the last 4 reports
+        for i, report in enumerate(st.session_state.report_history[-4:]):
+            st.text(f"{i+1}. {report}")
+
+        st.markdown('</div>', unsafe_allow_html=True)
 def is_valid_report_sequence(last_reports, new_report):
     if not last_reports:
         return True
@@ -949,43 +944,7 @@ def is_valid_report_sequence(last_reports, new_report):
     # For reports not explicitly defined in rules, allow them if they're not breaking any sequence
     return new_report not in [item for sublist in sequence_rules.values() for item in sublist]
 
-def main():
-    st.title("OptiLog - AI-Enhanced Maritime Reporting System")
-    
-    if "report_history" not in st.session_state:
-        st.session_state.report_history = []
-    
-    if "vessel_type" not in st.session_state:
-        st.session_state.vessel_type = "Oil Tanker"
-    
-    # Add vessel type selection dropdown
-    st.session_state.vessel_type = st.selectbox("Select Vessel Type", VESSEL_TYPES, index=VESSEL_TYPES.index(st.session_state.vessel_type))
-    
-    col1, col2 = st.columns([0.7, 0.3])
 
-    with col1:
-        st.markdown('<div class="reportSection">', unsafe_allow_html=True)
-        if 'current_report_type' in st.session_state:
-            create_form(st.session_state.current_report_type, st.session_state.vessel_type)
-        else:
-            st.write("Please use the AI Assistant to initiate a report.")
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    with col2:
-        create_collapsible_history_panel()
-        st.markdown('<div class="chatSection">', unsafe_allow_html=True)
-        create_chatbot(st.session_state.report_history)
-        
-        if st.button("Clear Chat"):
-            st.session_state.messages = []
-            st.session_state.current_report_type = None
-            st.session_state.report_history = []
-            st.experimental_rerun()
-        
-        st.markdown('</div>', unsafe_allow_html=True)
-
-if __name__ == "__main__":
-    main()
 def is_valid_report_sequence(last_reports, new_report):
     if not last_reports:
         return True
