@@ -6,7 +6,6 @@ import os
 import random
 import string
 
-
 PORTS = [
     "Singapore", "Rotterdam", "Shanghai", "Ningbo-Zhoushan", "Guangzhou Harbor", "Busan",
     "Qingdao", "Hong Kong", "Tianjin", "Port Klang", "Antwerp", "Dubai Ports", "Xiamen",
@@ -17,11 +16,12 @@ PORTS = [
 VESSEL_PREFIXES = ["MV", "SS", "MT", "MSC", "CMA CGM", "OOCL", "Maersk", "Evergreen", "Cosco", "NYK"]
 VESSEL_NAMES = ["Horizon", "Voyager", "Pioneer", "Adventurer", "Explorer", "Discovery", "Navigator", "Endeavour", "Challenger", "Trailblazer"]
 
+VESSEL_TYPES = ["Oil Tanker", "LPG Tanker", "LNG Tanker"]
 
 # Set page config
 st.set_page_config(layout="wide", page_title="AI-Enhanced Maritime Reporting System")
 
-# Custom CSS for compact layout, history panel, and field prompts
+# Custom CSS (unchanged)
 st.markdown("""
 <style>
     .reportSection { padding-right: 1rem; }
@@ -91,7 +91,7 @@ if not openai.api_key:
     st.error("OpenAI API key not found. Please set it in Streamlit secrets or as an environment variable.")
     st.stop()
 
-# Define report types
+# Define report types (unchanged)
 REPORT_TYPES = [
     "Arrival", "Departure", "Begin of offhire", "End of offhire", "Arrival STS",
     "Departure STS", "STS", "Begin canal passage", "End canal passage",
@@ -102,65 +102,76 @@ REPORT_TYPES = [
     "Begin of deviation", "End of deviation", "Entering special area", "Leaving special area"
 ]
 
-# Define report structures
+# Define report structures (unchanged)
 REPORT_STRUCTURES = {report_type: ["Vessel Data", "Voyage Data", "Event Data", "Position", "Cargo", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"] for report_type in REPORT_TYPES}
 REPORT_STRUCTURES["ETA update"] = ["Vessel Data", "Voyage Data", "Position"]
 
-# Define section fields
-SECTION_FIELDS = {
-    "Vessel Data": ["Vessel Name", "Vessel IMO"],
-    "Voyage Data": ["Local Date", "Local Time", "UTC Offset", "Voyage ID", "Segment ID", "From Port", "To Port"],
-    "Event Data": ["Event Type", "Time Elapsed (hours)", "Sailing Time (hours)", "Anchor Time (hours)", "DP Time (hours)", "Ice Time (hours)", "Maneuvering (hours)", "Loading/Unloading (hours)", "Drifting (hours)"],
-    "Position": ["Latitude Degrees", "Latitude Minutes", "Latitude Direction", "Longitude Degrees", "Longitude Minutes", "Longitude Direction"],
-    "Cargo": ["Cargo Weight (mt)"],
-    "Fuel Consumption": {
-        "Main Engine": ["ME LFO (mt)", "ME MGO (mt)", "ME LNG (mt)", "ME Other (mt)", "ME Other Fuel Type"],
-        "Auxiliary Engines": ["AE LFO (mt)", "AE MGO (mt)", "AE LNG (mt)", "AE Other (mt)", "AE Other Fuel Type"],
-        "Boilers": ["Boiler LFO (mt)", "Boiler MGO (mt)", "Boiler LNG (mt)", "Boiler Other (mt)", "Boiler Other Fuel Type"]
-    },
-    "ROB": ["LFO ROB (mt)", "MGO ROB (mt)", "LNG ROB (mt)", "Other ROB (mt)", "Other Fuel Type ROB", "Total Fuel ROB (mt)"],
-    "Fuel Allocation": {
-        "Cargo Heating": ["Cargo Heating LFO (mt)", "Cargo Heating MGO (mt)", "Cargo Heating LNG (mt)", "Cargo Heating Other (mt)", "Cargo Heating Other Fuel Type"],
-        "Dynamic Positioning (DP)": ["DP LFO (mt)", "DP MGO (mt)", "DP LNG (mt)", "DP Other (mt)", "DP Other Fuel Type"]
-    },
-    "Machinery": {
-        "Main Engine": ["ME Load (kW)", "ME Load Percentage (%)", "ME Speed (RPM)", "ME Propeller Pitch (m)", "ME Propeller Pitch Ratio", "ME Shaft Generator Power (kW)", "ME Charge Air Inlet Temp (°C)", "ME Scav. Air Pressure (bar)", "ME SFOC (g/kWh)", "ME SFOC ISO Corrected (g/kWh)"],
-        "Auxiliary Engines": {
-            "Auxiliary Engine 1": ["AE1 Load (kW)", "AE1 Charge Air Inlet Temp (°C)", "AE1 Charge Air Pressure (bar)", "AE1 SFOC (g/kWh)", "AE1 SFOC ISO Corrected (g/kWh)"],
-            "Auxiliary Engine 2": ["AE2 Load (kW)", "AE2 Charge Air Inlet Temp (°C)", "AE2 Charge Air Pressure (bar)", "AE2 SFOC (g/kWh)", "AE2 SFOC ISO Corrected (g/kWh)"],
-            "Auxiliary Engine 3": ["AE3 Load (kW)", "AE3 Charge Air Inlet Temp (°C)", "AE3 Charge Air Pressure (bar)", "AE3 SFOC (g/kWh)", "AE3 SFOC ISO Corrected (g/kWh)"]
+# Define section fields (updated)
+def get_section_fields(vessel_type):
+    return {
+        "Vessel Data": ["Vessel Name", "Vessel IMO"],
+        "Voyage Data": ["Local Date", "Local Time", "UTC Offset", "Voyage ID", "Segment ID", "From Port", "To Port"],
+        "Event Data": ["Event Type", "Time Elapsed (hours)", "Sailing Time (hours)", "Anchor Time (hours)", "Ice Time (hours)", "Maneuvering (hours)", "Loading/Unloading (hours)", "Drifting (hours)"] + (["DP Time (hours)"] if vessel_type != "Oil Tanker" else []),
+        "Position": ["Latitude Degrees", "Latitude Minutes", "Latitude Direction", "Longitude Degrees", "Longitude Minutes", "Longitude Direction"],
+        "Cargo": ["Cargo Volume (m3)"] if vessel_type in ["LPG Tanker", "LNG Tanker"] else ["Cargo Weight (mt)"],
+        "Fuel Consumption": {
+            "Main Engine": ["ME LFO (mt)", "ME MGO (mt)", "ME LNG (mt)", "ME Other (mt)", "ME Other Fuel Type"] + (["ME LPG Propane (mt)", "ME LPG Butane (mt)"] if vessel_type == "LPG Tanker" else []),
+            "Auxiliary Engines": ["AE LFO (mt)", "AE MGO (mt)", "AE LNG (mt)", "AE Other (mt)", "AE Other Fuel Type"] + (["AE LPG Propane (mt)", "AE LPG Butane (mt)"] if vessel_type == "LPG Tanker" else []),
+            "Boilers": ["Boiler LFO (mt)", "Boiler MGO (mt)", "Boiler LNG (mt)", "Boiler Other (mt)", "Boiler Other Fuel Type"] + (["Boiler LPG Propane (mt)", "Boiler LPG Butane (mt)"] if vessel_type == "LPG Tanker" else []),
+            "IGG": ["IGG LFO (mt)", "IGG MGO (mt)", "IGG LNG (mt)", "IGG Other (mt)", "IGG Other Fuel Type"],
+            "GCU": ["GCU LFO (mt)", "GCU MGO (mt)", "GCU LNG (mt)", "GCU Other (mt)", "GCU Other Fuel Type"] if vessel_type == "LNG Tanker" else [],
+            "Incinerator": ["Incinerator LFO (mt)", "Incinerator MGO (mt)", "Incinerator LNG (mt)", "Incinerator Other (mt)", "Incinerator Other Fuel Type"]
+        },
+        "ROB": ["LFO ROB (mt)", "MGO ROB (mt)", "LNG ROB (mt)", "Other ROB (mt)", "Other Fuel Type ROB", "Total Fuel ROB (mt)"] + (["LPG Propane ROB (mt)", "LPG Butane ROB (mt)"] if vessel_type == "LPG Tanker" else []),
+        "Fuel Allocation": {
+            "Cargo Cooling" if vessel_type in ["LPG Tanker", "LNG Tanker"] else "Cargo Heating": 
+                ["Cargo Cooling LFO (mt)", "Cargo Cooling MGO (mt)", "Cargo Cooling LNG (mt)", "Cargo Cooling Other (mt)", "Cargo Cooling Other Fuel Type"] + 
+                (["Cargo Cooling LPG Propane (mt)", "Cargo Cooling LPG Butane (mt)"] if vessel_type == "LPG Tanker" else [])
+        },
+        "Machinery": {
+            "Main Engine": ["ME Load (kW)", "ME Load Percentage (%)", "ME Speed (RPM)", "ME Propeller Pitch (m)", "ME Propeller Pitch Ratio", "ME Shaft Generator Power (kW)", "ME Charge Air Inlet Temp (°C)", "ME Scav. Air Pressure (bar)", "ME SFOC (g/kWh)", "ME SFOC ISO Corrected (g/kWh)"],
+            "Auxiliary Engines": {
+                "Auxiliary Engine 1": ["AE1 Load (kW)", "AE1 Charge Air Inlet Temp (°C)", "AE1 Charge Air Pressure (bar)", "AE1 SFOC (g/kWh)", "AE1 SFOC ISO Corrected (g/kWh)"],
+                "Auxiliary Engine 2": ["AE2 Load (kW)", "AE2 Charge Air Inlet Temp (°C)", "AE2 Charge Air Pressure (bar)", "AE2 SFOC (g/kWh)", "AE2 SFOC ISO Corrected (g/kWh)"],
+                "Auxiliary Engine 3": ["AE3 Load (kW)", "AE3 Charge Air Inlet Temp (°C)", "AE3 Charge Air Pressure (bar)", "AE3 SFOC (g/kWh)", "AE3 SFOC ISO Corrected (g/kWh)"]
+            }
+        },
+        "Weather": {
+            "Wind": ["Wind Direction (degrees)", "Wind Speed (knots)", "Wind Force (Beaufort)"],
+            "Sea State": ["Sea State Direction (degrees)", "Sea State Force (Douglas scale)", "Sea State Period (seconds)"],
+            "Swell": ["Swell Direction (degrees)", "Swell Height (meters)", "Swell Period (seconds)"],
+            "Current": ["Current Direction (degrees)", "Current Speed (knots)"],
+            "Temperature": ["Air Temperature (°C)", "Sea Temperature (°C)"]
+        },
+        "Draft": {
+            "Actual": ["Actual Forward Draft (m)", "Actual Aft Draft (m)", "Displacement (mt)", "Water Depth (m)"]
         }
-    },
-    "Weather": {
-        "Wind": ["Wind Direction (degrees)", "Wind Speed (knots)", "Wind Force (Beaufort)"],
-        "Sea State": ["Sea State Direction (degrees)", "Sea State Force (Douglas scale)", "Sea State Period (seconds)"],
-        "Swell": ["Swell Direction (degrees)", "Swell Height (meters)", "Swell Period (seconds)"],
-        "Current": ["Current Direction (degrees)", "Current Speed (knots)"],
-        "Temperature": ["Air Temperature (°C)", "Sea Temperature (°C)"]
-    },
-    "Draft": {
-        "Actual": ["Actual Forward Draft (m)", "Actual Aft Draft (m)", "Displacement (mt)", "Water Depth (m)"]
     }
-}
 
-# Define validation rules
+# Define validation rules (updated)
 VALIDATION_RULES = {
     "ME LFO (mt)": {"min": 0, "max": 25},
     "ME MGO (mt)": {"min": 0, "max": 25},
     "ME LNG (mt)": {"min": 0, "max": 25},
     "ME Other (mt)": {"min": 0, "max": 25},
+    "ME LPG Propane (mt)": {"min": 0, "max": 25},
+    "ME LPG Butane (mt)": {"min": 0, "max": 25},
     "AE LFO (mt)": {"min": 0, "max": 3},
     "AE MGO (mt)": {"min": 0, "max": 3},
     "AE LNG (mt)": {"min": 0, "max": 3},
     "AE Other (mt)": {"min": 0, "max": 3},
+    "AE LPG Propane (mt)": {"min": 0, "max": 3},
+    "AE LPG Butane (mt)": {"min": 0, "max": 3},
     "Boiler LFO (mt)": {"min": 0, "max": 4},
     "Boiler MGO (mt)": {"min": 0, "max": 4},
     "Boiler LNG (mt)": {"min": 0, "max": 4},
     "Boiler Other (mt)": {"min": 0, "max": 4},
+    "Boiler LPG Propane (mt)": {"min": 0, "max": 4},
+    "Boiler LPG Butane (mt)": {"min": 0, "max": 4},
 }
 
-# Prepare the training data as a string
-TRAINING_DATA = f"""
+# TRAINING_DATA (unchanged)
+TRAINING_DATA = """
 You are an AI assistant for an advanced maritime reporting system, with the knowledge and experience of a seasoned maritime seafarer. Your role is to guide users through creating various types of maritime reports, ensuring compliance with industry standards and regulations while maintaining a logical sequence of events. 
 Keep your responses as short and crisp and easy to understand as possible. While suggesting the reports just suggest the name of the reports not their explanations. If there is no Reports History allow user to start any report.
 Valid report types: {', '.join(REPORT_TYPES)}
@@ -186,12 +197,20 @@ Provide concise and helpful guidance throughout the report creation process. If 
 Remember to provide appropriate reminders and follow-up suggestions based on the current report context and the logical sequence of maritime operations.
 """
 
-def get_ai_response(user_input, last_reports, context):
+def get_ai_response(user_input, last_reports):
     current_time = datetime.now(pytz.utc).strftime("%H:%M:%S")
+    
+    context = f"""
+    The current UTC time is {current_time}. 
+    The last reports submitted were: {' -> '.join(last_reports)}
+    
+    Please provide guidance based on this context and the user's input.
+    Remember to only suggest reports from the provided list that make logical sense given the previous reports and maritime operations.
+    Use your knowledge as an experienced seafarer to ensure the suggested reports follow a realistic sequence of events.
+    """
     
     messages = [
         {"role": "system", "content": TRAINING_DATA},
-        {"role": "system", "content": f"The current UTC time is {current_time}. The last reports submitted were: {' -> '.join(last_reports)}"},
         {"role": "system", "content": context},
         {"role": "user", "content": user_input}
     ]
@@ -203,47 +222,11 @@ def get_ai_response(user_input, last_reports, context):
             max_tokens=300,
             n=1,
             stop=None,
-            temperature=0.7,
+            temperature=1.0,
         )
         return response.choices[0].message['content'].strip()
     except Exception as e:
         return f"I'm sorry, but I encountered an error while processing your request: {str(e)}. Please try again later."
-
-def get_empty_fields(report_type, section):
-    empty_fields = []
-    fields = SECTION_FIELDS.get(section, {})
-    
-    if isinstance(fields, dict):
-        for subsection, subfields in fields.items():
-            for field in subfields:
-                field_key = f"{report_type}_{section}_{subsection}_{field.lower().replace(' ', '_')}"
-                if field_key not in st.session_state or not st.session_state[field_key]:
-                    empty_fields.append(field)
-    elif isinstance(fields, list):
-        for field in fields:
-            field_key = f"{report_type}_{section}_{field.lower().replace(' ', '_')}"
-            if field_key not in st.session_state or not st.session_state[field_key]:
-                empty_fields.append(field)
-    
-    return empty_fields
-
-def update_field_value(report_type, section, field, value):
-    fields = SECTION_FIELDS.get(section, {})
-    
-    if isinstance(fields, dict):
-        for subsection, subfields in fields.items():
-            if field in subfields:
-                field_key = f"{report_type}_{section}_{subsection}_{field.lower().replace(' ', '_')}"
-                st.session_state.chatbot_filled_values[field_key] = value
-                return True
-    elif isinstance(fields, list):
-        if field in fields:
-            field_key = f"{report_type}_{section}_{field.lower().replace(' ', '_')}"
-            st.session_state.chatbot_filled_values[field_key] = value
-            return True
-    
-    return False
-
 
 def generate_random_position():
     lat_deg = random.randint(0, 89)
@@ -259,14 +242,13 @@ def generate_random_consumption():
     ae_lfo = round(random.uniform(2, 3), 1)
     return me_lfo, ae_lfo
 
-
 def generate_random_vessel_name():
     return f"{random.choice(VESSEL_PREFIXES)} {random.choice(VESSEL_NAMES)}"
 
 def generate_random_imo():
     return ''.join(random.choices(string.digits, k=7))
 
-def create_fields(fields, prefix, report_type):
+def create_fields(fields, prefix, report_type, vessel_type):
     cols = st.columns(4)  # Create 4 columns
     me_total_consumption = 0
     ae_total_consumption = 0
@@ -301,113 +283,92 @@ def create_fields(fields, prefix, report_type):
         with cols[i % 4]:  # This will cycle through the columns
             field_key = f"{prefix}_{field.lower().replace(' ', '_')}"
             
-            # Check if the field has been filled by the chatbot
-            chatbot_value = st.session_state.chatbot_filled_values.get(field_key)
-            
             if field == "Vessel Name":
-                value = st.text_input(field, value=chatbot_value or vessel_name, key=field_key)
+                value = st.text_input(field, value=vessel_name, key=field_key)
             elif field == "Vessel IMO":
-                value = st.text_input(field, value=chatbot_value or imo_number, key=field_key)
+                value = st.text_input(field, value=imo_number, key=field_key)
             elif field == "Local Date":
-                value = st.date_input(field, value=datetime.strptime(chatbot_value or current_date, "%Y-%m-%d"), key=field_key)
+                value = st.date_input(field, value=datetime.strptime(current_date, "%Y-%m-%d"), key=field_key)
             elif field == "Local Time":
-                value = st.time_input(field, value=datetime.strptime(chatbot_value or current_time, "%H:%M").time(), key=field_key)
+                value = st.time_input(field, value=datetime.strptime(current_time, "%H:%M").time(), key=field_key)
             elif field == "UTC Offset":
-                value = st.text_input(field, value=chatbot_value or utc_offset, key=field_key)
+                value = st.text_input(field, value=utc_offset, key=field_key)
             elif field == "From Port":
-                value = st.selectbox(field, options=PORTS, index=PORTS.index(chatbot_value) if chatbot_value in PORTS else PORTS.index(from_port), key=field_key)
+                value = st.selectbox(field, options=PORTS, index=PORTS.index(from_port), key=field_key)
             elif field == "To Port":
-                value = st.selectbox(field, options=PORTS, index=PORTS.index(chatbot_value) if chatbot_value in PORTS else PORTS.index(to_port), key=field_key)
+                value = st.selectbox(field, options=PORTS, index=PORTS.index(to_port), key=field_key)
             elif field == "Voyage ID":
-                value = st.text_input(field, value=chatbot_value or voyage_id, key=field_key)
+                value = st.text_input(field, value=voyage_id, key=field_key)
             elif field == "Segment ID":
-                value = st.text_input(field, value=chatbot_value or segment_id, key=field_key)
+                value = st.text_input(field, value=segment_id, key=field_key)
             elif field == "Event Type":
-                value = st.text_input(field, value=chatbot_value or report_type, key=field_key)
-            elif field == "Latitude Degrees":
-                value = st.number_input(field, value=float(chatbot_value) if chatbot_value is not None else lat_deg, min_value=0, max_value=89, key=field_key)
-                position_fields_processed += 1
-            elif field == "Latitude Minutes":
-                value = st.number_input(field, value=float(chatbot_value) if chatbot_value is not None else lat_min, min_value=0.0, max_value=59.99, format="%.2f", key=field_key)
-                position_fields_processed += 1
-            elif field == "Latitude Direction":
-                value = st.selectbox(field, options=["N", "S"], index=["N", "S"].index(chatbot_value) if chatbot_value in ["N", "S"] else ["N", "S"].index(lat_dir), key=field_key)
-                position_fields_processed += 1
-            elif field == "Longitude Degrees":
-                value = st.number_input(field, value=float(chatbot_value) if chatbot_value is not None else lon_deg, min_value=0, max_value=179, key=field_key)
-                position_fields_processed += 1
-            elif field == "Longitude Minutes":
-                value = st.number_input(field, value=float(chatbot_value) if chatbot_value is not None else lon_min, min_value=0.0, max_value=59.99, format="%.2f", key=field_key)
-                position_fields_processed += 1
-            elif field == "Longitude Direction":
-                value = st.selectbox(field, options=["E", "W"], index=["E", "W"].index(chatbot_value) if chatbot_value in ["E", "W"] else ["E", "W"].index(lon_dir), key=field_key)
+                value = st.text_input(field, value=report_type, key=field_key)
+            elif field.startswith("Latitude") or field.startswith("Longitude"):
+                if "Degrees" in field:
+                    value = st.number_input(field, value=lat_deg if "Latitude" in field else lon_deg, min_value=0, max_value=89 if "Latitude" in field else 179, key=field_key)
+                elif "Minutes" in field:
+                    value = st.number_input(field, value=lat_min if "Latitude" in field else lon_min, min_value=0.0, max_value=59.99, format="%.2f", key=field_key)
+                elif "Direction" in field:
+                    options = ["N", "S"] if "Latitude" in field else ["E", "W"]
+                    default = lat_dir if "Latitude" in field else lon_dir
+                    value = st.selectbox(field, options=options, index=options.index(default), key=field_key)
                 position_fields_processed += 1
                 
-                # Display AIS position message after all position fields have been processed
                 if position_fields_processed == 6:
                     st.markdown('<p class="info-message">Current AIS position</p>', unsafe_allow_html=True)
             
-            elif field in ["ME LFO (mt)", "ME MGO (mt)", "ME LNG (mt)", "ME Other (mt)"]:
-                if field == "ME LFO (mt)":
-                    value = st.number_input(field, value=float(chatbot_value) if chatbot_value is not None else me_lfo, min_value=0.0, max_value=25.0, step=0.1, key=field_key)
+            elif "LFO" in field or "MGO" in field or "LNG" in field or "Other" in field or "LPG" in field:
+                if field.startswith("ME"):
+                    max_val = 25.0
+                    default_val = me_lfo if "LFO" in field else 0.0
+                elif field.startswith("AE"):
+                    max_val = 3.0
+                    default_val = ae_lfo if "LFO" in field else 0.0
+                elif field.startswith("Boiler"):
+                    max_val = 4.0
+                    default_val = 0.0
                 else:
-                    value = st.number_input(field, value=float(chatbot_value) if chatbot_value is not None else 0, min_value=0.0, max_value=25.0, step=0.1, key=field_key)
+                    max_val = 25.0
+                    default_val = 0.0
                 
-                me_total_consumption += value
+                value = st.number_input(field, value=default_val, min_value=0.0, max_value=max_val, step=0.1, key=field_key)
                 
-                if field == "ME Other (mt)" and not me_fields_processed:
-                    if me_total_consumption > 25:
-                        st.markdown('<p class="info-message">Total ME consumption exceeds expected consumption of 25.</p>', unsafe_allow_html=True)
+                if field.startswith("ME"):
+                    me_total_consumption += value
+                elif field.startswith("AE"):
+                    ae_total_consumption += value
+                
+                if (field.startswith("ME") and "Other" in field and not me_fields_processed) or \
+                   (field.startswith("AE") and "Other" in field and not ae_fields_processed):
+                    total_consumption = me_total_consumption if field.startswith("ME") else ae_total_consumption
+                    expected_consumption = 25 if field.startswith("ME") else 3
+                    if total_consumption > expected_consumption:
+                        st.markdown(f'<p class="info-message">Total {"ME" if field.startswith("ME") else "AE"} consumption exceeds expected consumption of {expected_consumption}.</p>', unsafe_allow_html=True)
                     st.markdown('<p class="info-message">MFM figures since last report</p>', unsafe_allow_html=True)
-                    me_fields_processed = True
-            elif field in ["AE LFO (mt)", "AE MGO (mt)", "AE LNG (mt)", "AE Other (mt)"]:
-                if field == "AE LFO (mt)":
-                    value = st.number_input(field, value=float(chatbot_value) if chatbot_value is not None else ae_lfo, min_value=0.0, max_value=3.0, step=0.1, key=field_key)
-                else:
-                    value = st.number_input(field, value=float(chatbot_value) if chatbot_value is not None else 0, min_value=0.0, max_value=3.0, step=0.1, key=field_key)
-                
-                ae_total_consumption += value
-                
-                if field == "AE Other (mt)" and not ae_fields_processed:
-                    if ae_total_consumption > 3:
-                        st.markdown('<p class="info-message">Total AE consumption exceeds expected consumption of 3.</p>', unsafe_allow_html=True)
-                    st.markdown('<p class="info-message">MFM figures since last report</p>', unsafe_allow_html=True)
-                    ae_fields_processed = True
-            elif field.startswith("Boiler"):
-                value = st.number_input(field, value=float(chatbot_value) if chatbot_value is not None else 0, min_value=0.0, max_value=4.0, step=0.1, key=field_key)
-                
-                # Display Boiler consumption message if ME total consumption > 15
-                if me_total_consumption > 15 and not boiler_message_shown:
-                    st.markdown('<p class="info-message">Since Main Engine is running at more than 50% load, Boiler consumption is expected to be zero.</p>', unsafe_allow_html=True)
-                    boiler_message_shown = True
+                    if field.startswith("ME"):
+                        me_fields_processed = True
+                    else:
+                        ae_fields_processed = True
+            
             elif field in VALIDATION_RULES:
                 min_val, max_val = VALIDATION_RULES[field]["min"], VALIDATION_RULES[field]["max"]
-                value = st.number_input(field, value=float(chatbot_value) if chatbot_value is not None else min_val, min_value=min_val, max_value=max_val, key=field_key)
+                value = st.number_input(field, min_value=min_val, max_value=max_val, key=field_key)
                 
-                # Only show the warning if the value exceeds the maximum
                 if value > max_val:
                     st.markdown(f'<p class="small-warning">Value must be less than or equal to {max_val}</p>', unsafe_allow_html=True)
+            
             elif any(unit in field for unit in ["(%)", "(mt)", "(kW)", "(°C)", "(bar)", "(g/kWh)", "(knots)", "(meters)", "(seconds)", "(degrees)"]):
-                value = st.number_input(field, value=float(chatbot_value) if chatbot_value is not None else 0, key=field_key)
+                value = st.number_input(field, key=field_key)
             elif "Direction" in field and "degrees" not in field:
-                options = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
-                value = st.selectbox(field, options=options, index=options.index(chatbot_value) if chatbot_value in options else 0, key=field_key)
+                value = st.selectbox(field, options=["N", "NE", "E", "SE", "S", "SW", "W", "NW"], key=field_key)
             else:
-                value = st.text_input(field, value=chatbot_value or "", key=field_key)
+                value = st.text_input(field, key=field_key)
 
-    # Check if we need to display the Boiler message after all fields have been processed
     if me_total_consumption > 15 and not boiler_message_shown:
         st.markdown('<p class="info-message">Since Main Engine is running at more than 50% load, Boiler consumption is expected to be zero.</p>', unsafe_allow_html=True)
 
-def get_next_section(report_type, current_section):
-    sections = REPORT_STRUCTURES[report_type]
-    current_index = sections.index(current_section)
-    if current_index < len(sections) - 1:
-        return sections[current_index + 1]
-    return None
-
-def create_form(report_type):
-    st.header(f"New {report_type}")
+def create_form(report_type, vessel_type):
+    st.header(f"New {report_type} for {vessel_type}")
     
     report_structure = REPORT_STRUCTURES.get(report_type, [])
     
@@ -416,38 +377,35 @@ def create_form(report_type):
         return False
     
     for section in report_structure:
-        with st.expander(section, expanded=(section == st.session_state.current_section)):
+        with st.expander(section, expanded=False):
             st.subheader(section)
-            fields = SECTION_FIELDS.get(section, {})
+            fields = get_section_fields(vessel_type).get(section, {})
             
             if isinstance(fields, dict):
                 for subsection, subfields in fields.items():
                     st.subheader(subsection)
-                    create_fields(subfields, f"{report_type}_{section}_{subsection}", report_type)
+                    create_fields(subfields, f"{report_type}_{section}_{subsection}", report_type, vessel_type)
             elif isinstance(fields, list):
-                create_fields(fields, f"{report_type}_{section}", report_type)
+                create_fields(fields, f"{report_type}_{section}", report_type, vessel_type)
             else:
                 st.error(f"Unexpected field type for section {section}: {type(fields)}")
 
     if st.button("Submit Report"):
-        if validate_report(report_type):
-            st.success(f"{report_type} submitted successfully!")
-            st.session_state.current_report_type = None
-            st.session_state.current_section = None
-            st.session_state.current_field = None
+        if validate_report(report_type, vessel_type):
+            st.success(f"{report_type} for {vessel_type} submitted successfully!")
             return True
         else:
             st.error("Please correct the errors in the report before submitting.")
     return False
     
-def validate_report(report_type):
+def validate_report(report_type, vessel_type):
     # Validation logic here
     # For example, checking if all required fields are filled and if the data is consistent (e.g., ROB calculations)
     # Placeholder for ROB validation
-    fuel_types = ["LFO", "MGO", "LNG", "Other"]
+    fuel_types = ["LFO", "MGO", "LNG", "Other"] + (["LPG Propane", "LPG Butane"] if vessel_type == "LPG Tanker" else [])
     total_rob = 0
     for fuel in fuel_types:
-        rob_key = f"{report_type}_ROB_{fuel.lower()}_rob_(mt)"
+        rob_key = f"{report_type}_ROB_{fuel.lower().replace(' ', '_')}_rob_(mt)"
         if rob_key in st.session_state:
             total_rob += st.session_state[rob_key]
     
@@ -487,116 +445,33 @@ def create_collapsible_history_panel():
 
         st.markdown('</div>', unsafe_allow_html=True)
 
-def get_next_logical_report(last_report):
-    sequence_rules = {
-        "Arrival": ["Departure", "Begin of offhire"],
-        "Departure": ["Arrival", "Begin of sea passage", "Noon (Position) - Sea passage"],
-        "Begin of offhire": ["End of offhire"],
-        "End of offhire": ["Departure", "Begin of sea passage"],
-        "Arrival STS": ["Departure STS"],
-        "Departure STS": ["Arrival", "Begin of sea passage", "Noon (Position) - Sea passage"],
-        "Begin of sea passage": ["Noon (Position) - Sea passage", "End of sea passage"],
-        "End of sea passage": ["Arrival", "Noon (Position) - Port"],
-        "Begin Anchoring/Drifting": ["End Anchoring/Drifting", "Noon (Position) - Stoppage"],
-        "End Anchoring/Drifting": ["Departure", "Begin of sea passage"],
-        "Noon (Position) - Sea passage": ["Noon (Position) - Sea passage", "End of sea passage", "Arrival"],
-        "Noon (Position) - Port": ["Departure", "Noon (Position) - Port"],
-        "Noon (Position) - River": ["Noon (Position) - River", "Arrival"],
-        "Noon (Position) - Stoppage": ["End Anchoring/Drifting", "Noon (Position) - Stoppage"],
-        "Begin fuel change over": ["End fuel change over"],
-        "End fuel change over": ["Noon (Position) - Sea passage"],
-        "Begin of deviation": ["End of deviation"],
-        "End of deviation": ["Noon (Position) - Sea passage", "Arrival"],
-        "Entering special area": ["Leaving special area"],
-        "Leaving special area": ["Noon (Position) - Sea passage"]
-    }
-    return sequence_rules.get(last_report, ["Noon (Position) - Sea passage"])
-
-def initialize_session_state():
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
-    if "current_report_type" not in st.session_state:
-        st.session_state.current_report_type = None
-    if "current_section" not in st.session_state:
-        st.session_state.current_section = None
-    if "current_field" not in st.session_state:
-        st.session_state.current_field = None
-    if "show_form" not in st.session_state:
-        st.session_state.show_form = False
-    if "report_history" not in st.session_state:
-        st.session_state.report_history = []
-    if "form_filling_mode" not in st.session_state:
-        st.session_state.form_filling_mode = False
-    if "chatbot_filled_values" not in st.session_state:
-        st.session_state.chatbot_filled_values = {}
-        
 def create_chatbot(last_reports):
     st.header("AI Assistant")
     
-    initialize_session_state()
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
 
-    chat_container = st.container()
-    
-    with chat_container:
-        for message in st.session_state.messages:
-            with st.chat_message(message["role"]):
-                st.markdown(message["content"])
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+
+    if prompt := st.chat_input("How can I assist you with your maritime reporting?"):
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        response = get_ai_response(prompt, last_reports)
+        st.session_state.messages.append({"role": "assistant", "content": response})
         
-        if prompt := st.chat_input("How can I assist you with your maritime reporting?"):
-            st.session_state.messages.append({"role": "user", "content": prompt})
-            
-            if st.session_state.form_filling_mode:
-                response = handle_form_filling(prompt, last_reports)
-            else:
-                response = handle_report_selection(prompt, last_reports)
-            
-            st.session_state.messages.append({"role": "assistant", "content": response})
-            st.experimental_rerun()
-
-def handle_form_filling(prompt, last_reports):
-    context = f"We are currently filling out the {st.session_state.current_report_type} report, in the {st.session_state.current_section} section. The current field being discussed is {st.session_state.current_field}."
-    response = get_ai_response(prompt, last_reports, context)
-    
-    if st.session_state.current_field:
-        if "leave this field empty" in prompt.lower():
-            st.session_state.current_field = None
-        else:
-            update_field_value(st.session_state.current_report_type, st.session_state.current_section, st.session_state.current_field, prompt)
-            st.session_state.current_field = None
-    
-    empty_fields = get_empty_fields(st.session_state.current_report_type, st.session_state.current_section)
-    if not empty_fields:
-        st.session_state.current_section = get_next_section(st.session_state.current_report_type, st.session_state.current_section)
-        if st.session_state.current_section:
-            response += f"\n\nThis section is now complete. Let's move on to the {st.session_state.current_section} section."
-        else:
-            response += "\n\nAll sections are complete. You can now submit the report."
-            st.session_state.form_filling_mode = False
-    elif not st.session_state.current_field:
-        st.session_state.current_field = empty_fields[0]
-        response += f"\n\nLet's fill in the {st.session_state.current_field} field. What value should we use?"
-    
-    return response
-
-def handle_report_selection(prompt, last_reports):
-    if "new report" in prompt.lower():
-        if st.session_state.report_history:
-            last_report = st.session_state.report_history[-1]
-            next_reports = get_next_logical_report(last_report)
-            return f"Based on your last report ({last_report}), the next logical report(s) could be: {', '.join(next_reports)}. Which one would you like to create?"
-        else:
-            return "Since there is no recent report history, you can start with any report. What type of report would you like to create?"
-    elif any(report_type.lower() in prompt.lower() for report_type in REPORT_TYPES):
+        # Check if a specific report type is agreed upon
         for report_type in REPORT_TYPES:
-            if report_type.lower() in prompt.lower():
-                st.session_state.current_report_type = report_type
-                st.session_state.show_form = True
-                st.session_state.current_section = REPORT_STRUCTURES[report_type][0]
-                st.session_state.form_filling_mode = True
-                return f"Agreed. The form for {report_type} will now appear on the left side of the page. Let's start filling out the {st.session_state.current_section} section."
-    else:
-        return get_ai_response(prompt, last_reports, "We are in the process of selecting a report type.")
+            if f"Agreed. The form for {report_type}" in response:
+                if is_valid_report_sequence(last_reports, report_type):
+                    st.session_state.current_report_type = report_type
+                    st.session_state.show_form = True
+                    break
+                else:
+                    st.warning(f"Invalid report sequence. {report_type} cannot follow the previous reports.")
         
+        st.experimental_rerun()
+
 def is_valid_report_sequence(last_reports, new_report):
     if not last_reports:
         return True
@@ -630,14 +505,21 @@ def is_valid_report_sequence(last_reports, new_report):
 def main():
     st.title("OptiLog - AI-Enhanced Maritime Reporting System")
     
-    initialize_session_state()
+    if "report_history" not in st.session_state:
+        st.session_state.report_history = []
+    
+    if "vessel_type" not in st.session_state:
+        st.session_state.vessel_type = "Oil Tanker"
+    
+    # Add vessel type selection dropdown
+    st.session_state.vessel_type = st.selectbox("Select Vessel Type", VESSEL_TYPES, index=VESSEL_TYPES.index(st.session_state.vessel_type))
     
     col1, col2 = st.columns([0.7, 0.3])
 
     with col1:
         st.markdown('<div class="reportSection">', unsafe_allow_html=True)
-        if st.session_state.current_report_type:
-            create_form(st.session_state.current_report_type)
+        if 'current_report_type' in st.session_state:
+            create_form(st.session_state.current_report_type, st.session_state.vessel_type)
         else:
             st.write("Please use the AI Assistant to initiate a report.")
         st.markdown('</div>', unsafe_allow_html=True)
@@ -650,12 +532,7 @@ def main():
         if st.button("Clear Chat"):
             st.session_state.messages = []
             st.session_state.current_report_type = None
-            st.session_state.current_section = None
-            st.session_state.current_field = None
-            st.session_state.show_form = False
             st.session_state.report_history = []
-            st.session_state.form_filling_mode = False
-            st.session_state.chatbot_filled_values = {}  # Add this line
             st.experimental_rerun()
         
         st.markdown('</div>', unsafe_allow_html=True)
