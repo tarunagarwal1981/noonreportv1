@@ -477,15 +477,22 @@ def create_collapsible_history_panel():
 
         st.markdown('</div>', unsafe_allow_html=True)
 
-def create_chatbot(last_reports):
-    st.header("AI Assistant")
-    
+def initialize_session_state():
     if "messages" not in st.session_state:
         st.session_state.messages = []
+    if "current_report_type" not in st.session_state:
+        st.session_state.current_report_type = None
     if "current_section" not in st.session_state:
         st.session_state.current_section = None
     if "current_field" not in st.session_state:
         st.session_state.current_field = None
+    if "show_form" not in st.session_state:
+        st.session_state.show_form = False
+
+def create_chatbot(last_reports):
+    st.header("AI Assistant")
+    
+    initialize_session_state()
 
     chat_container = st.container()
     
@@ -565,6 +572,8 @@ def is_valid_report_sequence(last_reports, new_report):
 def main():
     st.title("OptiLog - AI-Enhanced Maritime Reporting System")
     
+    initialize_session_state()
+    
     if "report_history" not in st.session_state:
         st.session_state.report_history = []
     
@@ -572,7 +581,7 @@ def main():
 
     with col1:
         st.markdown('<div class="reportSection">', unsafe_allow_html=True)
-        if 'current_report_type' in st.session_state:
+        if st.session_state.current_report_type:
             create_form(st.session_state.current_report_type)
         else:
             st.write("Please use the AI Assistant to initiate a report.")
@@ -588,6 +597,7 @@ def main():
             st.session_state.current_report_type = None
             st.session_state.current_section = None
             st.session_state.current_field = None
+            st.session_state.show_form = False
             st.session_state.report_history = []
             st.experimental_rerun()
         
