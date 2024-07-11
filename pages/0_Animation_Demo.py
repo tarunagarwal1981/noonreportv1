@@ -513,8 +513,8 @@ def create_chatbot(last_reports, vessel_type):
             if f"Agreed. The form for {report_type}" in response:
                 st.session_state.current_report_type = report_type
                 st.session_state.show_form = True
-                # Add the new report to the history
-                st.session_state.report_history.append(report_type)
+                if report_type not in st.session_state.report_history:
+                    st.session_state.report_history.append(report_type)
                 break
         
         st.experimental_rerun()
@@ -558,11 +558,17 @@ def main():
     if "vessel_type" not in st.session_state:
         st.session_state.vessel_type = VESSEL_TYPES[0]
     
+    if "current_report_type" not in st.session_state:
+        st.session_state.current_report_type = None
+    
+    if "show_form" not in st.session_state:
+        st.session_state.show_form = False
+    
     col1, col2 = st.columns([0.7, 0.3])
 
     with col1:
         st.markdown('<div class="reportSection">', unsafe_allow_html=True)
-        if 'current_report_type' in st.session_state and 'show_form' in st.session_state and st.session_state.show_form:
+        if st.session_state.current_report_type and st.session_state.show_form:
             create_form(st.session_state.current_report_type, st.session_state.vessel_type)
         else:
             st.write("Please use the AI Assistant to initiate a report.")
@@ -584,9 +590,10 @@ def main():
 
     # Add this at the end of the main function to debug
     st.write("Debug Info:")
-    st.write(f"Current Report Type: {st.session_state.get('current_report_type', 'None')}")
-    st.write(f"Show Form: {st.session_state.get('show_form', False)}")
+    st.write(f"Current Report Type: {st.session_state.current_report_type}")
+    st.write(f"Show Form: {st.session_state.show_form}")
     st.write(f"Report History: {st.session_state.report_history}")
 
 if __name__ == "__main__":
     main()
+
