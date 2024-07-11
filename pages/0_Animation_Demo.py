@@ -513,10 +513,12 @@ def create_chatbot(last_reports, vessel_type):
             if f"Agreed. The form for {report_type}" in response:
                 st.session_state.current_report_type = report_type
                 st.session_state.show_form = True
+                # Add the new report to the history
+                st.session_state.report_history.append(report_type)
                 break
         
         st.experimental_rerun()
-
+        
 def is_valid_report_sequence(last_reports, new_report):
     if not last_reports:
         return True
@@ -579,6 +581,12 @@ def main():
             st.experimental_rerun()
         
         st.markdown('</div>', unsafe_allow_html=True)
+
+    # Add this at the end of the main function to debug
+    st.write("Debug Info:")
+    st.write(f"Current Report Type: {st.session_state.get('current_report_type', 'None')}")
+    st.write(f"Show Form: {st.session_state.get('show_form', False)}")
+    st.write(f"Report History: {st.session_state.report_history}")
 
 if __name__ == "__main__":
     main()
