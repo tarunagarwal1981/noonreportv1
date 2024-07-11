@@ -6,6 +6,8 @@ import os
 import random
 import string
 
+st.set_page_config(layout="wide", page_title="AI-Enhanced Maritime Reporting System")
+
 PORTS = [
     "Singapore", "Rotterdam", "Shanghai", "Ningbo-Zhoushan", "Guangzhou Harbor", "Busan",
     "Qingdao", "Hong Kong", "Tianjin", "Port Klang", "Antwerp", "Dubai Ports", "Xiamen",
