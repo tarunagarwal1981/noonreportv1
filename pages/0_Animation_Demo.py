@@ -493,6 +493,12 @@ def get_ai_response(user_input, last_reports, vessel_type):
     except Exception as e:
         return f"I'm sorry, but I encountered an error while processing your request: {str(e)}. Please try again later."
 
+def set_report_type(report_type):
+    st.session_state.current_report_type = report_type
+    st.session_state.show_form = True
+    if report_type not in st.session_state.report_history:
+        st.session_state.report_history.append(report_type)
+
 def create_chatbot(last_reports, vessel_type):
     st.header("AI Assistant")
     
@@ -511,11 +517,10 @@ def create_chatbot(last_reports, vessel_type):
         # Check if a specific report type is agreed upon
         for report_type in REPORT_TYPES:
             if f"Agreed. The form for {report_type}" in response:
-                st.session_state.current_report_type = report_type
-                st.session_state.show_form = True
-                if report_type not in st.session_state.report_history:
-                    st.session_state.report_history.append(report_type)
+                st.button(f"Create {report_type} Report", on_click=set_report_type, args=(report_type,))
                 break
+
+        st.experimental_rerun()
         
        
         
@@ -568,7 +573,7 @@ def main():
 
     with col1:
         st.markdown('<div class="reportSection">', unsafe_allow_html=True)
-        if st.session_state.current_report_type and st.session_state.show_form:
+        if st.session_state.show_form and st.session_state.current_report_type:
             create_form(st.session_state.current_report_type, st.session_state.vessel_type)
         else:
             st.write("Please use the AI Assistant to initiate a report.")
@@ -596,4 +601,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
