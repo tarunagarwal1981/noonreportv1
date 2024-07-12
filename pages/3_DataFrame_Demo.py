@@ -82,16 +82,13 @@ SECTION_FIELDS = {
     "ROB": ["LFO ROB (mt)", "MGO ROB (mt)", "LNG ROB (mt)", "Other ROB (mt)", "Other Fuel Type ROB", "Total Fuel ROB (mt)"],
     "Fuel Allocation": {
         "Oil Tanker": {
-            "Cargo Heating": ["Cargo Heating LFO (mt)", "Cargo Heating MGO (mt)", "Cargo Heating LNG (mt)", "Cargo Heating Other (mt)", "Cargo Heating Other Fuel Type"],
-            "Dynamic Positioning (DP)": ["DP LFO (mt)", "DP MGO (mt)", "DP LNG (mt)", "DP Other (mt)", "DP Other Fuel Type"]
+            "Cargo Heating": ["Cargo Heating LFO (mt)", "Cargo Heating MGO (mt)", "Cargo Heating LNG (mt)", "Cargo Heating Other (mt)", "Cargo Heating Other Fuel Type"]
         },
         "LPG Tanker": {
-            "Cargo Cooling": ["Cargo Cooling LFO (mt)", "Cargo Cooling MGO (mt)", "Cargo Cooling LNG (mt)", "Cargo Cooling LPG Propane (mt)", "Cargo Cooling LPG Butane (mt)", "Cargo Cooling Other (mt)", "Cargo Cooling Other Fuel Type"],
-            "Dynamic Positioning (DP)": ["DP LFO (mt)", "DP MGO (mt)", "DP LNG (mt)", "DP LPG Propane (mt)", "DP LPG Butane (mt)", "DP Other (mt)", "DP Other Fuel Type"]
+            "Cargo Cooling": ["Cargo Cooling LFO (mt)", "Cargo Cooling MGO (mt)", "Cargo Cooling LNG (mt)", "Cargo Cooling LPG Propane (mt)", "Cargo Cooling LPG Butane (mt)", "Cargo Cooling Other (mt)", "Cargo Cooling Other Fuel Type"]
         },
         "LNG Tanker": {
-            "Cargo Cooling": ["Cargo Cooling LFO (mt)", "Cargo Cooling MGO (mt)", "Cargo Cooling LNG (mt)", "Cargo Cooling Other (mt)", "Cargo Cooling Other Fuel Type"],
-            "Dynamic Positioning (DP)": ["DP LFO (mt)", "DP MGO (mt)", "DP LNG (mt)", "DP Other (mt)", "DP Other Fuel Type"]
+            "Cargo Cooling": ["Cargo Cooling LFO (mt)", "Cargo Cooling MGO (mt)", "Cargo Cooling LNG (mt)", "Cargo Cooling Other (mt)", "Cargo Cooling Other Fuel Type"]
         }
     },
     "Machinery": {
@@ -113,7 +110,6 @@ SECTION_FIELDS = {
         "Actual": ["Actual Forward Draft (m)", "Actual Aft Draft (m)", "Displacement (mt)", "Water Depth (m)"]
     }
 }
-
 # Helper functions
 def generate_random_position():
     lat_deg = random.randint(0, 89)
