@@ -457,7 +457,7 @@ def create_collapsible_history_panel():
 
 def get_ai_response(user_input, last_reports, vessel_type):
     current_time = datetime.now(pytz.utc).strftime("%H:%M:%S")
-    
+
     context = f"""
     The current UTC time is {current_time}. 
     The last reports submitted were: {', '.join(last_reports) if last_reports else 'No previous reports'}
@@ -467,7 +467,7 @@ def get_ai_response(user_input, last_reports, vessel_type):
     Remember to only suggest reports from the provided list that make logical sense given the previous reports and maritime operations.
     Use your knowledge as an experienced seafarer to ensure the suggested reports follow a realistic sequence of events.
     """
-    
+
     messages = [
         {"role": "system", "content": TRAINING_DATA},
         {"role": "system", "content": context},
@@ -487,15 +487,17 @@ def get_ai_response(user_input, last_reports, vessel_type):
     except Exception as e:
         return f"I'm sorry, but I encountered an error while processing your request: {str(e)}. Please try again later."
 
+
 def set_report_type(report_type):
     st.session_state.current_report_type = report_type
     st.session_state.show_form = True
     if report_type not in st.session_state.report_history:
         st.session_state.report_history.append(report_type)
 
+
 def create_chatbot(last_reports, vessel_type):
     st.header("AI Assistant")
-    
+
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
@@ -507,15 +509,16 @@ def create_chatbot(last_reports, vessel_type):
         st.session_state.messages.append({"role": "user", "content": prompt})
         response = get_ai_response(prompt, last_reports, vessel_type)
         st.session_state.messages.append({"role": "assistant", "content": response})
-        
+
         # Check if a specific report type is agreed upon
         for report_type in REPORT_TYPES:
             if f"Agreed. The form for {report_type}" in response:
-                st.session_state.current_report_type = report_type
-                st.session_state.show_form = True
+                set_report_type(report_type)
                 st.experimental_rerun()
                 break
-        st.experimental_rerun()        
+
+        st.experimental_rerun()
+ 
 
 def is_valid_report_sequence(last_reports, new_report):
     if not last_reports:
@@ -549,19 +552,19 @@ def is_valid_report_sequence(last_reports, new_report):
 
 def main():
     st.title("OptiLog - AI-Enhanced Maritime Reporting System")
-    
+
     if "report_history" not in st.session_state:
         st.session_state.report_history = []
-    
+
     if "vessel_type" not in st.session_state:
         st.session_state.vessel_type = VESSEL_TYPES[0]
-    
+
     if "current_report_type" not in st.session_state:
         st.session_state.current_report_type = None
-    
+
     if "show_form" not in st.session_state:
         st.session_state.show_form = False
-    
+
     col1, col2 = st.columns([0.7, 0.3])
 
     with col1:
@@ -576,14 +579,14 @@ def main():
         create_collapsible_history_panel()
         st.markdown('<div class="chatSection">', unsafe_allow_html=True)
         create_chatbot(st.session_state.report_history, st.session_state.vessel_type)
-        
+
         if st.button("Clear Chat"):
             st.session_state.messages = []
             st.session_state.current_report_type = None
             st.session_state.show_form = False
             st.session_state.report_history = []
             st.experimental_rerun()
-        
+
         st.markdown('</div>', unsafe_allow_html=True)
 
     # Add this at the end of the main function to debug
