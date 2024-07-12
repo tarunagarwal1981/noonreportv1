@@ -405,6 +405,7 @@ def create_form(report_type, vessel_type):
             st.error("Please correct the errors in the report before submitting.")
     return False
 
+
 def validate_report(report_type, vessel_type):
     # Validation logic here
     # For example, checking if all required fields are filled and if the data is consistent (e.g., ROB calculations)
