@@ -6,6 +6,18 @@ import os
 import random
 import string
 
+
+PORTS = [
+    "Singapore", "Rotterdam", "Shanghai", "Ningbo-Zhoushan", "Guangzhou Harbor", "Busan",
+    "Qingdao", "Hong Kong", "Tianjin", "Port Klang", "Antwerp", "Dubai Ports", "Xiamen",
+    "Kaohsiung", "Hamburg", "Los Angeles", "Tanjung Pelepas", "Laem Chabang", "New York-New Jersey",
+    "Dalian", "Tanjung Priok", "Valencia", "Colombo", "Ho Chi Minh City", "Algeciras"
+]
+
+VESSEL_PREFIXES = ["MV", "SS", "MT", "MSC", "CMA CGM", "OOCL", "Maersk", "Evergreen", "Cosco", "NYK"]
+VESSEL_NAMES = ["Horizon", "Voyager", "Pioneer", "Adventurer", "Explorer", "Discovery", "Navigator", "Endeavour", "Challenger", "Trailblazer"]
+
+
 # Set page config
 st.set_page_config(layout="wide", page_title="AI-Enhanced Maritime Reporting System")
 
@@ -79,19 +91,7 @@ if not openai.api_key:
     st.error("OpenAI API key not found. Please set it in Streamlit secrets or as an environment variable.")
     st.stop()
 
-# Define constants
-PORTS = [
-    "Singapore", "Rotterdam", "Shanghai", "Ningbo-Zhoushan", "Guangzhou Harbor", "Busan",
-    "Qingdao", "Hong Kong", "Tianjin", "Port Klang", "Antwerp", "Dubai Ports", "Xiamen",
-    "Kaohsiung", "Hamburg", "Los Angeles", "Tanjung Pelepas", "Laem Chabang", "New York-New Jersey",
-    "Dalian", "Tanjung Priok", "Valencia", "Colombo", "Ho Chi Minh City", "Algeciras"
-]
-
-VESSEL_PREFIXES = ["MV", "SS", "MT", "MSC", "CMA CGM", "OOCL", "Maersk", "Evergreen", "Cosco", "NYK"]
-VESSEL_NAMES = ["Horizon", "Voyager", "Pioneer", "Adventurer", "Explorer", "Discovery", "Navigator", "Endeavour", "Challenger", "Trailblazer"]
-
-VESSEL_TYPES = ["Oil Tanker", "LPG Tanker", "LNG Tanker"]
-
+# Define report types
 REPORT_TYPES = [
     "Arrival", "Departure", "Begin of offhire", "End of offhire", "Arrival STS",
     "Departure STS", "STS", "Begin canal passage", "End canal passage",
@@ -102,83 +102,26 @@ REPORT_TYPES = [
     "Begin of deviation", "End of deviation", "Entering special area", "Leaving special area"
 ]
 
-TRAINING_DATA = """
-You are an AI assistant for an advanced maritime reporting system, with the knowledge and experience of a seasoned maritime seafarer. Your role is to guide users through creating various types of maritime reports, ensuring compliance with industry standards and regulations while maintaining a logical sequence of events. 
-Keep your responses as short and crisp and easy to understand as possible. While suggesting the reports just suggest the name of the reports not their explanations. If there is no Reports History allow user to start any report.
-Valid report types: {', '.join(REPORT_TYPES)}
-
-Key features:
-1. Error reduction and data completion assistance
-2. Insights generation based on reported data
-3. Streamlined reporting process
-4. Enhanced accuracy in maritime operational reporting
-
-When suggesting follow-up reports, carefully consider the history of the last 3-4 reports and the logical sequence of maritime operations. Only suggest reports from the provided list that make sense given the current context and previous reports. For example:
-
-1. An "Arrival STS" report must precede a "Departure STS" report.
-2. "Begin of sea passage" should follow a departure-type report (e.g., "Departure", "Departure STS", "End Anchoring/Drifting").
-3. "Noon" reports are regular and can follow most report types during a voyage.
-4. "Begin" type reports (e.g., "Begin of offhire", "Begin fuel change over") must be followed by their corresponding "End" reports before suggesting unrelated reports.
-5. If "Begin" report is not there then "End" report should not be suggested.
-
-When a user agrees to create a specific report, inform them that the form will appear on the left side of the page with the relevant sections for that report type.
-
-Provide concise and helpful guidance throughout the report creation process. If a user agrees to create a report, respond with "Agreed. The form for [REPORT TYPE] will now appear on the left side of the page."
-
-Remember to provide appropriate reminders and follow-up suggestions based on the current report context and the logical sequence of maritime operations.
-"""
-
-# The rest of your code remains the same...
-
 # Define report structures
 REPORT_STRUCTURES = {report_type: ["Vessel Data", "Voyage Data", "Event Data", "Position", "Cargo", "Fuel Consumption", "ROB", "Fuel Allocation", "Machinery", "Weather", "Draft"] for report_type in REPORT_TYPES}
 REPORT_STRUCTURES["ETA update"] = ["Vessel Data", "Voyage Data", "Position"]
 
 # Define section fields
 SECTION_FIELDS = {
-    "Vessel Data": ["Vessel Name", "Vessel IMO", "Vessel Type"],
+    "Vessel Data": ["Vessel Name", "Vessel IMO"],
     "Voyage Data": ["Local Date", "Local Time", "UTC Offset", "Voyage ID", "Segment ID", "From Port", "To Port"],
     "Event Data": ["Event Type", "Time Elapsed (hours)", "Sailing Time (hours)", "Anchor Time (hours)", "DP Time (hours)", "Ice Time (hours)", "Maneuvering (hours)", "Loading/Unloading (hours)", "Drifting (hours)"],
     "Position": ["Latitude Degrees", "Latitude Minutes", "Latitude Direction", "Longitude Degrees", "Longitude Minutes", "Longitude Direction"],
-    "Cargo": {
-        "Oil Tanker": ["Cargo Weight (mt)"],
-        "LPG Tanker": ["Cargo Volume (m3)"],
-        "LNG Tanker": ["Cargo Volume (m3)"]
-    },
+    "Cargo": ["Cargo Weight (mt)"],
     "Fuel Consumption": {
-        "Oil Tanker": {
-            "Main Engine": ["ME LFO (mt)", "ME MGO (mt)", "ME LNG (mt)", "ME Other (mt)", "ME Other Fuel Type"],
-            "Auxiliary Engines": ["AE LFO (mt)", "AE MGO (mt)", "AE LNG (mt)", "AE Other (mt)", "AE Other Fuel Type"],
-            "Boilers": ["Boiler LFO (mt)", "Boiler MGO (mt)", "Boiler LNG (mt)", "Boiler Other (mt)", "Boiler Other Fuel Type"],
-            "IGG": ["IGG LFO (mt)", "IGG MGO (mt)", "IGG LNG (mt)", "IGG Other (mt)", "IGG Other Fuel Type"]
-        },
-        "LPG Tanker": {
-            "Main Engine": ["ME LFO (mt)", "ME MGO (mt)", "ME LNG (mt)", "ME LPG Propane (mt)", "ME LPG Butane (mt)", "ME Other (mt)", "ME Other Fuel Type"],
-            "Auxiliary Engines": ["AE LFO (mt)", "AE MGO (mt)", "AE LNG (mt)", "AE LPG Propane (mt)", "AE LPG Butane (mt)", "AE Other (mt)", "AE Other Fuel Type"],
-            "Boilers": ["Boiler LFO (mt)", "Boiler MGO (mt)", "Boiler LNG (mt)", "Boiler LPG Propane (mt)", "Boiler LPG Butane (mt)", "Boiler Other (mt)", "Boiler Other Fuel Type"]
-        },
-        "LNG Tanker": {
-            "Main Engine": ["ME LFO (mt)", "ME MGO (mt)", "ME LNG (mt)", "ME Other (mt)", "ME Other Fuel Type"],
-            "Auxiliary Engines": ["AE LFO (mt)", "AE MGO (mt)", "AE LNG (mt)", "AE Other (mt)", "AE Other Fuel Type"],
-            "Boilers": ["Boiler LFO (mt)", "Boiler MGO (mt)", "Boiler LNG (mt)", "Boiler Other (mt)", "Boiler Other Fuel Type"],
-            "IGG": ["IGG LFO (mt)", "IGG MGO (mt)", "IGG LNG (mt)", "IGG Other (mt)", "IGG Other Fuel Type"],
-            "GCU": ["GCU LFO (mt)", "GCU MGO (mt)", "GCU LNG (mt)", "GCU Other (mt)", "GCU Other Fuel Type"]
-        }
+        "Main Engine": ["ME LFO (mt)", "ME MGO (mt)", "ME LNG (mt)", "ME Other (mt)", "ME Other Fuel Type"],
+        "Auxiliary Engines": ["AE LFO (mt)", "AE MGO (mt)", "AE LNG (mt)", "AE Other (mt)", "AE Other Fuel Type"],
+        "Boilers": ["Boiler LFO (mt)", "Boiler MGO (mt)", "Boiler LNG (mt)", "Boiler Other (mt)", "Boiler Other Fuel Type"]
     },
     "ROB": ["LFO ROB (mt)", "MGO ROB (mt)", "LNG ROB (mt)", "Other ROB (mt)", "Other Fuel Type ROB", "Total Fuel ROB (mt)"],
     "Fuel Allocation": {
-        "Oil Tanker": {
-            "Cargo Heating": ["Cargo Heating LFO (mt)", "Cargo Heating MGO (mt)", "Cargo Heating LNG (mt)", "Cargo Heating Other (mt)", "Cargo Heating Other Fuel Type"],
-            "Dynamic Positioning (DP)": ["DP LFO (mt)", "DP MGO (mt)", "DP LNG (mt)", "DP Other (mt)", "DP Other Fuel Type"]
-        },
-        "LPG Tanker": {
-            "Cargo Cooling": ["Cargo Cooling LFO (mt)", "Cargo Cooling MGO (mt)", "Cargo Cooling LNG (mt)", "Cargo Cooling LPG Propane (mt)", "Cargo Cooling LPG Butane (mt)", "Cargo Cooling Other (mt)", "Cargo Cooling Other Fuel Type"],
-            "Dynamic Positioning (DP)": ["DP LFO (mt)", "DP MGO (mt)", "DP LNG (mt)", "DP LPG Propane (mt)", "DP LPG Butane (mt)", "DP Other (mt)", "DP Other Fuel Type"]
-        },
-        "LNG Tanker": {
-            "Cargo Cooling": ["Cargo Cooling LFO (mt)", "Cargo Cooling MGO (mt)", "Cargo Cooling LNG (mt)", "Cargo Cooling Other (mt)", "Cargo Cooling Other Fuel Type"],
-            "Dynamic Positioning (DP)": ["DP LFO (mt)", "DP MGO (mt)", "DP LNG (mt)", "DP Other (mt)", "DP Other Fuel Type"]
-        }
+        "Cargo Heating": ["Cargo Heating LFO (mt)", "Cargo Heating MGO (mt)", "Cargo Heating LNG (mt)", "Cargo Heating Other (mt)", "Cargo Heating Other Fuel Type"],
+        "Dynamic Positioning (DP)": ["DP LFO (mt)", "DP MGO (mt)", "DP LNG (mt)", "DP Other (mt)", "DP Other Fuel Type"]
     },
     "Machinery": {
         "Main Engine": ["ME Load (kW)", "ME Load Percentage (%)", "ME Speed (RPM)", "ME Propeller Pitch (m)", "ME Propeller Pitch Ratio", "ME Shaft Generator Power (kW)", "ME Charge Air Inlet Temp (°C)", "ME Scav. Air Pressure (bar)", "ME SFOC (g/kWh)", "ME SFOC ISO Corrected (g/kWh)"],
@@ -216,7 +159,64 @@ VALIDATION_RULES = {
     "Boiler Other (mt)": {"min": 0, "max": 4},
 }
 
-# Helper functions
+# Prepare the training data as a string
+TRAINING_DATA = f"""
+You are an AI assistant for an advanced maritime reporting system, with the knowledge and experience of a seasoned maritime seafarer. Your role is to guide users through creating various types of maritime reports, ensuring compliance with industry standards and regulations while maintaining a logical sequence of events. 
+Keep your responses as short and crisp and easy to understand as possible. While suggesting the reports just suggest the name of the reports not their explanations. If there is no Reports History allow user to start any report.
+Valid report types: {', '.join(REPORT_TYPES)}
+
+Key features:
+1. Error reduction and data completion assistance
+2. Insights generation based on reported data
+3. Streamlined reporting process
+4. Enhanced accuracy in maritime operational reporting
+
+When suggesting follow-up reports, carefully consider the history of the last 3-4 reports and the logical sequence of maritime operations. Only suggest reports from the provided list that make sense given the current context and previous reports. For example:
+
+1. An "Arrival STS" report must precede a "Departure STS" report.
+2. "Begin of sea passage" should follow a departure-type report (e.g., "Departure", "Departure STS", "End Anchoring/Drifting").
+3. "Noon" reports are regular and can follow most report types during a voyage.
+4. "Begin" type reports (e.g., "Begin of offhire", "Begin fuel change over") must be followed by their corresponding "End" reports before suggesting unrelated reports.
+5. If "Begin" report is not there then "End" report should not be suggested.
+
+When a user agrees to create a specific report, inform them that the form will appear on the left side of the page with the relevant sections for that report type.
+
+Provide concise and helpful guidance throughout the report creation process. If a user agrees to create a report, respond with "Agreed. The form for [REPORT TYPE] will now appear on the left side of the page."
+
+Remember to provide appropriate reminders and follow-up suggestions based on the current report context and the logical sequence of maritime operations.
+"""
+
+def get_ai_response(user_input, last_reports):
+    current_time = datetime.now(pytz.utc).strftime("%H:%M:%S")
+    
+    context = f"""
+    The current UTC time is {current_time}. 
+    The last reports submitted were: {' -> '.join(last_reports)}
+    
+    Please provide guidance based on this context and the user's input.
+    Remember to only suggest reports from the provided list that make logical sense given the previous reports and maritime operations.
+    Use your knowledge as an experienced seafarer to ensure the suggested reports follow a realistic sequence of events.
+    """
+    
+    messages = [
+        {"role": "system", "content": TRAINING_DATA},
+        {"role": "system", "content": context},
+        {"role": "user", "content": user_input}
+    ]
+
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=messages,
+            max_tokens=300,
+            n=1,
+            stop=None,
+            temperature=1.0,
+        )
+        return response.choices[0].message['content'].strip()
+    except Exception as e:
+        return f"I'm sorry, but I encountered an error while processing your request: {str(e)}. Please try again later."
+
 def generate_random_position():
     lat_deg = random.randint(0, 89)
     lat_min = round(random.uniform(0, 59.99), 2)
@@ -231,14 +231,15 @@ def generate_random_consumption():
     ae_lfo = round(random.uniform(2, 3), 1)
     return me_lfo, ae_lfo
 
+
 def generate_random_vessel_name():
     return f"{random.choice(VESSEL_PREFIXES)} {random.choice(VESSEL_NAMES)}"
 
 def generate_random_imo():
     return ''.join(random.choices(string.digits, k=7))
 
-def create_fields(fields, prefix, report_type, vessel_type):
-    cols = st.columns(4)
+def create_fields(fields, prefix, report_type):
+    cols = st.columns(4)  # Create 4 columns
     me_total_consumption = 0
     ae_total_consumption = 0
     me_fields_processed = False
@@ -269,15 +270,13 @@ def create_fields(fields, prefix, report_type, vessel_type):
     imo_number = generate_random_imo()
     
     for i, field in enumerate(fields):
-        with cols[i % 4]:
+        with cols[i % 4]:  # This will cycle through the columns
             field_key = f"{prefix}_{field.lower().replace(' ', '_')}"
             
             if field == "Vessel Name":
                 value = st.text_input(field, value=vessel_name, key=field_key)
             elif field == "Vessel IMO":
                 value = st.text_input(field, value=imo_number, key=field_key)
-            elif field == "Vessel Type":
-                value = st.selectbox(field, options=VESSEL_TYPES, key=field_key)
             elif field == "Local Date":
                 value = st.date_input(field, value=datetime.strptime(current_date, "%Y-%m-%d"), key=field_key)
             elif field == "Local Time":
@@ -313,46 +312,48 @@ def create_fields(fields, prefix, report_type, vessel_type):
                 value = st.selectbox(field, options=["E", "W"], index=["E", "W"].index(lon_dir), key=field_key)
                 position_fields_processed += 1
                 
+                # Display AIS position message after all position fields have been processed
                 if position_fields_processed == 6:
                     st.markdown('<p class="info-message">Current AIS position</p>', unsafe_allow_html=True)
             
-            elif "LFO (mt)" in field or "MGO (mt)" in field or "LNG (mt)" in field or "Other (mt)" in field or "LPG Propane (mt)" in field or "LPG Butane (mt)" in field:
-                if "ME" in field:
-                    if field == "ME LFO (mt)":
-                        value = st.number_input(field, value=me_lfo, min_value=0.0, max_value=25.0, step=0.1, key=field_key)
-                    else:
-                        value = st.number_input(field, min_value=0.0, max_value=25.0, step=0.1, key=field_key)
-                    me_total_consumption += value
-                elif "AE" in field:
-                    if field == "AE LFO (mt)":
-                        value = st.number_input(field, value=ae_lfo, min_value=0.0, max_value=3.0, step=0.1, key=field_key)
-                    else:
-                        value = st.number_input(field, min_value=0.0, max_value=3.0, step=0.1, key=field_key)
-                    ae_total_consumption += value
-                elif "Boiler" in field or "IGG" in field or "GCU" in field:
-                    value = st.number_input(field, min_value=0.0, max_value=4.0, step=0.1, key=field_key)
+            elif field in ["ME LFO (mt)", "ME MGO (mt)", "ME LNG (mt)", "ME Other (mt)"]:
+                if field == "ME LFO (mt)":
+                    value = st.number_input(field, value=me_lfo, min_value=0.0, max_value=25.0, step=0.1, key=field_key)
                 else:
                     value = st.number_input(field, min_value=0.0, max_value=25.0, step=0.1, key=field_key)
                 
-                if "ME" in field and "Other (mt)" in field and not me_fields_processed:
+                me_total_consumption += value
+                
+                if field == "ME Other (mt)" and not me_fields_processed:
                     if me_total_consumption > 25:
                         st.markdown('<p class="info-message">Total ME consumption exceeds expected consumption of 25.</p>', unsafe_allow_html=True)
                     st.markdown('<p class="info-message">MFM figures since last report</p>', unsafe_allow_html=True)
                     me_fields_processed = True
-                elif "AE" in field and "Other (mt)" in field and not ae_fields_processed:
+            elif field in ["AE LFO (mt)", "AE MGO (mt)", "AE LNG (mt)", "AE Other (mt)"]:
+                if field == "AE LFO (mt)":
+                    value = st.number_input(field, value=ae_lfo, min_value=0.0, max_value=3.0, step=0.1, key=field_key)
+                else:
+                    value = st.number_input(field, min_value=0.0, max_value=3.0, step=0.1, key=field_key)
+                
+                ae_total_consumption += value
+                
+                if field == "AE Other (mt)" and not ae_fields_processed:
                     if ae_total_consumption > 3:
                         st.markdown('<p class="info-message">Total AE consumption exceeds expected consumption of 3.</p>', unsafe_allow_html=True)
                     st.markdown('<p class="info-message">MFM figures since last report</p>', unsafe_allow_html=True)
                     ae_fields_processed = True
+            elif field.startswith("Boiler"):
+                value = st.number_input(field, min_value=0.0, max_value=4.0, step=0.1, key=field_key)
                 
-                if "Boiler" in field and me_total_consumption > 15 and not boiler_message_shown:
+                # Display Boiler consumption message if ME total consumption > 15
+                if me_total_consumption > 15 and not boiler_message_shown:
                     st.markdown('<p class="info-message">Since Main Engine is running at more than 50% load, Boiler consumption is expected to be zero.</p>', unsafe_allow_html=True)
                     boiler_message_shown = True
-            
             elif field in VALIDATION_RULES:
                 min_val, max_val = VALIDATION_RULES[field]["min"], VALIDATION_RULES[field]["max"]
                 value = st.number_input(field, min_value=min_val, max_value=max_val, key=field_key)
                 
+                # Only show the warning if the value exceeds the maximum
                 if value > max_val:
                     st.markdown(f'<p class="small-warning">Value must be less than or equal to {max_val}</p>', unsafe_allow_html=True)
             elif any(unit in field for unit in ["(%)", "(mt)", "(kW)", "(°C)", "(bar)", "(g/kWh)", "(knots)", "(meters)", "(seconds)", "(degrees)"]):
@@ -362,63 +363,52 @@ def create_fields(fields, prefix, report_type, vessel_type):
             else:
                 value = st.text_input(field, key=field_key)
 
+    # Check if we need to display the Boiler message after all fields have been processed
     if me_total_consumption > 15 and not boiler_message_shown:
         st.markdown('<p class="info-message">Since Main Engine is running at more than 50% load, Boiler consumption is expected to be zero.</p>', unsafe_allow_html=True)
 
-def create_form(report_type, vessel_type):
+
+def create_form(report_type):
     st.header(f"New {report_type}")
-
+    
     report_structure = REPORT_STRUCTURES.get(report_type, [])
-
+    
     if not report_structure:
         st.error(f"No structure defined for report type: {report_type}")
         return False
-
+    
     for section in report_structure:
         with st.expander(section, expanded=False):
             st.subheader(section)
             fields = SECTION_FIELDS.get(section, {})
-
+            
             if isinstance(fields, dict):
-                if section == "Cargo":
-                    fields = fields.get(vessel_type, [])
-                    create_fields(fields, f"{report_type}_{section}", report_type, vessel_type)
-                elif section == "Fuel Consumption" or section == "Fuel Allocation":
-                    for subsection, subfields in fields.get(vessel_type, {}).items():
-                        st.subheader(subsection)
-                        create_fields(subfields, f"{report_type}_{section}_{subsection}", report_type, vessel_type)
-                else:
-                    for subsection, subfields in fields.items():
-                        st.subheader(subsection)
-                        create_fields(subfields, f"{report_type}_{section}_{subsection}", report_type, vessel_type)
+                for subsection, subfields in fields.items():
+                    st.subheader(subsection)
+                    create_fields(subfields, f"{report_type}_{section}_{subsection}", report_type)
             elif isinstance(fields, list):
-                create_fields(fields, f"{report_type}_{section}", report_type, vessel_type)
+                create_fields(fields, f"{report_type}_{section}", report_type)
             else:
                 st.error(f"Unexpected field type for section {section}: {type(fields)}")
 
     if st.button("Submit Report"):
-        if validate_report(report_type, vessel_type):
+        if validate_report(report_type):
             st.success(f"{report_type} submitted successfully!")
-            st.session_state.show_form = False
             return True
         else:
             st.error("Please correct the errors in the report before submitting.")
     return False
-
-
-def validate_report(report_type, vessel_type):
+    
+def validate_report(report_type):
     # Validation logic here
     # For example, checking if all required fields are filled and if the data is consistent (e.g., ROB calculations)
     # Placeholder for ROB validation
     fuel_types = ["LFO", "MGO", "LNG", "Other"]
-    if vessel_type == "LPG Tanker":
-        fuel_types.extend(["LPG Propane", "LPG Butane"])
-    
     total_rob = 0
     for fuel in fuel_types:
         rob_key = f"{report_type}_ROB_{fuel.lower()}_rob_(mt)"
         if rob_key in st.session_state:
-           total_rob += st.session_state[rob_key]
+            total_rob += st.session_state[rob_key]
     
     calculated_total = total_rob
     reported_total_key = f"{report_type}_ROB_total_fuel_rob_(mt)"
@@ -456,49 +446,6 @@ def create_collapsible_history_panel():
 
         st.markdown('</div>', unsafe_allow_html=True)
 
-def get_ai_response(user_input, last_reports, vessel_type):
-    current_time = datetime.now(pytz.utc).strftime("%H:%M:%S")
-
-    context = f"""
-    The current UTC time is {current_time}. 
-    The last reports submitted were: {', '.join(last_reports) if last_reports else 'No previous reports'}
-    The vessel type is: {vessel_type}
-    
-    Please provide guidance based on this context and the user's input.
-    Remember to only suggest reports from the provided list that make logical sense given the previous reports and maritime operations.
-    Use your knowledge as an experienced seafarer to ensure the suggested reports follow a realistic sequence of events.
-    """
-
-    messages = [
-        {"role": "system", "content": TRAINING_DATA},
-        {"role": "system", "content": context},
-        {"role": "user", "content": user_input}
-    ]
-
-    try:
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=messages,
-            max_tokens=300,
-            n=1,
-            stop=None,
-            temperature=1.0,
-        )
-        return response.choices[0].message['content'].strip()
-    except Exception as e:
-        return f"I'm sorry, but I encountered an error while processing your request: {str(e)}. Please try again later."
-
-
-
-def set_report_type(report_type):
-    st.session_state.current_report_type = report_type
-    st.session_state.show_form = True
-    if report_type not in st.session_state.report_history:
-        st.session_state.report_history.append(report_type)
-    st.experimental_rerun()
-
-
-
 def create_chatbot(last_reports):
     st.header("AI Assistant")
     
@@ -525,8 +472,6 @@ def create_chatbot(last_reports):
                     st.warning(f"Invalid report sequence. {report_type} cannot follow the previous reports.")
         
         st.experimental_rerun()
-
- 
 
 def is_valid_report_sequence(last_reports, new_report):
     if not last_reports:
@@ -560,26 +505,16 @@ def is_valid_report_sequence(last_reports, new_report):
 
 def main():
     st.title("OptiLog - AI-Enhanced Maritime Reporting System")
-
+    
     if "report_history" not in st.session_state:
         st.session_state.report_history = []
-
-    if "vessel_type" not in st.session_state:
-        st.session_state.vessel_type = VESSEL_TYPES[0]
-
-    if "current_report_type" not in st.session_state:
-        st.session_state.current_report_type = None
-
-    if "show_form" not in st.session_state:
-        st.session_state.show_form = False
-
+    
     col1, col2 = st.columns([0.7, 0.3])
 
     with col1:
         st.markdown('<div class="reportSection">', unsafe_allow_html=True)
-        if st.session_state.show_form and st.session_state.current_report_type:
-            st.write(f"Creating form for {st.session_state.current_report_type}")  # Debug info
-            create_form(st.session_state.current_report_type, st.session_state.vessel_type)
+        if 'current_report_type' in st.session_state:
+            create_form(st.session_state.current_report_type)
         else:
             st.write("Please use the AI Assistant to initiate a report.")
         st.markdown('</div>', unsafe_allow_html=True)
@@ -587,27 +522,15 @@ def main():
     with col2:
         create_collapsible_history_panel()
         st.markdown('<div class="chatSection">', unsafe_allow_html=True)
-        create_chatbot(st.session_state.report_history, st.session_state.vessel_type)
-
+        create_chatbot(st.session_state.report_history)
+        
         if st.button("Clear Chat"):
             st.session_state.messages = []
             st.session_state.current_report_type = None
-            st.session_state.show_form = False
             st.session_state.report_history = []
             st.experimental_rerun()
-
+        
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # Add this at the end of the main function to debug
-    st.write("Debug Info:")
-    st.write(f"Current Report Type: {st.session_state.current_report_type}")
-    st.write(f"Show Form: {st.session_state.show_form}")
-    st.write(f"Report History: {st.session_state.report_history}")
-
-    if "messages" in st.session_state:
-        st.write("Chat Messages:")
-        for msg in st.session_state.messages:
-            st.write(msg)
-
 if __name__ == "__main__":
-    main()
+    main()    
