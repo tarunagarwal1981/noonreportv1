@@ -44,32 +44,14 @@ VESSEL_NAMES = ["Horizon", "Voyager", "Pioneer", "Adventurer", "Explorer", "Disc
 VESSEL_TYPES = ["Oil Tanker", "LPG Tanker", "LNG Tanker"]
 
 REPORT_TYPES = [
-    "Arrival",
-    "Departure",
-    "Begin of offhire",
-    "End of offhire",
-    "Arrival STS",
-    "Departure STS",
-    "STS",
-    "Begin canal passage",
-    "End canal passage",
-    "Begin of sea passage",
-    "End of sea passage",
-    "Begin Anchoring/Drifting",
-    "End Anchoring/Drifting",
-    "Noon (Position) - Sea passage",
-    "Noon (Position) - Port",
-    "Noon (Position) - River",
-    "Noon (Position) - Stoppage",
-    "ETA update",
-    "Begin fuel change over",
-    "End fuel change over",
-    "Change destination (Deviation)",
-    "Begin of deviation",
-    "End of deviation",
-    "Entering special area",
-    "Leaving special area",
-    "Other event"
+    "Arrival", "Departure", "Begin of offhire", "End of offhire", "Arrival STS",
+    "Departure STS", "STS", "Begin canal passage", "End canal passage",
+    "Begin of sea passage", "End of sea passage", "Begin Anchoring/Drifting",
+    "End Anchoring/Drifting", "Noon (Position) - Sea passage", "Noon (Position) - Port",
+    "Noon (Position) - River", "Noon (Position) - Stoppage", "ETA update",
+    "Begin fuel change over", "End fuel change over", "Change destination (Deviation)",
+    "Begin of deviation", "End of deviation", "Entering special area", "Leaving special area",
+    "Other event", "Bunkering"
 ]
 
 SECTION_FIELDS = {
@@ -126,7 +108,7 @@ SECTION_FIELDS = {
             "Engine Driven Cargo Pump": ["Engine Driven Cargo Pump MGO (mt)"]
         },
         "LPG Tanker": {
-            "Cargo Cooling/Reliquifaction": [
+            "Cargo Cooling": [
                 "Cargo Cooling LFO (mt)", "Cargo Cooling MGO (mt)", "Cargo Cooling LNG (mt)",
                 "Cargo Cooling LPG Propane (mt)", "Cargo Cooling LPG Butane (mt)",
                 "Cargo Cooling Other (mt)", "Cargo Cooling Other Fuel Type",
@@ -141,7 +123,7 @@ SECTION_FIELDS = {
             "Shore-Side Electricity": ["Shore-Side Electricity Work (kWh)"]
         },
         "LNG Tanker": {
-            "Cargo Cooling/Reliquifaction": [
+            "Cargo Cooling": [
                 "Cargo Cooling LFO (mt)", "Cargo Cooling MGO (mt)", "Cargo Cooling LNG (mt)",
                 "Cargo Cooling Other (mt)", "Cargo Cooling Other Fuel Type",
                 "Cargo Cooling Work (kWh)", "Cargo Cooling SFOC (g/kWh)"
@@ -171,9 +153,25 @@ SECTION_FIELDS = {
     },
     "Draft": {
         "Actual": ["Actual Forward Draft (m)", "Actual Aft Draft (m)", "Displacement (mt)", "Water Depth (m)"]
-    }
+    },
+    "Bunker": [
+        "Bunker Type",
+        "Quantity (mt)",
+        "Density at 15°C (kg/m3)",
+        "Viscosity at 50°C (cSt)",
+        "Flash Point (°C)",
+        "Sulphur Content (%)",
+        "Water Content (%)",
+        "Ash Content (%)",
+        "Vanadium (mg/kg)",
+        "Aluminium + Silicon (mg/kg)",
+        "Pour Point (°C)",
+        "Supplier Name",
+        "Delivery Date",
+        "Delivery Port",
+        "BDN Number"
+    ]
 }
-
 # Helper functions
 def generate_random_position():
     lat_deg = random.randint(0, 89)
@@ -222,36 +220,36 @@ def create_fields(fields, prefix, report_type, vessel_type):
 def create_form(report_type, vessel_type):
     st.header(f"New {report_type} Report for {vessel_type}")
     
-    for section, fields in SECTION_FIELDS.items():
-        with st.expander(section, expanded=False):
-            st.subheader(section)
-            if isinstance(fields, dict):
-                if section in ["Cargo", "Fuel Consumption", "Fuel Allocation"]:
-                    vessel_fields = fields.get(vessel_type, {})
-                    if isinstance(vessel_fields, dict):
-                        for subsection, subfields in vessel_fields.items():
-                            st.subheader(subsection)
-                            create_fields(subfields, f"{report_type}_{section}_{subsection}", report_type, vessel_type)
-                    else:
-                        create_fields(vessel_fields, f"{report_type}_{section}", report_type, vessel_type)
-                elif section in ["Machinery", "Weather", "Draft"]:
-                    for subsection, subfields in fields.items():
-                        st.subheader(subsection)
-                        if isinstance(subfields, dict):
-                            for sub_subsection, sub_subfields in subfields.items():
-                                st.subheader(sub_subsection)
-                                create_fields(sub_subfields, f"{report_type}_{section}_{subsection}_{sub_subsection}", report_type, vessel_type)
+    if report_type == "Bunkering":
+        # Special form for Bunkering
+        create_fields(SECTION_FIELDS["Vessel Data"], f"{report_type}_Vessel_Data", report_type, vessel_type)
+        with st.expander("Bunker Details", expanded=True):
+            create_fields(SECTION_FIELDS["Bunker"], f"{report_type}_Bunker", report_type, vessel_type)
+    else:
+        # Regular form for other report types
+        for section, fields in SECTION_FIELDS.items():
+            if section != "Bunker":  # Skip Bunker section for non-Bunkering reports
+                with st.expander(section, expanded=False):
+                    st.subheader(section)
+                    if isinstance(fields, dict):
+                        if section in ["Cargo", "Fuel Consumption", "Fuel Allocation"]:
+                            vessel_fields = fields.get(vessel_type, {})
+                            if isinstance(vessel_fields, dict):
+                                for subsection, subfields in vessel_fields.items():
+                                    st.subheader(subsection)
+                                    create_fields(subfields, f"{report_type}_{section}_{subsection}", report_type, vessel_type)
+                            else:
+                                create_fields(vessel_fields, f"{report_type}_{section}", report_type, vessel_type)
                         else:
-                            create_fields(subfields, f"{report_type}_{section}_{subsection}", report_type, vessel_type)
-                else:
-                    for subsection, subfields in fields.items():
-                        st.subheader(subsection)
-                        create_fields(subfields, f"{report_type}_{section}_{subsection}", report_type, vessel_type)
-            else:
-                create_fields(fields, f"{report_type}_{section}", report_type, vessel_type)
+                            for subsection, subfields in fields.items():
+                                st.subheader(subsection)
+                                create_fields(subfields, f"{report_type}_{section}_{subsection}", report_type, vessel_type)
+                    else:
+                        create_fields(fields, f"{report_type}_{section}", report_type, vessel_type)
 
     if st.button("Submit Report"):
         st.success(f"{report_type} for {vessel_type} submitted successfully!")
+        
 def main():
     st.title("OptiLog - AI-Enhanced Maritime Reporting System")
 
