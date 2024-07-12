@@ -86,13 +86,49 @@ SECTION_FIELDS = {
     "ROB": ["LFO ROB (mt)", "MGO ROB (mt)", "LNG ROB (mt)", "Other ROB (mt)", "Other Fuel Type ROB", "Total Fuel ROB (mt)"],
     "Fuel Allocation": {
         "Oil Tanker": {
-            "Cargo Heating": ["Cargo Heating LFO (mt)", "Cargo Heating MGO (mt)", "Cargo Heating LNG (mt)", "Cargo Heating Other (mt)", "Cargo Heating Other Fuel Type"]
+            "Cargo Heating": [
+                "Cargo Heating HFO (mt)", 
+                "Cargo Heating MGO (mt)", 
+                "Cargo Heating LNG (mt)", 
+                "Cargo Heating Other (mt)", 
+                "Cargo Heating Other Fuel Type"
+            ],
+            "Cargo Discharging": [
+                "Cargo Discharging HFO (mt)",
+                "Cargo Discharging MGO (mt)",
+                "Cargo Discharging LNG (mt)",
+                "Cargo Discharging Other (mt)",
+                "Cargo Discharging Other Fuel Type"
+            ],
+            "Engine Driven Cargo Pump": ["Engine Driven Cargo Pump MGO (mt)"]
         },
         "LPG Tanker": {
-            "Cargo Cooling": ["Cargo Cooling LFO (mt)", "Cargo Cooling MGO (mt)", "Cargo Cooling LNG (mt)", "Cargo Cooling LPG Propane (mt)", "Cargo Cooling LPG Butane (mt)", "Cargo Cooling Other (mt)", "Cargo Cooling Other Fuel Type"]
+            "Cargo Cooling": [
+                "Cargo Cooling LFO (mt)", "Cargo Cooling MGO (mt)", "Cargo Cooling LNG (mt)",
+                "Cargo Cooling LPG Propane (mt)", "Cargo Cooling LPG Butane (mt)",
+                "Cargo Cooling Other (mt)", "Cargo Cooling Other Fuel Type",
+                "Cargo Cooling Work (kWh)", "Cargo Cooling SFOC (g/kWh)"
+            ],
+            "Discharge Pump": [
+                "Discharge Pump LFO (mt)", "Discharge Pump MGO (mt)", "Discharge Pump LNG (mt)",
+                "Discharge Pump LPG Propane (mt)", "Discharge Pump LPG Butane (mt)",
+                "Discharge Pump Other (mt)", "Discharge Pump Other Fuel Type",
+                "Discharge Pump Work (kWh)", "Discharge Pump SFOC (g/kWh)"
+            ],
+            "Shore-Side Electricity": ["Shore-Side Electricity Work (kWh)"]
         },
         "LNG Tanker": {
-            "Cargo Cooling": ["Cargo Cooling LFO (mt)", "Cargo Cooling MGO (mt)", "Cargo Cooling LNG (mt)", "Cargo Cooling Other (mt)", "Cargo Cooling Other Fuel Type"]
+            "Cargo Cooling": [
+                "Cargo Cooling LFO (mt)", "Cargo Cooling MGO (mt)", "Cargo Cooling LNG (mt)",
+                "Cargo Cooling Other (mt)", "Cargo Cooling Other Fuel Type",
+                "Cargo Cooling Work (kWh)", "Cargo Cooling SFOC (g/kWh)"
+            ],
+            "Discharge Pump": [
+                "Discharge Pump LFO (mt)", "Discharge Pump MGO (mt)", "Discharge Pump LNG (mt)",
+                "Discharge Pump Other (mt)", "Discharge Pump Other Fuel Type",
+                "Discharge Pump Work (kWh)", "Discharge Pump SFOC (g/kWh)"
+            ],
+            "Shore-Side Electricity": ["Shore-Side Electricity Work (kWh)"]
         }
     },
     "Machinery": {
