@@ -488,11 +488,13 @@ def get_ai_response(user_input, last_reports, vessel_type):
         return f"I'm sorry, but I encountered an error while processing your request: {str(e)}. Please try again later."
 
 
+
 def set_report_type(report_type):
     st.session_state.current_report_type = report_type
     st.session_state.show_form = True
     if report_type not in st.session_state.report_history:
         st.session_state.report_history.append(report_type)
+    st.experimental_rerun()  # Ensure the UI updates immediately
 
 
 def create_chatbot(last_reports, vessel_type):
@@ -514,10 +516,10 @@ def create_chatbot(last_reports, vessel_type):
         for report_type in REPORT_TYPES:
             if f"Agreed. The form for {report_type}" in response:
                 set_report_type(report_type)
-                st.experimental_rerun()
-                break
+                return  # Exit to ensure the UI updates correctly
 
         st.experimental_rerun()
+
  
 
 def is_valid_report_sequence(last_reports, new_report):
@@ -597,6 +599,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
