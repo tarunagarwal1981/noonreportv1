@@ -103,7 +103,7 @@ SECTION_FIELDS = {
             "Engine Driven Cargo Pump": ["Engine Driven Cargo Pump MGO (mt)"]
         },
         "LPG Tanker": {
-            "Cargo Cooling": [
+            "Cargo Cooling/Reliquifaction": [
                 "Cargo Cooling LFO (mt)", "Cargo Cooling MGO (mt)", "Cargo Cooling LNG (mt)",
                 "Cargo Cooling LPG Propane (mt)", "Cargo Cooling LPG Butane (mt)",
                 "Cargo Cooling Other (mt)", "Cargo Cooling Other Fuel Type",
@@ -118,7 +118,7 @@ SECTION_FIELDS = {
             "Shore-Side Electricity": ["Shore-Side Electricity Work (kWh)"]
         },
         "LNG Tanker": {
-            "Cargo Cooling": [
+            "Cargo Cooling/Reliquifaction": [
                 "Cargo Cooling LFO (mt)", "Cargo Cooling MGO (mt)", "Cargo Cooling LNG (mt)",
                 "Cargo Cooling Other (mt)", "Cargo Cooling Other Fuel Type",
                 "Cargo Cooling Work (kWh)", "Cargo Cooling SFOC (g/kWh)"
