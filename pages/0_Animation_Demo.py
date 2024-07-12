@@ -272,7 +272,7 @@ def create_fields(fields, prefix, report_type, vessel_type):
         with cols[i % 4]:
             field_key = f"{prefix}_{field.lower().replace(' ', '_')}"
             
-                        if field == "Vessel Name":
+            if field == "Vessel Name":
                 value = st.text_input(field, value=vessel_name, key=field_key)
             elif field == "Vessel IMO":
                 value = st.text_input(field, value=imo_number, key=field_key)
