@@ -41,7 +41,7 @@ PORTS = [
 VESSEL_PREFIXES = ["MV", "SS", "MT", "MSC", "CMA CGM", "OOCL", "Maersk", "Evergreen", "Cosco", "NYK"]
 VESSEL_NAMES = ["Horizon", "Voyager", "Pioneer", "Adventurer", "Explorer", "Discovery", "Navigator", "Endeavour", "Challenger", "Trailblazer"]
 
-VESSEL_TYPES = ["Oil Tanker", "LPG Tanker", "LNG Tanker"]
+VESSEL_TYPES = ["Oil Tanker", "LPG Tanker", "LNG Tanker", "Container"]
 
 REPORT_TYPES = [
     "Arrival", "Departure", "Begin of offhire", "End of offhire", "Arrival STS",
