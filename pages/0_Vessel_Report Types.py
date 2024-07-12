@@ -62,29 +62,38 @@ SECTION_FIELDS = {
     "Cargo": {
         "Oil Tanker": ["Cargo Weight (mt)"],
         "LPG Tanker": ["Cargo Volume (m3)"],
-        "LNG Tanker": ["Cargo Volume (m3)"]
+        "LNG Tanker": ["Cargo Volume (m3)"],
+        "Container": [
+            "Reefer 20 ft. Chilled",
+            "Reefer 40 ft. Chilled",
+            "Reefer 20 ft. Frozen",
+            "Reefer 40 ft. Frozen"
+        ]
     },
     "Fuel Consumption": {
         "Oil Tanker": {
             "Main Engine": ["ME LFO (mt)", "ME MGO (mt)", "ME LNG (mt)", "ME Other (mt)", "ME Other Fuel Type"],
             "Auxiliary Engines": ["AE LFO (mt)", "AE MGO (mt)", "AE LNG (mt)", "AE Other (mt)", "AE Other Fuel Type"],
             "Boilers": ["Boiler LFO (mt)", "Boiler MGO (mt)", "Boiler LNG (mt)", "Boiler Other (mt)", "Boiler Other Fuel Type"],
-            "IGG": ["IGG LFO (mt)", "IGG MGO (mt)", "IGG LNG (mt)", "IGG Other (mt)", "IGG Other Fuel Type"],
             "Incinerator": ["Incinerator MGO (mt)"]
         },
         "LPG Tanker": {
             "Main Engine": ["ME LFO (mt)", "ME MGO (mt)", "ME LNG (mt)", "ME LPG Propane (mt)", "ME LPG Butane (mt)", "ME Other (mt)", "ME Other Fuel Type"],
             "Auxiliary Engines": ["AE LFO (mt)", "AE MGO (mt)", "AE LNG (mt)", "AE LPG Propane (mt)", "AE LPG Butane (mt)", "AE Other (mt)", "AE Other Fuel Type"],
             "Boilers": ["Boiler LFO (mt)", "Boiler MGO (mt)", "Boiler LNG (mt)", "Boiler LPG Propane (mt)", "Boiler LPG Butane (mt)", "Boiler Other (mt)", "Boiler Other Fuel Type"],
-            "IGG": ["IGG LFO (mt)", "IGG MGO (mt)", "IGG LNG (mt)", "IGG LPG Propane (mt)", "IGG LPG Butane (mt)", "IGG Other (mt)", "IGG Other Fuel Type"],
             "Incinerator": ["Incinerator MGO (mt)"]
         },
         "LNG Tanker": {
             "Main Engine": ["ME LFO (mt)", "ME MGO (mt)", "ME LNG (mt)", "ME Other (mt)", "ME Other Fuel Type"],
             "Auxiliary Engines": ["AE LFO (mt)", "AE MGO (mt)", "AE LNG (mt)", "AE Other (mt)", "AE Other Fuel Type"],
             "Boilers": ["Boiler LFO (mt)", "Boiler MGO (mt)", "Boiler LNG (mt)", "Boiler Other (mt)", "Boiler Other Fuel Type"],
-            "IGG": ["IGG LFO (mt)", "IGG MGO (mt)", "IGG LNG (mt)", "IGG Other (mt)", "IGG Other Fuel Type"],
             "GCU": ["GCU LFO (mt)", "GCU MGO (mt)", "GCU LNG (mt)", "GCU Other (mt)", "GCU Other Fuel Type"],
+            "Incinerator": ["Incinerator MGO (mt)"]
+        },
+        "Container": {
+            "Main Engine": ["ME LFO (mt)", "ME MGO (mt)", "ME LNG (mt)", "ME Other (mt)", "ME Other Fuel Type"],
+            "Auxiliary Engines": ["AE LFO (mt)", "AE MGO (mt)", "AE LNG (mt)", "AE Other (mt)", "AE Other Fuel Type"],
+            "Boilers": ["Boiler LFO (mt)", "Boiler MGO (mt)", "Boiler LNG (mt)", "Boiler Other (mt)", "Boiler Other Fuel Type"],
             "Incinerator": ["Incinerator MGO (mt)"]
         }
     },
@@ -134,6 +143,13 @@ SECTION_FIELDS = {
                 "Discharge Pump Work (kWh)", "Discharge Pump SFOC (g/kWh)"
             ],
             "Shore-Side Electricity": ["Shore-Side Electricity Work (kWh)"]
+        },
+        "Container": {
+            "Reefer Container": [
+                "Reefer Container Work (kWh)",
+                "Reefer Container SFOC (g/kWh)",
+                "Reefer Container Fuel Type"
+            ]
         }
     },
     "Machinery": {
@@ -172,6 +188,7 @@ SECTION_FIELDS = {
         "BDN Number"
     ]
 }
+
 # Helper functions
 def generate_random_position():
     lat_deg = random.randint(0, 89)
@@ -187,6 +204,141 @@ def generate_random_vessel_name():
 
 def generate_random_imo():
     return ''.join(random.choices(string.digits, k=7))
+
+pythonCopySECTION_FIELDS = {
+    "Vessel Data": ["Vessel Name", "Vessel IMO", "Vessel Type"],
+    "Voyage Data": ["Local Date", "Local Time", "UTC Offset", "Voyage ID", "Segment ID", "From Port", "To Port"],
+    "Event Data": ["Event Type", "Time Elapsed (hours)", "Sailing Time (hours)", "Anchor Time (hours)", "Ice Time (hours)", "Maneuvering (hours)", "Loading/Unloading (hours)", "Drifting (hours)"],
+    "Position": ["Latitude Degrees", "Latitude Minutes", "Latitude Direction", "Longitude Degrees", "Longitude Minutes", "Longitude Direction"],
+    "Cargo": {
+        "Oil Tanker": ["Cargo Weight (mt)"],
+        "LPG Tanker": ["Cargo Volume (m3)"],
+        "LNG Tanker": ["Cargo Volume (m3)"],
+        "Container": [
+            "Reefer 20 ft. Chilled",
+            "Reefer 40 ft. Chilled",
+            "Reefer 20 ft. Frozen",
+            "Reefer 40 ft. Frozen"
+        ]
+    },
+    "Fuel Consumption": {
+        "Oil Tanker": {
+            "Main Engine": ["ME LFO (mt)", "ME MGO (mt)", "ME LNG (mt)", "ME Other (mt)", "ME Other Fuel Type"],
+            "Auxiliary Engines": ["AE LFO (mt)", "AE MGO (mt)", "AE LNG (mt)", "AE Other (mt)", "AE Other Fuel Type"],
+            "Boilers": ["Boiler LFO (mt)", "Boiler MGO (mt)", "Boiler LNG (mt)", "Boiler Other (mt)", "Boiler Other Fuel Type"],
+            "Incinerator": ["Incinerator MGO (mt)"]
+        },
+        "LPG Tanker": {
+            "Main Engine": ["ME LFO (mt)", "ME MGO (mt)", "ME LNG (mt)", "ME LPG Propane (mt)", "ME LPG Butane (mt)", "ME Other (mt)", "ME Other Fuel Type"],
+            "Auxiliary Engines": ["AE LFO (mt)", "AE MGO (mt)", "AE LNG (mt)", "AE LPG Propane (mt)", "AE LPG Butane (mt)", "AE Other (mt)", "AE Other Fuel Type"],
+            "Boilers": ["Boiler LFO (mt)", "Boiler MGO (mt)", "Boiler LNG (mt)", "Boiler LPG Propane (mt)", "Boiler LPG Butane (mt)", "Boiler Other (mt)", "Boiler Other Fuel Type"],
+            "Incinerator": ["Incinerator MGO (mt)"]
+        },
+        "LNG Tanker": {
+            "Main Engine": ["ME LFO (mt)", "ME MGO (mt)", "ME LNG (mt)", "ME Other (mt)", "ME Other Fuel Type"],
+            "Auxiliary Engines": ["AE LFO (mt)", "AE MGO (mt)", "AE LNG (mt)", "AE Other (mt)", "AE Other Fuel Type"],
+            "Boilers": ["Boiler LFO (mt)", "Boiler MGO (mt)", "Boiler LNG (mt)", "Boiler Other (mt)", "Boiler Other Fuel Type"],
+            "GCU": ["GCU LFO (mt)", "GCU MGO (mt)", "GCU LNG (mt)", "GCU Other (mt)", "GCU Other Fuel Type"],
+            "Incinerator": ["Incinerator MGO (mt)"]
+        },
+        "Container": {
+            "Main Engine": ["ME LFO (mt)", "ME MGO (mt)", "ME LNG (mt)", "ME Other (mt)", "ME Other Fuel Type"],
+            "Auxiliary Engines": ["AE LFO (mt)", "AE MGO (mt)", "AE LNG (mt)", "AE Other (mt)", "AE Other Fuel Type"],
+            "Boilers": ["Boiler LFO (mt)", "Boiler MGO (mt)", "Boiler LNG (mt)", "Boiler Other (mt)", "Boiler Other Fuel Type"],
+            "Incinerator": ["Incinerator MGO (mt)"]
+        }
+    },
+    "ROB": ["LFO ROB (mt)", "MGO ROB (mt)", "LNG ROB (mt)", "Other ROB (mt)", "Other Fuel Type ROB", "Total Fuel ROB (mt)"],
+    "Fuel Allocation": {
+        "Oil Tanker": {
+            "Cargo Heating": [
+                "Cargo Heating HFO (mt)", 
+                "Cargo Heating MGO (mt)", 
+                "Cargo Heating LNG (mt)", 
+                "Cargo Heating Other (mt)", 
+                "Cargo Heating Other Fuel Type"
+            ],
+            "Cargo Discharging": [
+                "Cargo Discharging HFO (mt)",
+                "Cargo Discharging MGO (mt)",
+                "Cargo Discharging LNG (mt)",
+                "Cargo Discharging Other (mt)",
+                "Cargo Discharging Other Fuel Type"
+            ],
+            "Engine Driven Cargo Pump": ["Engine Driven Cargo Pump MGO (mt)"]
+        },
+        "LPG Tanker": {
+            "Cargo Cooling": [
+                "Cargo Cooling LFO (mt)", "Cargo Cooling MGO (mt)", "Cargo Cooling LNG (mt)",
+                "Cargo Cooling LPG Propane (mt)", "Cargo Cooling LPG Butane (mt)",
+                "Cargo Cooling Other (mt)", "Cargo Cooling Other Fuel Type",
+                "Cargo Cooling Work (kWh)", "Cargo Cooling SFOC (g/kWh)"
+            ],
+            "Discharge Pump": [
+                "Discharge Pump LFO (mt)", "Discharge Pump MGO (mt)", "Discharge Pump LNG (mt)",
+                "Discharge Pump LPG Propane (mt)", "Discharge Pump LPG Butane (mt)",
+                "Discharge Pump Other (mt)", "Discharge Pump Other Fuel Type",
+                "Discharge Pump Work (kWh)", "Discharge Pump SFOC (g/kWh)"
+            ],
+            "Shore-Side Electricity": ["Shore-Side Electricity Work (kWh)"]
+        },
+        "LNG Tanker": {
+            "Cargo Cooling": [
+                "Cargo Cooling LFO (mt)", "Cargo Cooling MGO (mt)", "Cargo Cooling LNG (mt)",
+                "Cargo Cooling Other (mt)", "Cargo Cooling Other Fuel Type",
+                "Cargo Cooling Work (kWh)", "Cargo Cooling SFOC (g/kWh)"
+            ],
+            "Discharge Pump": [
+                "Discharge Pump LFO (mt)", "Discharge Pump MGO (mt)", "Discharge Pump LNG (mt)",
+                "Discharge Pump Other (mt)", "Discharge Pump Other Fuel Type",
+                "Discharge Pump Work (kWh)", "Discharge Pump SFOC (g/kWh)"
+            ],
+            "Shore-Side Electricity": ["Shore-Side Electricity Work (kWh)"]
+        },
+        "Container": {
+            "Reefer Container": [
+                "Reefer Container Work (kWh)",
+                "Reefer Container SFOC (g/kWh)",
+                "Reefer Container Fuel Type"
+            ]
+        }
+    },
+    "Machinery": {
+        "Main Engine": ["ME Load (kW)", "ME Load Percentage (%)", "ME Speed (RPM)", "ME Propeller Pitch (m)", "ME Propeller Pitch Ratio", "ME Shaft Generator Power (kW)", "ME Charge Air Inlet Temp (°C)", "ME Scav. Air Pressure (bar)", "ME SFOC (g/kWh)", "ME SFOC ISO Corrected (g/kWh)"],
+        "Auxiliary Engines": {
+            "Auxiliary Engine 1": ["AE1 Load (kW)", "AE1 Charge Air Inlet Temp (°C)", "AE1 Charge Air Pressure (bar)", "AE1 SFOC (g/kWh)", "AE1 SFOC ISO Corrected (g/kWh)"],
+            "Auxiliary Engine 2": ["AE2 Load (kW)", "AE2 Charge Air Inlet Temp (°C)", "AE2 Charge Air Pressure (bar)", "AE2 SFOC (g/kWh)", "AE2 SFOC ISO Corrected (g/kWh)"],
+            "Auxiliary Engine 3": ["AE3 Load (kW)", "AE3 Charge Air Inlet Temp (°C)", "AE3 Charge Air Pressure (bar)", "AE3 SFOC (g/kWh)", "AE3 SFOC ISO Corrected (g/kWh)"]
+        }
+    },
+    "Weather": {
+        "Wind": ["Wind Direction (degrees)", "Wind Speed (knots)", "Wind Force (Beaufort)"],
+        "Sea State": ["Sea State Direction (degrees)", "Sea State Force (Douglas scale)", "Sea State Period (seconds)"],
+        "Swell": ["Swell Direction (degrees)", "Swell Height (meters)", "Swell Period (seconds)"],
+        "Current": ["Current Direction (degrees)", "Current Speed (knots)"],
+        "Temperature": ["Air Temperature (°C)", "Sea Temperature (°C)"]
+    },
+    "Draft": {
+        "Actual": ["Actual Forward Draft (m)", "Actual Aft Draft (m)", "Displacement (mt)", "Water Depth (m)"]
+    },
+    "Bunker": [
+        "Bunker Type",
+        "Quantity (mt)",
+        "Density at 15°C (kg/m3)",
+        "Viscosity at 50°C (cSt)",
+        "Flash Point (°C)",
+        "Sulphur Content (%)",
+        "Water Content (%)",
+        "Ash Content (%)",
+        "Vanadium (mg/kg)",
+        "Aluminium + Silicon (mg/kg)",
+        "Pour Point (°C)",
+        "Supplier Name",
+        "Delivery Date",
+        "Delivery Port",
+        "BDN Number"
+    ]
+}
 
 def create_fields(fields, prefix, report_type, vessel_type):
     cols = st.columns(4)
@@ -214,6 +366,8 @@ def create_fields(fields, prefix, report_type, vessel_type):
                     st.selectbox(field, options=["N", "S"] if "Latitude" in field else ["E", "W"], key=field_key)
             elif any(fuel_type in field for fuel_type in ["LFO", "MGO", "LNG", "LPG Propane", "LPG Butane"]):
                 st.number_input(field, min_value=0.0, step=0.1, key=field_key)
+            elif field in ["Reefer 20 ft. Chilled", "Reefer 40 ft. Chilled", "Reefer 20 ft. Frozen", "Reefer 40 ft. Frozen"]:
+                st.number_input(field, min_value=0, step=1, key=field_key)
             else:
                 st.text_input(field, key=field_key)
 
