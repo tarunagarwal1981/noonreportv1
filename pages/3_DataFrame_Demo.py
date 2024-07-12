@@ -1,151 +1,157 @@
 import streamlit as st
-import pandas as pd
-from datetime import datetime, time
+import random
+import string
+from datetime import datetime
 import pytz
-import re
 
-# Set page config
-st.set_page_config(layout="wide", page_title="Maritime Reporting System")
-
-# Custom CSS
-st.markdown("""
-<style>
-    .reportSection { padding-right: 1rem; }
-    .chatSection { padding-left: 1rem; border-left: 1px solid #e0e0e0; }
-    .stButton > button { width: 100%; }
-    .main .block-container { padding-top: 1rem; padding-bottom: 1rem; max-width: 100%; }
-    h1, h2, h3 { margin-top: 0; }
-    .stAlert { margin-top: 1rem; }
-</style>
-""", unsafe_allow_html=True)
-
-# Define report types and their sequences
-REPORT_TYPES = [
-    "Arrival", "Departure", "Begin of sea passage", "End of sea passage",
-    "Noon (Position) - Sea passage", "Drifting", "Anchor Arrival / FWE",
-    "Noon Port / Anchor", "Anchor/STS Departure / SBE", "Berth Arrival / FWE",
-    "Berth Departure / SBE", "Begin fuel change over", "End fuel change over",
-    "Entering special area", "Leaving special area", "Begin offhire", "End offhire",
-    "Begin canal passage", "End canal passage", "Begin Anchoring/Drifting",
-    "End Anchoring/Drifting", "Noon (Position) - Port", "Noon (Position) - River",
-    "Noon (Position) - Stoppage", "ETA update", "Change destination (Deviation)",
-    "Begin of deviation", "End of deviation", "Other event"
+# Constants
+PORTS = [
+    "Singapore", "Rotterdam", "Shanghai", "Ningbo-Zhoushan", "Guangzhou Harbor", "Busan",
+    "Qingdao", "Hong Kong", "Tianjin", "Port Klang", "Antwerp", "Dubai Ports", "Xiamen",
+    "Kaohsiung", "Hamburg", "Los Angeles", "Tanjung Pelepas", "Laem Chabang", "New York-New Jersey",
+    "Dalian", "Tanjung Priok", "Valencia", "Colombo", "Ho Chi Minh City", "Algeciras"
 ]
 
-FOLLOW_UP_REPORTS = {
-    "Arrival": ["Departure", "Noon (Position) - Port", "Begin fuel change over", "End fuel change over", "Bunkering", "Off hire"],
-    "Departure": ["Begin of sea passage", "Noon (Position) - Port", "ArrivalSTS", "DepartureSTS", "Begin canal passage", "End canal passage", "Begin Anchoring/Drifting", "End Anchoring/Drifting", "Noon (Position) - River", "Noon (Position) - Stoppage", "Begin fuel change over", "End fuel change over", "Entering special area", "Leaving special area"],
-    "Begin of sea passage": ["Noon (Position) - Sea passage", "End of sea passage", "Begin fuel change over", "End fuel change over", "Entering special area", "Leaving special area"],
-    "End of sea passage": ["Anchor Arrival / FWE", "Berth Arrival / FWE", "Begin Anchoring/Drifting"],
-    "Noon (Position) - Sea passage": ["Noon (Position) - Sea passage", "End of sea passage", "Begin fuel change over", "End fuel change over", "Entering special area", "Leaving special area"],
-    "Drifting": ["End Anchoring/Drifting", "Begin of sea passage"],
-    "Anchor Arrival / FWE": ["Noon Port / Anchor", "Anchor/STS Departure / SBE", "Begin fuel change over", "End fuel change over"],
-    "Noon Port / Anchor": ["Noon Port / Anchor", "Anchor/STS Departure / SBE", "Begin fuel change over", "End fuel change over"],
-    "Anchor/STS Departure / SBE": ["Begin of sea passage", "Berth Arrival / FWE"],
-    "Berth Arrival / FWE": ["Noon (Position) - Port", "Berth Departure / SBE", "Begin fuel change over", "End fuel change over"],
-    "Berth Departure / SBE": ["Begin of sea passage", "Anchor Arrival / FWE"]
+VESSEL_PREFIXES = ["MV", "SS", "MT", "MSC", "CMA CGM", "OOCL", "Maersk", "Evergreen", "Cosco", "NYK"]
+VESSEL_NAMES = ["Horizon", "Voyager", "Pioneer", "Adventurer", "Explorer", "Discovery", "Navigator", "Endeavour", "Challenger", "Trailblazer"]
+VESSEL_TYPES = ["Oil Tanker", "LPG Tanker", "LNG Tanker"]
+
+REPORT_TYPES = [
+    "Arrival", "Departure", "Begin of sea passage", "End of sea passage",
+    "Noon (Position) - Sea passage", "Noon (Position) - Port",
+    "Noon (Position) - River", "Noon (Position) - Stoppage"
+]
+
+# Updated SECTION_FIELDS
+SECTION_FIELDS = {
+    "Vessel Data": ["Vessel Name", "Vessel IMO", "Vessel Type"],
+    "Voyage Data": ["Local Date", "Local Time", "UTC Offset", "Voyage ID", "Segment ID", "From Port", "To Port"],
+    "Event Data": ["Event Type", "Time Elapsed (hours)", "Sailing Time (hours)", "Anchor Time (hours)", "Ice Time (hours)", "Maneuvering (hours)", "Loading/Unloading (hours)", "Drifting (hours)"],
+    "Position": ["Latitude Degrees", "Latitude Minutes", "Latitude Direction", "Longitude Degrees", "Longitude Minutes", "Longitude Direction"],
+    "Cargo": {
+        "Oil Tanker": ["Cargo Weight (mt)"],
+        "LPG Tanker": ["Cargo Volume (m3)"],
+        "LNG Tanker": ["Cargo Volume (m3)"]
+    },
+    "Fuel Consumption": {
+        "Oil Tanker": {
+            "Main Engine": ["ME LFO (mt)", "ME MGO (mt)", "ME LNG (mt)", "ME Other (mt)", "ME Other Fuel Type"],
+            "Auxiliary Engines": ["AE LFO (mt)", "AE MGO (mt)", "AE LNG (mt)", "AE Other (mt)", "AE Other Fuel Type"],
+            "Boilers": ["Boiler LFO (mt)", "Boiler MGO (mt)", "Boiler LNG (mt)", "Boiler Other (mt)", "Boiler Other Fuel Type"],
+            "IGG": ["IGG LFO (mt)", "IGG MGO (mt)", "IGG LNG (mt)", "IGG Other (mt)", "IGG Other Fuel Type"]
+        },
+        "LPG Tanker": {
+            "Main Engine": ["ME LFO (mt)", "ME MGO (mt)", "ME LNG (mt)", "ME LPG Propane (mt)", "ME LPG Butane (mt)", "ME Other (mt)", "ME Other Fuel Type"],
+            "Auxiliary Engines": ["AE LFO (mt)", "AE MGO (mt)", "AE LNG (mt)", "AE LPG Propane (mt)", "AE LPG Butane (mt)", "AE Other (mt)", "AE Other Fuel Type"],
+            "Boilers": ["Boiler LFO (mt)", "Boiler MGO (mt)", "Boiler LNG (mt)", "Boiler LPG Propane (mt)", "Boiler LPG Butane (mt)", "Boiler Other (mt)", "Boiler Other Fuel Type"]
+        },
+        "LNG Tanker": {
+            "Main Engine": ["ME LFO (mt)", "ME MGO (mt)", "ME LNG (mt)", "ME Other (mt)", "ME Other Fuel Type"],
+            "Auxiliary Engines": ["AE LFO (mt)", "AE MGO (mt)", "AE LNG (mt)", "AE Other (mt)", "AE Other Fuel Type"],
+            "Boilers": ["Boiler LFO (mt)", "Boiler MGO (mt)", "Boiler LNG (mt)", "Boiler Other (mt)", "Boiler Other Fuel Type"],
+            "IGG": ["IGG LFO (mt)", "IGG MGO (mt)", "IGG LNG (mt)", "IGG Other (mt)", "IGG Other Fuel Type"],
+            "GCU": ["GCU LFO (mt)", "GCU MGO (mt)", "GCU LNG (mt)", "GCU Other (mt)", "GCU Other Fuel Type"]
+        }
+    },
+    "ROB": ["LFO ROB (mt)", "MGO ROB (mt)", "LNG ROB (mt)", "Other ROB (mt)", "Other Fuel Type ROB", "Total Fuel ROB (mt)"],
+    "Fuel Allocation": {
+        "Oil Tanker": {
+            "Cargo Heating": ["Cargo Heating LFO (mt)", "Cargo Heating MGO (mt)", "Cargo Heating LNG (mt)", "Cargo Heating Other (mt)", "Cargo Heating Other Fuel Type"]
+        },
+        "LPG Tanker": {
+            "Cargo Cooling": ["Cargo Cooling LFO (mt)", "Cargo Cooling MGO (mt)", "Cargo Cooling LNG (mt)", "Cargo Cooling LPG Propane (mt)", "Cargo Cooling LPG Butane (mt)", "Cargo Cooling Other (mt)", "Cargo Cooling Other Fuel Type"]
+        },
+        "LNG Tanker": {
+            "Cargo Cooling": ["Cargo Cooling LFO (mt)", "Cargo Cooling MGO (mt)", "Cargo Cooling LNG (mt)", "Cargo Cooling Other (mt)", "Cargo Cooling Other Fuel Type"]
+        }
+    },
+    "Machinery": {
+        "Main Engine": ["ME Load (kW)", "ME Load Percentage (%)", "ME Speed (RPM)", "ME Propeller Pitch (m)", "ME Propeller Pitch Ratio", "ME Shaft Generator Power (kW)", "ME Charge Air Inlet Temp (°C)", "ME Scav. Air Pressure (bar)", "ME SFOC (g/kWh)", "ME SFOC ISO Corrected (g/kWh)"],
+        "Auxiliary Engines": {
+            "Auxiliary Engine 1": ["AE1 Load (kW)", "AE1 Charge Air Inlet Temp (°C)", "AE1 Charge Air Pressure (bar)", "AE1 SFOC (g/kWh)", "AE1 SFOC ISO Corrected (g/kWh)"],
+            "Auxiliary Engine 2": ["AE2 Load (kW)", "AE2 Charge Air Inlet Temp (°C)", "AE2 Charge Air Pressure (bar)", "AE2 SFOC (g/kWh)", "AE2 SFOC ISO Corrected (g/kWh)"],
+            "Auxiliary Engine 3": ["AE3 Load (kW)", "AE3 Charge Air Inlet Temp (°C)", "AE3 Charge Air Pressure (bar)", "AE3 SFOC (g/kWh)", "AE3 SFOC ISO Corrected (g/kWh)"]
+        }
+    },
+    "Weather": {
+        "Wind": ["Wind Direction (degrees)", "Wind Speed (knots)", "Wind Force (Beaufort)"],
+        "Sea State": ["Sea State Direction (degrees)", "Sea State Force (Douglas scale)", "Sea State Period (seconds)"],
+        "Swell": ["Swell Direction (degrees)", "Swell Height (meters)", "Swell Period (seconds)"],
+        "Current": ["Current Direction (degrees)", "Current Speed (knots)"],
+        "Temperature": ["Air Temperature (°C)", "Sea Temperature (°C)"]
+    },
+    "Draft": {
+        "Actual": ["Actual Forward Draft (m)", "Actual Aft Draft (m)", "Displacement (mt)", "Water Depth (m)"]
+    }
 }
 
-REQUIRED_FOLLOW_UPS = {
-    "Begin fuel change over": "End fuel change over",
-    "Entering special area": "Leaving special area",
-    "Begin offhire": "End offhire",
-    "Begin canal passage": "End canal passage",
-    "Begin Anchoring/Drifting": "End Anchoring/Drifting",
-    "Begin of deviation": "End of deviation"
-}
+# Helper functions
+def generate_random_position():
+    lat_deg = random.randint(0, 89)
+    lat_min = round(random.uniform(0, 59.99), 2)
+    lat_dir = random.choice(['N', 'S'])
+    lon_deg = random.randint(0, 179)
+    lon_min = round(random.uniform(0, 59.99), 2)
+    lon_dir = random.choice(['E', 'W'])
+    return lat_deg, lat_min, lat_dir, lon_deg, lon_min, lon_dir
 
-def is_valid_sequence(last_report, new_report):
-    if last_report in FOLLOW_UP_REPORTS:
-        return new_report in FOLLOW_UP_REPORTS[last_report]
-    return True
+def generate_random_consumption():
+    me_lfo = round(random.uniform(20, 25), 1)
+    ae_lfo = round(random.uniform(2, 3), 1)
+    return me_lfo, ae_lfo
 
-def is_noon_report_time():
-    now = datetime.now(pytz.utc)
-    return 11 <= now.hour <= 13
+def generate_random_vessel_name():
+    return f"{random.choice(VESSEL_PREFIXES)} {random.choice(VESSEL_NAMES)}"
 
-def get_pending_reports(last_report):
-    return [REQUIRED_FOLLOW_UPS[last_report]] if last_report in REQUIRED_FOLLOW_UPS else []
+def generate_random_imo():
+    return ''.join(random.choices(string.digits, k=7))
 
-def get_chatbot_response(last_report, user_input):
-    user_input = user_input.lower()
-    pending_reports = get_pending_reports(last_report)
-    
-    if pending_reports:
-        return f"Before creating a new report, you need to complete the following report: {pending_reports[0]}"
-    
-    if re.search(r'\b(create|make|start|begin|new)\b.*\breport\b', user_input):
-        valid_reports = FOLLOW_UP_REPORTS.get(last_report, REPORT_TYPES)
-        
-        if "noon" in last_report.lower() and not is_noon_report_time():
-            valid_reports = [report for report in valid_reports if "noon" not in report.lower()]
-        
-        report_options = "\n".join([f"- {report}" for report in valid_reports])
-        return f"Your last report was '{last_report}'. You can create one of the following reports:\n{report_options}\nWhich report would you like to create?"
-    
-    for report_type in REPORT_TYPES:
-        if report_type.lower() in user_input:
-            if is_valid_sequence(last_report, report_type):
-                if "noon" in report_type.lower() and not is_noon_report_time():
-                    return "Noon reports can only be created between 11:00 and 13:00 LT."
-                if "fuel change over" in report_type.lower():
-                    return f"Initiating {report_type}. This can be done during any state. Please provide the necessary details."
-                return f"Initiating {report_type}. Please provide the necessary details."
+def create_fields(fields, prefix, report_type, vessel_type):
+    cols = st.columns(4)
+    for i, field in enumerate(fields):
+        with cols[i % 4]:
+            field_key = f"{prefix}_{field.lower().replace(' ', '_')}"
+            if field == "Vessel Type":
+                st.selectbox(field, options=VESSEL_TYPES, key=field_key)
+            elif "LFO (mt)" in field or "MGO (mt)" in field or "LNG (mt)" in field or "Other (mt)" in field or "LPG Propane (mt)" in field or "LPG Butane (mt)" in field:
+                st.number_input(field, min_value=0.0, step=0.1, key=field_key)
+            elif any(unit in field for unit in ["(%)", "(mt)", "(kW)", "(°C)", "(bar)", "(g/kWh)", "(knots)", "(meters)", "(seconds)", "(degrees)"]):
+                st.number_input(field, key=field_key)
+            elif "Direction" in field and "degrees" not in field:
+                st.selectbox(field, options=["N", "NE", "E", "SE", "S", "SW", "W", "NW"], key=field_key)
             else:
-                return f"Invalid report sequence. The {report_type} report cannot follow the {last_report} report. Please choose a valid report type from the list provided earlier."
+                st.text_input(field, key=field_key)
+
+def create_form(report_type, vessel_type):
+    st.header(f"New {report_type} Report for {vessel_type}")
     
-    return "I'm not sure what specific action you want to take. You can say things like:\n" \
-           "- 'Create a new report'\n" \
-           "- Or specify a report type like 'Create a Departure report'\n" \
-           "How can I assist you with your maritime reporting?"
+    for section, fields in SECTION_FIELDS.items():
+        with st.expander(section, expanded=False):
+            st.subheader(section)
+            if isinstance(fields, dict):
+                if section in ["Cargo", "Fuel Consumption", "Fuel Allocation"]:
+                    fields = fields.get(vessel_type, {})
+                for subsection, subfields in fields.items():
+                    st.subheader(subsection)
+                    create_fields(subfields, f"{report_type}_{section}_{subsection}", report_type, vessel_type)
+            elif isinstance(fields, list):
+                create_fields(fields, f"{report_type}_{section}", report_type, vessel_type)
+
+    if st.button("Submit Report"):
+        st.success(f"{report_type} for {vessel_type} submitted successfully!")
 
 def main():
-    st.title("AI-Enhanced Maritime Reporting System")
-    
-    col1, col2 = st.columns([0.7, 0.3])
+    st.set_page_config(layout="wide", page_title="Maritime Reporting System")
+    st.title("Maritime Reporting System")
 
-    with col1:
-        st.markdown('<div class="reportSection">', unsafe_allow_html=True)
-        create_form()
-        st.markdown('</div>', unsafe_allow_html=True)
+    # Vessel Type Selector
+    vessel_type = st.selectbox("Select Vessel Type", options=VESSEL_TYPES)
 
-    with col2:
-        st.markdown('<div class="chatSection">', unsafe_allow_html=True)
-        create_chatbot()
-        st.markdown('</div>', unsafe_allow_html=True)
+    # Report Type Selector
+    report_type = st.selectbox("Select Report Type", options=REPORT_TYPES)
 
-def create_form():
-    # Placeholder for the form code
-    st.write("Report form will be implemented here.")
-
-def clear_chat_history():
-    st.session_state.messages = []
-    # Removed the line that tries to reset last_report
-
-def create_chatbot():
-    st.header("AI Assistant")
-    
-    if "last_report" not in st.session_state:
-        st.session_state.last_report = REPORT_TYPES[0]
-
-    last_report = st.selectbox("Select last report (for testing)", REPORT_TYPES, key="last_report")
-
-    if st.button("Clear Chat"):
-        clear_chat_history()
-        st.experimental_rerun()
-
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
-
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
-
-    if prompt := st.chat_input("How can I assist you with your maritime reporting?"):
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        response = get_chatbot_response(last_report, prompt)
-        st.session_state.messages.append({"role": "assistant", "content": response})
-        st.experimental_rerun()
+    # Create Form
+    create_form(report_type, vessel_type)
 
 if __name__ == "__main__":
     main()
