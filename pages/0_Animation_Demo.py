@@ -367,18 +367,18 @@ def create_fields(fields, prefix, report_type, vessel_type):
 
 def create_form(report_type, vessel_type):
     st.header(f"New {report_type}")
-    
+
     report_structure = REPORT_STRUCTURES.get(report_type, [])
-    
+
     if not report_structure:
         st.error(f"No structure defined for report type: {report_type}")
         return False
-    
+
     for section in report_structure:
         with st.expander(section, expanded=False):
             st.subheader(section)
             fields = SECTION_FIELDS.get(section, {})
-            
+
             if isinstance(fields, dict):
                 if section == "Cargo":
                     fields = fields.get(vessel_type, [])
@@ -494,7 +494,7 @@ def set_report_type(report_type):
     st.session_state.show_form = True
     if report_type not in st.session_state.report_history:
         st.session_state.report_history.append(report_type)
-    st.experimental_rerun()  # Ensure the UI updates immediately
+    st.experimental_rerun()
 
 
 def create_chatbot(last_reports, vessel_type):
@@ -515,10 +515,12 @@ def create_chatbot(last_reports, vessel_type):
         # Check if a specific report type is agreed upon
         for report_type in REPORT_TYPES:
             if f"Agreed. The form for {report_type}" in response:
-                set_report_type(report_type)
+                st.session_state.current_report_type = report_type
+                st.session_state.show_form = True
+                st.experimental_rerun()
                 return  # Exit to ensure the UI updates correctly
 
-        st.experimental_rerun()
+        st.experimental_rerun()  # Ensure the UI updates
 
  
 
@@ -572,6 +574,7 @@ def main():
     with col1:
         st.markdown('<div class="reportSection">', unsafe_allow_html=True)
         if st.session_state.show_form and st.session_state.current_report_type:
+            st.write(f"Creating form for {st.session_state.current_report_type}")  # Debug info
             create_form(st.session_state.current_report_type, st.session_state.vessel_type)
         else:
             st.write("Please use the AI Assistant to initiate a report.")
