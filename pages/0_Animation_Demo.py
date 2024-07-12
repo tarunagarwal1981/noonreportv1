@@ -102,8 +102,6 @@ REPORT_TYPES = [
     "Begin of deviation", "End of deviation", "Entering special area", "Leaving special area"
 ]
 
-# Add this near the top of the file, with other constant definitions
-
 TRAINING_DATA = """
 You are an AI assistant for an advanced maritime reporting system, with the knowledge and experience of a seasoned maritime seafarer. Your role is to guide users through creating various types of maritime reports, ensuring compliance with industry standards and regulations while maintaining a logical sequence of events. 
 Keep your responses as short and crisp and easy to understand as possible. While suggesting the reports just suggest the name of the reports not their explanations. If there is no Reports History allow user to start any report.
@@ -274,7 +272,7 @@ def create_fields(fields, prefix, report_type, vessel_type):
         with cols[i % 4]:
             field_key = f"{prefix}_{field.lower().replace(' ', '_')}"
             
-            if field == "Vessel Name":
+                        if field == "Vessel Name":
                 value = st.text_input(field, value=vessel_name, key=field_key)
             elif field == "Vessel IMO":
                 value = st.text_input(field, value=imo_number, key=field_key)
@@ -401,6 +399,7 @@ def create_form(report_type, vessel_type):
     if st.button("Submit Report"):
         if validate_report(report_type, vessel_type):
             st.success(f"{report_type} submitted successfully!")
+            st.session_state.show_form = False
             return True
         else:
             st.error("Please correct the errors in the report before submitting.")
@@ -418,7 +417,7 @@ def validate_report(report_type, vessel_type):
     for fuel in fuel_types:
         rob_key = f"{report_type}_ROB_{fuel.lower()}_rob_(mt)"
         if rob_key in st.session_state:
-            total_rob += st.session_state[rob_key]
+           total_rob += st.session_state[rob_key]
     
     calculated_total = total_rob
     reported_total_key = f"{report_type}_ROB_total_fuel_rob_(mt)"
@@ -437,11 +436,6 @@ def create_collapsible_history_panel():
         
         if "report_history" not in st.session_state:
             st.session_state.report_history = []
-        
-        if "vessel_type" not in st.session_state:
-            st.session_state.vessel_type = VESSEL_TYPES[0]
-
-        st.session_state.vessel_type = st.selectbox("Vessel Type:", VESSEL_TYPES, key="vessel_type_selector")
 
         # Ensure we always have 4 slots for history, filling with "None" if needed
         history = st.session_state.report_history + ["None"] * (4 - len(st.session_state.report_history))
@@ -517,13 +511,11 @@ def create_chatbot(last_reports, vessel_type):
         # Check if a specific report type is agreed upon
         for report_type in REPORT_TYPES:
             if f"Agreed. The form for {report_type}" in response:
-                st.button(f"Create {report_type} Report", on_click=set_report_type, args=(report_type,))
+                st.session_state.current_report_type = report_type
+                st.session_state.show_form = True
+                st.experimental_rerun()
                 break
 
-        st.experimental_rerun()
-        
-       
-        
 def is_valid_report_sequence(last_reports, new_report):
     if not last_reports:
         return True
@@ -601,3 +593,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
