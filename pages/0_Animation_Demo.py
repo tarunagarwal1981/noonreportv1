@@ -515,6 +515,7 @@ def create_chatbot(last_reports, vessel_type):
                 st.session_state.show_form = True
                 st.experimental_rerun()
                 break
+        st.experimental_rerun()        
 
 def is_valid_report_sequence(last_reports, new_report):
     if not last_reports:
