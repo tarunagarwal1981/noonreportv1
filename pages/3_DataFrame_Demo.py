@@ -92,6 +92,36 @@ SECTION_FIELDS = {
         }
     },
     "ROB": ["LFO ROB (mt)", "MGO ROB (mt)", "LNG ROB (mt)", "Other ROB (mt)", "Other Fuel Type ROB", "Total Fuel ROB (mt)"]
+    "Fuel Allocation": {
+        "Oil Tanker": {
+            "Cargo Heating": ["Cargo Heating LFO (mt)", "Cargo Heating MGO (mt)", "Cargo Heating LNG (mt)", "Cargo Heating Other (mt)", "Cargo Heating Other Fuel Type"],
+            "Dynamic Positioning (DP)": ["DP LFO (mt)", "DP MGO (mt)", "DP LNG (mt)", "DP Other (mt)", "DP Other Fuel Type"]
+        },
+        "LPG Tanker": {
+            "Cargo Cooling": ["Cargo Cooling LFO (mt)", "Cargo Cooling MGO (mt)", "Cargo Cooling LNG (mt)", "Cargo Cooling LPG Propane (mt)", "Cargo Cooling LPG Butane (mt)", "Cargo Cooling Other (mt)", "Cargo Cooling Other Fuel Type"]
+        },
+        "LNG Tanker": {
+            "Cargo Cooling": ["Cargo Cooling LFO (mt)", "Cargo Cooling MGO (mt)", "Cargo Cooling LNG (mt)", "Cargo Cooling Other (mt)", "Cargo Cooling Other Fuel Type"]
+        }
+    },
+    "Machinery": {
+        "Main Engine": ["ME Load (kW)", "ME Load Percentage (%)", "ME Speed (RPM)", "ME Propeller Pitch (m)", "ME Propeller Pitch Ratio", "ME Shaft Generator Power (kW)", "ME Charge Air Inlet Temp (°C)", "ME Scav. Air Pressure (bar)", "ME SFOC (g/kWh)", "ME SFOC ISO Corrected (g/kWh)"],
+        "Auxiliary Engines": {
+            "Auxiliary Engine 1": ["AE1 Load (kW)", "AE1 Charge Air Inlet Temp (°C)", "AE1 Charge Air Pressure (bar)", "AE1 SFOC (g/kWh)", "AE1 SFOC ISO Corrected (g/kWh)"],
+            "Auxiliary Engine 2": ["AE2 Load (kW)", "AE2 Charge Air Inlet Temp (°C)", "AE2 Charge Air Pressure (bar)", "AE2 SFOC (g/kWh)", "AE2 SFOC ISO Corrected (g/kWh)"],
+            "Auxiliary Engine 3": ["AE3 Load (kW)", "AE3 Charge Air Inlet Temp (°C)", "AE3 Charge Air Pressure (bar)", "AE3 SFOC (g/kWh)", "AE3 SFOC ISO Corrected (g/kWh)"]
+        }
+    },
+    "Weather": {
+        "Wind": ["Wind Direction (degrees)", "Wind Speed (knots)", "Wind Force (Beaufort)"],
+        "Sea State": ["Sea State Direction (degrees)", "Sea State Force (Douglas scale)", "Sea State Period (seconds)"],
+        "Swell": ["Swell Direction (degrees)", "Swell Height (meters)", "Swell Period (seconds)"],
+        "Current": ["Current Direction (degrees)", "Current Speed (knots)"],
+        "Temperature": ["Air Temperature (°C)", "Sea Temperature (°C)"]
+    },
+    "Draft": {
+        "Actual": ["Actual Forward Draft (m)", "Actual Aft Draft (m)", "Displacement (mt)", "Water Depth (m)"]
+    }
 }
 
 # Helper functions
@@ -154,6 +184,15 @@ def create_form(report_type, vessel_type):
                             create_fields(subfields, f"{report_type}_{section}_{subsection}", report_type, vessel_type)
                     else:
                         create_fields(vessel_fields, f"{report_type}_{section}", report_type, vessel_type)
+                elif section in ["Machinery", "Weather", "Draft"]:
+                    for subsection, subfields in fields.items():
+                        st.subheader(subsection)
+                        if isinstance(subfields, dict):
+                            for sub_subsection, sub_subfields in subfields.items():
+                                st.subheader(sub_subsection)
+                                create_fields(sub_subfields, f"{report_type}_{section}_{subsection}_{sub_subsection}", report_type, vessel_type)
+                        else:
+                            create_fields(subfields, f"{report_type}_{section}_{subsection}", report_type, vessel_type)
                 else:
                     for subsection, subfields in fields.items():
                         st.subheader(subsection)
@@ -163,7 +202,6 @@ def create_form(report_type, vessel_type):
 
     if st.button("Submit Report"):
         st.success(f"{report_type} for {vessel_type} submitted successfully!")
-
 def main():
     st.title("OptiLog - AI-Enhanced Maritime Reporting System")
 
