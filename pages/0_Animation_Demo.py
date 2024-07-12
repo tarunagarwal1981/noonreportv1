@@ -499,9 +499,9 @@ def set_report_type(report_type):
 
 
 
-def create_chatbot(last_reports, vessel_type):
+def create_chatbot(last_reports):
     st.header("AI Assistant")
-
+    
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
@@ -511,17 +511,19 @@ def create_chatbot(last_reports, vessel_type):
 
     if prompt := st.chat_input("How can I assist you with your maritime reporting?"):
         st.session_state.messages.append({"role": "user", "content": prompt})
-        response = get_ai_response(prompt, last_reports, vessel_type)
+        response = get_ai_response(prompt, last_reports)
         st.session_state.messages.append({"role": "assistant", "content": response})
-
+        
         # Check if a specific report type is agreed upon
         for report_type in REPORT_TYPES:
             if f"Agreed. The form for {report_type}" in response:
-                st.session_state.current_report_type = report_type
-                st.session_state.show_form = True
-                st.experimental_rerun()
-                return
-
+                if is_valid_report_sequence(last_reports, report_type):
+                    st.session_state.current_report_type = report_type
+                    st.session_state.show_form = True
+                    break
+                else:
+                    st.warning(f"Invalid report sequence. {report_type} cannot follow the previous reports.")
+        
         st.experimental_rerun()
 
  
