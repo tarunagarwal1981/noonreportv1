@@ -497,6 +497,7 @@ def set_report_type(report_type):
     st.experimental_rerun()
 
 
+
 def create_chatbot(last_reports, vessel_type):
     st.header("AI Assistant")
 
@@ -518,9 +519,9 @@ def create_chatbot(last_reports, vessel_type):
                 st.session_state.current_report_type = report_type
                 st.session_state.show_form = True
                 st.experimental_rerun()
-                return  # Exit to ensure the UI updates correctly
+                return
 
-        st.experimental_rerun()  # Ensure the UI updates
+        st.experimental_rerun()
 
  
 
@@ -599,6 +600,11 @@ def main():
     st.write(f"Current Report Type: {st.session_state.current_report_type}")
     st.write(f"Show Form: {st.session_state.show_form}")
     st.write(f"Report History: {st.session_state.report_history}")
+
+    if "messages" in st.session_state:
+        st.write("Chat Messages:")
+        for msg in st.session_state.messages:
+            st.write(msg)
 
 if __name__ == "__main__":
     main()
