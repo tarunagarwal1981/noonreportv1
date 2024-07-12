@@ -44,9 +44,32 @@ VESSEL_NAMES = ["Horizon", "Voyager", "Pioneer", "Adventurer", "Explorer", "Disc
 VESSEL_TYPES = ["Oil Tanker", "LPG Tanker", "LNG Tanker"]
 
 REPORT_TYPES = [
-    "Arrival", "Departure", "Begin of sea passage", "End of sea passage",
-    "Noon (Position) - Sea passage", "Noon (Position) - Port",
-    "Noon (Position) - River", "Noon (Position) - Stoppage"
+    "Arrival",
+    "Departure",
+    "Begin of offhire",
+    "End of offhire",
+    "Arrival STS",
+    "Departure STS",
+    "STS",
+    "Begin canal passage",
+    "End canal passage",
+    "Begin of sea passage",
+    "End of sea passage",
+    "Begin Anchoring/Drifting",
+    "End Anchoring/Drifting",
+    "Noon (Position) - Sea passage",
+    "Noon (Position) - Port",
+    "Noon (Position) - River",
+    "Noon (Position) - Stoppage",
+    "ETA update",
+    "Begin fuel change over",
+    "End fuel change over",
+    "Change destination (Deviation)",
+    "Begin of deviation",
+    "End of deviation",
+    "Entering special area",
+    "Leaving special area",
+    "Other event"
 ]
 
 SECTION_FIELDS = {
