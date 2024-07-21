@@ -9,3 +9,4 @@ openpyxl
 anthropic
 pandasai[excel]
 nltk==3.8.1
+streamlit pandas
