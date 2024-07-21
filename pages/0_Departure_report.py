@@ -112,7 +112,7 @@ with tabs[0]:
         "In Port GE/EG": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
         "In Port OTH": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
         "Bunker Qty": [0.0, 0.0, 568.12, 0.0, 0.0, 0.0, 100.51, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-        "Sulphur %": [0.0, 0.0, 0.48, 0.0, 0.0, 0.0, 0.00, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "Sulphur %": [0.0, 0.0, 0.48, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
         "ROB @ BDN": [0.0, 0.0, 892.42, 0.0, 0.0, 0.0, 671.51, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
         "At Harbour M/E": [0.0, 0.0, 15.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
         "At Harbour A/E": [0.0, 0.0, 5.12, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
@@ -196,32 +196,40 @@ with tabs[1]:
 # Emissions in Port Tab
 with tabs[2]:
     st.header("Emissions in Port")
-    col1, col2 = st.columns(2)
-    with col1:
-        vessel_name = st.text_input("Emissions - Vessel Name")
-        voyage_no_emission = st.text_input("Emissions - Voyage No")
-        port_emission = st.text_input("Emissions - Port")
-        ballast_laden_emission = st.checkbox("Emissions - Ballast/Laden")
-        eu_port = st.checkbox("Emissions - EU Port")
-    with col2:
-        arrival_date = st.date_input("Emissions - Arrival Date", datetime.now().date())
-        arrival_time = st.time_input("Emissions - Arrival Time", datetime.now().time())
-        departure_date = st.date_input("Emissions - Departure Date", datetime.now().date())
-        departure_time = st.time_input("Emissions - Departure Time", datetime.now().time())
     
-    col1, col2 = st.columns(2)
+    st.subheader("General Information")
+    col1, col2, col3 = st.columns(3)
     with col1:
-        total_time_in_port = st.number_input("Emissions - Total Time in Port (hrs)", min_value=0.0, step=0.01)
-        total_aggregated_co2_emitted = st.number_input("Emissions - Total Aggregated CO2 Emitted (T CO2)", min_value=0.0, step=0.01)
+        vessel_name = st.text_input("Vessel Name")
+        voyage_no_emission = st.text_input("Voyage No")
+        port_emission = st.text_input("Port")
     with col2:
-        fuel_type = st.text_input("Emissions - Fuel Type")
-        emission_factor = st.number_input("Emissions - Emission Factor", min_value=0.0, step=0.01)
-        rob_at_fwe = st.number_input("Emissions - ROB @ FWE", min_value=0.0, step=0.01)
-        bunkered = st.number_input("Emissions - Bunkered", min_value=0.0, step=0.01)
-        rob_at_swe = st.number_input("Emissions - ROB @ SWE", min_value=0.0, step=0.01)
-        total_fo_cons = st.number_input("Emissions - Total FO Cons", min_value=0.0, step=0.01)
-        cargo_heating_cons = st.number_input("Emissions - Cargo Heating Cons", min_value=0.0, step=0.01)
-        aggregated_co2_emitted = st.number_input("Emissions - Aggregated CO2 Emitted (MT CO2)", min_value=0.0, step=0.01)
+        ballast_laden_emission = st.checkbox("Ballast")
+        eu_port = st.checkbox("EU Port")
+    with col3:
+        arrival_date = st.date_input("Arrival Date", datetime.now().date())
+        arrival_time = st.time_input("Arrival Time", datetime.now().time())
+        departure_date = st.date_input("Departure Date", datetime.now().date())
+        departure_time = st.time_input("Departure Time", datetime.now().time())
+        total_time_in_port = st.number_input("Total Time in Port (hrs)", min_value=0.0, step=0.01)
+        total_aggregated_co2_emitted = st.number_input("Total Aggregated CO2 Emitted (T CO2)", min_value=0.0, step=0.01)
+    
+    st.subheader("Consumption (MT)")
+    consumption_emissions_data = {
+        "Fuel Type": [
+            "LNG", "Propane LPG", "Butane LPG",
+            "HFO", "Other Fuel", "LFO", "MDO/MGO"
+        ],
+        "Emission Factor": [2.750, 3.000, 3.300, 3.114, 3.115, 3.151, 3.206],
+        "ROB @ FWE": [0.0, 0.0, 0.0, 508.12, 0.0, 0.0, 100.61],
+        "Bunkered": [0.0, 0.0, 0.0, 385.80, 0.0, 0.0, 571.00],
+        "ROB @ BBE": [0.0, 0.0, 0.0, 892.42, 0.0, 0.0, 671.51],
+        "Total FO Cons": [0.0, 0.0, 0.0, 892.42, 0.0, 0.0, 671.51],
+        "Cargo Heating Cons": [0.0, 0.0, 0.0, 1.60, 0.0, 0.0, 0.0],
+        "Aggregated CO2 Emitted (MT CO2)": [0.0, 0.0, 0.0, 4.67, 0.0, 0.0, 0.0]
+    }
+    consumption_emissions_df = pd.DataFrame(consumption_emissions_data)
+    st.dataframe(consumption_emissions_df)
 
 if st.button("Submit"):
     st.write("Form submitted successfully!")
