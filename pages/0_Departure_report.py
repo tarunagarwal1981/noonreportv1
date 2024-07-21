@@ -95,25 +95,33 @@ with tabs[0]:
     st.header("Consumption (MT)")
     st.subheader("Consumption (MT)")
     consumption_data = {
-        "Fuel Type": ["Heavy Fuel Oil RME-RMK - 380cSt", "Heavy Fuel Oil RMA-RMD - 80cSt"],
-        "Previous ROB": [0.0, 0.0],
-        "In Port M/E": [0.0, 0.0],
-        "In Port A/E": [0.0, 0.0],
-        "In Port BLR": [0.0, 0.0],
-        "In Port IGG": [0.0, 0.0],
-        "In Port GE/EG": [0.0, 0.0],
-        "In Port OTH": [0.0, 0.0],
-        "Bunker Qty": [0.0, 0.0],
-        "Sulphur %": [0.0, 0.0],
-        "ROB @ BDN": [0.0, 0.0],
-        "At Harbour M/E": [0.0, 0.0],
-        "At Harbour A/E": [0.0, 0.0],
-        "At Harbour BLR": [0.0, 0.0],
-        "At Harbour IGG": [0.0, 0.0],
-        "At Harbour GE/EG": [0.0, 0.0],
-        "At Harbour OTH": [0.0, 0.0],
-        "ROB @ COSP": [0.0, 0.0],
-        "Action": ["", ""]
+        "Fuel Type": [
+            "Heavy Fuel Oil RME-RMK - 380cSt", "Heavy Fuel Oil RMA-RMD - 80cSt",
+            "VLSFO RME-RMK Visc >380cSt 0.5%S Max", "VLSFO RMA-RMD Visc >80cSt 0.5%S Max",
+            "ULSFO RME-RMK <380cSt 0.1%S Max", "ULSFO RMA-RMD <80cSt 0.1%S Max",
+            "VLSMGO 0.5%S Max", "ULSMGO 0.1%S Max",
+            "Biofuel - 30", "Biofuel Distillate FO",
+            "LPG - Propane", "LPG - Butane",
+            "LNG (Bunkered)"
+        ],
+        "Previous ROB": [0.0, 0.0, 385.6, 0.0, 0.0, 0.0, 0.0, 571.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "In Port M/E": [0.0, 0.0, 1.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "In Port A/E": [0.0, 0.0, 0.2, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "In Port BLR": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "In Port IGG": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "In Port GE/EG": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "In Port OTH": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "Bunker Qty": [0.0, 0.0, 568.12, 0.0, 0.0, 0.0, 100.51, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "Sulphur %": [0.0, 0.0, 0.48, 0.0, 0.0, 0.0, 0.00, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "ROB @ BDN": [0.0, 0.0, 892.42, 0.0, 0.0, 0.0, 671.51, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "At Harbour M/E": [0.0, 0.0, 15.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "At Harbour A/E": [0.0, 0.0, 5.12, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "At Harbour BLR": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "At Harbour IGG": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "At Harbour GE/EG": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "At Harbour OTH": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "ROB @ COSP": [0.0, 0.0, 871.8, 0.0, 0.0, 0.0, 671.51, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "Action": ["", "", "", "", "", "", "", "", "", "", "", "", ""]
     }
     consumption_df = pd.DataFrame(consumption_data)
     st.dataframe(consumption_df)
