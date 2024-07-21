@@ -7,16 +7,13 @@ st.set_page_config(layout="wide", page_title="Maritime Departure Report")
 def main():
     st.title("Maritime Departure Report")
 
-    tabs = st.tabs(["General Information", "Operations", "Emissions in Port"])
+    tabs = st.tabs(["General Information", "Operations"])
 
     with tabs[0]:
         general_info_tab()
 
     with tabs[1]:
         operations_tab()
-
-    with tabs[2]:
-        emissions_tab()
 
     if st.button("Submit Report", type="primary"):
         st.success("Departure report submitted successfully!")
@@ -208,7 +205,7 @@ def operations_tab():
         st.checkbox("Stripping / Draining", key="stripping_draining")
         st.text_area("Stripping / Draining Remarks", height=100, key="stripping_draining_remarks")
 
-    with st.expander("Other Operations", expanded=True):
+   with st.expander("Other Operations", expanded=True):
         st.text_area("Description", height=100, key="other_operations_description")
         col1, col2 = st.columns(2)
         with col1:
@@ -218,43 +215,6 @@ def operations_tab():
             st.date_input("Completed Date", datetime.now().date(), key="other_operations_completed_date")
             st.time_input("Completed Time", datetime.now().time(), key="other_operations_completed_time")
         st.text_input("Action", key="other_operations_action")
-
-def emissions_tab():
-    st.header("Emissions in Port")
-
-    with st.expander("General Information", expanded=True):
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            st.text_input("Vessel Name", key="vessel_name_emission")
-            st.text_input("Voyage No", key="voyage_no_emission")
-            st.text_input("Port", key="port_emission")
-        with col2:
-            st.checkbox("Ballast", key="ballast_laden_emission")
-            st.checkbox("EU Port", key="eu_port")
-        with col3:
-            st.date_input("Arrival Date", datetime.now().date(), key="arrival_date_emission")
-            st.time_input("Arrival Time", datetime.now().time(), key="arrival_time_emission")
-            st.date_input("Departure Date", datetime.now().date(), key="departure_date_emission")
-            st.time_input("Departure Time", datetime.now().time(), key="departure_time_emission")
-            st.number_input("Total Time in Port (hrs)", min_value=0.0, step=0.01, key="total_time_in_port_emission")
-            st.number_input("Total Aggregated CO2 Emitted (T CO2)", min_value=0.0, step=0.01, key="total_aggregated_co2_emitted")
-
-    with st.expander("Consumption (MT)", expanded=True):
-        consumption_emissions_data = {
-            "Fuel Type": [
-                "LNG", "Propane LPG", "Butane LPG",
-                "HFO", "Other Fuel", "LFO", "MDO/MGO"
-            ],
-            "Emission Factor": [2.750, 3.000, 3.300, 3.114, 3.115, 3.151, 3.206],
-            "ROB @ FWE": [0.0, 0.0, 0.0, 508.12, 0.0, 0.0, 100.61],
-            "Bunkered": [0.0, 0.0, 0.0, 385.80, 0.0, 0.0, 571.00],
-            "ROB @ BBE": [0.0, 0.0, 0.0, 892.42, 0.0, 0.0, 671.51],
-            "Total FO Cons": [0.0, 0.0, 0.0, 892.42, 0.0, 0.0, 671.51],
-            "Cargo Heating Cons": [0.0, 0.0, 0.0, 1.60, 0.0, 0.0, 0.0],
-            "Aggregated CO2 Emitted (MT CO2)": [0.0, 0.0, 0.0, 4.67, 0.0, 0.0, 0.0]
-        }
-        consumption_emissions_df = pd.DataFrame(consumption_emissions_data)
-        st.data_editor(consumption_emissions_df, key="consumption_emissions_editor", hide_index=True)
 
 if __name__ == "__main__":
     main()
