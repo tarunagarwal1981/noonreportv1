@@ -1,139 +1,216 @@
 import streamlit as st
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, time
+import time as tm
+import json
 
-st.set_page_config(layout="wide")
-st.title("Vessel Arrival Report")
+# Custom imports
+from streamlit_extras.switch_page_button import switch_page
+from streamlit_extras.add_vertical_space import add_vertical_space
 
-# Arrival Information Tab
-st.header("Arrival Information")
+# Initialize session state
+if 'form_data' not in st.session_state:
+    st.session_state.form_data = {}
+if 'progress' not in st.session_state:
+    st.session_state.progress = 0
 
-col1, col2 = st.columns([2, 1])
-with col1:
-    vessel = st.text_input("Vessel", key="vessel_arrival")
-    voyage = st.text_input("Voyage", key="voyage_arrival")
-    port = st.text_input("Port", key="port_arrival")
-    berth_location = st.text_input("Name of Berth / Anchorage", key="berth_location_arrival")
-    latitude = st.text_input("Latitude", key="latitude_arrival")
-    longitude = st.text_input("Longitude", key="longitude_arrival")
-    ship_mean_time_utc = st.time_input("Ship Mean Time (UTC)", datetime.now().time(), key="ship_mean_time_utc_arrival")
-    ship_mean_time_lt = st.time_input("Ship Mean Time (LT)", datetime.now().time(), key="ship_mean_time_lt_arrival")
+# Function to update progress
+def update_progress():
+    total_fields = 100  # Estimate of total fields
+    filled_fields = sum(1 for value in st.session_state.form_data.values() if value)
+    st.session_state.progress = min(filled_fields / total_fields, 1.0)
 
-with col2:
-    eosp = st.text_input("EOSP", key="eosp_arrival")
-    fwe = st.text_input("FWE", key="fwe_arrival")
+# Function to save form data
+def save_form_data():
+    st.session_state.form_data.update({k: v for k, v in st.session_state.items() if not k.startswith('_')})
+    with open('form_data.json', 'w') as f:
+        json.dump(st.session_state.form_data, f)
+    st.success("Form data saved successfully!")
 
-st.header("Event Times")
-for event in ["Arrival Date", "End of Sea Passage (EOSP)", "APS", "Arrival customary Anchorage", "Arrival drifting position", "Anchor aweigh", "Commenced proceeding to berth from drifting position", "Pilot on Board (POB)", "First Line Ashore (FLA)", "First Shackle in water (FSW)", "Let Go Anchor (LGA)", "All Fast", "Gangway Down", "Finished with Engine (FWE)", "Pilot Away (POB)"]:
-    col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
+# Function to load form data
+def load_form_data():
+    try:
+        with open('form_data.json', 'r') as f:
+            st.session_state.form_data = json.load(f)
+        st.success("Form data loaded successfully!")
+    except FileNotFoundError:
+        st.warning("No saved form data found.")
+
+# Main app
+def main():
+    st.set_page_config(layout="wide", page_title="Maritime Report")
+    
+    # Dark mode toggle
+    if st.sidebar.checkbox("Dark Mode"):
+        st.markdown("""
+        <style>
+        .stApp {
+            background-color: #0e1117;
+            color: #ffffff;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+
+    st.title("Maritime Report")
+
+    # Progress indicator
+    st.progress(st.session_state.progress)
+
+    # Quick Fill and Save buttons
+    col1, col2, col3 = st.columns(3)
     with col1:
-        st.write(event)
+        if st.button("Quick Fill from Previous Report"):
+            load_form_data()
     with col2:
-        st.date_input(f"{event} LT Date", datetime.now().date(), key=f"{event}_lt_date_arrival")
-        st.time_input(f"{event} LT Time", datetime.now().time(), key=f"{event}_lt_time_arrival")
+        if st.button("Save Current Report"):
+            save_form_data()
     with col3:
-        st.date_input(f"{event} UTC Date", datetime.now().date(), key=f"{event}_utc_date_arrival")
-        st.time_input(f"{event} UTC Time", datetime.now().time(), key=f"{event}_utc_time_arrival")
+        if st.button("Review Summary"):
+            switch_page("summary")
 
-col1, col2 = st.columns(2)
-with col1:
-    fpg_date = st.date_input("Free Pratique Granted (FPG) Date", datetime.now().date(), key="fpg_date")
-    fpg_time = st.time_input("Free Pratique Granted (FPG) Time", datetime.now().time(), key="fpg_time")
-    etb_date = st.date_input("ETB Date", datetime.now().date(), key="etb_date")
-    etb_time = st.time_input("ETB Time", datetime.now().time(), key="etb_time")
-    etd_date = st.date_input("ETD Date", datetime.now().date(), key="etd_date")
-    etd_time = st.time_input("ETD Time", datetime.now().time(), key="etd_time")
-    ballast_laden = st.radio("Ballast/Laden", ["Ballast", "Laden"], key="ballast_laden")
-with col2:
-    start_new_voyage = st.checkbox("Start New Voyage", key="start_new_voyage")
-    maneuvering_hrs = st.number_input("Maneuvering (hrs)", min_value=0.0, step=0.01, key="maneuvering_hrs")
-    maneuvering_distance = st.number_input("Maneuvering Distance (nm)", min_value=0.0, step=0.01, key="maneuvering_distance")
-    me_rev_counter_fwe = st.text_input("ME Rev Counter @ FWE", key="me_rev_counter_fwe")
+    # Search function
+    search_term = st.sidebar.text_input("Search fields")
 
-st.header("From Noon to EOSP")
+    tabs = st.tabs(["Deck", "Engine"])
 
-col1, col2, col3 = st.columns([1, 1, 1])
-with col1:
-    full_speed = st.number_input("Full Speed (hrs)", min_value=0.0, step=0.01, key="full_speed")
-    reduced_speed = st.number_input("Reduced Speed (hrs)", min_value=0.0, step=0.01, key="reduced_speed")
-    stopped = st.number_input("Stopped (hrs)", min_value=0.0, step=0.01, key="stopped")
-    distance_observed = st.number_input("Distance Observed (nm)", min_value=0.0, step=0.01, key="distance_observed")
-    obs_speed = st.number_input("Obs Speed (kts)", min_value=0.0, step=0.01, key="obs_speed")
-    em_log_speed = st.number_input("EM Log Speed (kts)", min_value=0.0, step=0.01, key="em_log_speed")
-    voyage_order_speed = st.number_input("Voyage Order Speed (kts)", min_value=0.0, step=0.01, key="voyage_order_speed")
-    voyage_order_cons = st.number_input("Voyage Order Cons (kts)", min_value=0.0, step=0.01, key="voyage_order_cons")
-    course = st.number_input("Course", min_value=0, step=1, key="course")
-    
-with col2:
-    draft_f = st.number_input("Draft F (m)", min_value=0.0, step=0.01, key="draft_f_arrival")
-    draft_a = st.number_input("Draft A (m)", min_value=0.0, step=0.01, key="draft_a_arrival")
-    wind_direction = st.text_input("Wind Direction", key="wind_direction")
-    wind_force = st.number_input("Wind Force", min_value=0, step=1, key="wind_force")
-    sea_height = st.number_input("Sea Height (m)", min_value=0.0, step=0.01, key="sea_height")
-    sea_direction = st.text_input("Sea Direction", key="sea_direction")
-    swell = st.number_input("Swell (m)", min_value=0.0, step=0.01, key="swell")
-    set_and_drift_of_current = st.text_input("Set and Drift of Current", key="set_and_drift_of_current")
-    
-with col3:
-    air_temp = st.number_input("Air Temp (°C)", min_value=-50.0, max_value=50.0, step=0.1, key="air_temp")
-    icing_on_deck = st.checkbox("Icing on Deck?", key="icing_on_deck")
-    dwt_displacement = st.number_input("DWT/Displacement (mt)", min_value=0.0, step=1.0, key="dwt_displacement")
+    with tabs[0]:
+        deck_tab(search_term)
 
-st.header("Drifting / STS")
+    with tabs[1]:
+        engine_tab(search_term)
 
-col1, col2 = st.columns(2)
-with col1:
-    drifting_sts = st.radio("Is Drifting / STS", ["Drifting", "STS"], key="drifting_sts")
-    me_rpm_counter = st.number_input("ME RPM Counter", min_value=0, step=1, key="me_rpm_counter")
-    latitude_drifting = st.text_input("Latitude", key="latitude_drifting")
-    longitude_drifting = st.text_input("Longitude", key="longitude_drifting")
-    drifting_date_start = st.date_input("Drifting Date Start", datetime.now().date(), key="drifting_date_start")
-    drifting_time_start = st.time_input("Drifting Time Start", datetime.now().time(), key="drifting_time_start")
-    
-with col2:
-    drifting_date_end = st.date_input("Drifting Date End", datetime.now().date(), key="drifting_date_end")
-    drifting_time_end = st.time_input("Drifting Time End", datetime.now().time(), key="drifting_time_end")
-    drifting_distance = st.number_input("Drifting Distance (nm)", min_value=0.0, step=0.01, key="drifting_distance")
-    
-st.header("Environmental Control Area")
-col1, col2 = st.columns(2)
-with col1:
-    fuel_used_in_eca = st.text_input("Fuel Used in ECA", key="fuel_used_in_eca")
-    fuel_co_time = st.number_input("Fuel CO Time (hrs)", min_value=0.0, step=0.01, key="fuel_co_time")
-    
-st.header("Consumption (MT)")
-st.subheader("Consumption (MT)")
-consumption_data = {
-    "Fuel Type": [
-        "Heavy Fuel Oil RME-RMK - 380cSt", "Heavy Fuel Oil RMA-RMD - 80cSt",
-        "VLSFO RME-RMK Visc >380cSt 0.5%S Max", "VLSFO RMA-RMD Visc >80cSt 0.5%S Max",
-        "ULSFO RME-RMK <380cSt 0.1%S Max", "ULSFO RMA-RMD <80cSt 0.1%S Max",
-        "VLSMGO 0.5%S Max", "ULSMGO 0.1%S Max",
-        "Biofuel - 30", "Biofuel Distillate FO",
-        "LPG - Propane", "LPG - Butane",
-        "LNG (Bunkered)"
-    ],
-    "Previous ROB": [0.0, 0.0, 410.70, 0.0, 0.0, 0.0, 0.0, 571.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-    "At Sea M/E": [0.0, 0.0, 18.20, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-    "At Sea A/E": [0.0, 0.0, 0.10, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-    "At Sea BLR": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-    "At Sea IGG": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-    "At Sea GE/EG": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-    "At Sea OTH": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-    "ROB @ COSP": [0.0, 0.0, 392.40, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-    "At Harbour M/E": [0.0, 0.0, 4.40, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-    "At Harbour A/E": [0.0, 0.0, 2.10, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-    "At Harbour BLR": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-    "At Harbour IGG": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-    "At Harbour GE/EG": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-    "At Harbour OTH": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-    "Bunker Qty": [0.0, 0.0, 385.80, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-    "Sulphur %": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-    "Total ROB @ FWE": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-    "Action": ["", "", "", "", "", "", "", "", "", "", "", "", ""]
-}
-consumption_emissions_df = pd.DataFrame(consumption_data)
-st.dataframe(consumption_emissions_df)
+    if st.button("Submit Report", type="primary"):
+        st.success("Report submitted successfully!")
 
-if st.button("Submit", key="submit_arrival"):
-    st.write("Arrival report submitted successfully!")
+    # Auto-save every 5 minutes
+    if tm.time() % 300 < 1:  # Every 5 minutes
+        save_form_data()
+
+def deck_tab(search_term):
+    st.header("Deck Information")
+
+    sections = [
+        ("General Information", general_info_section),
+        ("Speed and Consumption", speed_consumption_section),
+        ("Position and Navigation", position_navigation_section),
+        ("Weather", weather_section),
+        ("Special Areas", special_areas_section),
+        ("Breaching International Navigating Limits", inl_section),
+        ("Drifting", drifting_section)
+    ]
+
+    for section_name, section_function in sections:
+        with st.expander(section_name, expanded=True):
+            section_function(search_term)
+
+def engine_tab(search_term):
+    st.header("Engine Information")
+
+    sections = [
+        ("Main Engine", main_engine_section),
+        ("Auxiliary Engines", auxiliary_engines_section),
+        ("Lube Oil Consumptions", lube_oil_section),
+        ("Fresh Water", fresh_water_section),
+        ("Fuel Consumption", fuel_consumption_section),
+        ("Detailed Fuel Consumption", detailed_fuel_consumption_section)
+    ]
+
+    for section_name, section_function in sections:
+        with st.expander(section_name, expanded=True):
+            section_function(search_term)
+
+# Section functions
+def general_info_section(search_term):
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        input_field("Vessel Name", "text", search_term, help="Enter the name of the vessel")
+        input_field("Voyage No", "text", search_term, help="Enter the voyage number")
+        input_field("Cargo No", "text", search_term, help="Enter the cargo number")
+        input_field("Vessel's Status", "selectbox", search_term, options=["At Sea", "In Port"], help="Select the current status of the vessel")
+        input_field("Current Port", "text", search_term, help="Enter the current port if in port")
+        input_field("Last Port", "text", search_term, help="Enter the last port visited")
+        input_field("Berth / Location", "text", search_term, help="Enter the specific berth or location")
+    with col2:
+        input_field("Report Date (LT)", "date", search_term, help="Enter the local date of the report")
+        input_field("Report Time (LT)", "time", search_term, help="Enter the local time of the report")
+        input_field("Report Date (UTC)", "date", search_term, help="Enter the UTC date of the report")
+        input_field("Report Time (UTC)", "time", search_term, help="Enter the UTC time of the report")
+        input_field("IDL Crossing", "text", search_term, help="Enter International Date Line crossing information if applicable")
+        input_field("IDL Direction", "selectbox", search_term, options=["--Select--", "East", "West"], help="Select the direction of IDL crossing")
+        input_field("Off Port Limits", "checkbox", search_term, help="Check if the vessel is at off port limits")
+    with col3:
+        input_field("Next Port", "text", search_term, help="Enter the next port of call")
+        input_field("ETA Date", "date", search_term, help="Enter the estimated date of arrival at the next port")
+        input_field("ETA Time", "time", search_term, help="Enter the estimated time of arrival at the next port")
+        input_field("Speed required to achieve Scheduled ETA (kts)", "number", search_term, min_value=0.0, step=0.1, help="Enter the required speed to meet the scheduled ETA")
+        input_field("ETB", "date", search_term, help="Enter the Estimated Time of Berthing")
+        input_field("ETC/D", "date", search_term, help="Enter the Estimated Time of Completion/Departure")
+        input_field("Ballast/Laden", "radio", search_term, options=["Ballast", "Laden"], help="Select whether the vessel is in ballast or laden condition")
+
+def speed_consumption_section(search_term):
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        input_field("Full Speed (hrs)", "number", search_term, min_value=0.0, step=0.1, help="Enter the time spent at full speed")
+        input_field("Full Speed (nm)", "number", search_term, min_value=0.0, step=0.1, help="Enter the distance covered at full speed")
+        input_field("Reduced Speed/Slow Steaming (hrs)", "number", search_term, min_value=0.0, step=0.1, help="Enter the time spent at reduced speed")
+        input_field("Reduced Speed/Slow Steaming (nm)", "number", search_term, min_value=0.0, step=0.1, help="Enter the distance covered at reduced speed")
+        input_field("Stopped (hrs)", "number", search_term, min_value=0.0, step=0.1, help="Enter the time spent stopped")
+        input_field("Distance Observed (nm)", "number", search_term, min_value=0.0, step=0.1, help="Enter the total distance observed")
+    with col2:
+        input_field("Obs Speed (SOG) (kts)", "number", search_term, min_value=0.0, step=0.1, help="Enter the observed speed over ground")
+        input_field("EM Log Speed (LOG) (kts)", "number", search_term, min_value=0.0, step=0.1, help="Enter the speed from the electromagnetic log")
+        input_field("Voyage Average Speed (kts)", "number", search_term, min_value=0.0, step=0.1, help="Enter the average speed for the voyage")
+        input_field("Distance To Go (nm)", "number", search_term, min_value=0.0, step=0.1, help="Enter the remaining distance to the destination")
+        input_field("Distance since COSP (nm)", "number", search_term, min_value=0.0, step=0.1, help="Enter the distance traveled since Commencement of Sea Passage")
+    with col3:
+        input_field("Voyage Order Speed (kts)", "number", search_term, min_value=0.0, step=0.1, help="Enter the ordered speed for the voyage")
+        input_field("Voyage Order ME FO Cons (mt)", "number", search_term, min_value=0.0, step=0.1, help="Enter the ordered Main Engine Fuel Oil consumption")
+        input_field("Voyage Order ME DO Cons (mt)", "number", search_term, min_value=0.0, step=0.1, help="Enter the ordered Main Engine Diesel Oil consumption")
+        input_field("Course (°)", "number", search_term, min_value=0.0, max_value=360.0, step=1.0, help="Enter the current course in degrees")
+        input_field("Draft F (m)", "number", search_term, min_value=0.0, step=0.01, help="Enter the forward draft in meters")
+        input_field("Draft A (m)", "number", search_term, min_value=0.0, step=0.01, help="Enter the aft draft in meters")
+        input_field("Displacement (mt)", "number", search_term, min_value=0.0, step=0.1, help="Enter the current displacement in metric tons")
+
+def position_navigation_section(search_term):
+    col1, col2 = st.columns(2)
+    with col1:
+        input_field("Latitude", "text", search_term, help="Enter the current latitude")
+        input_field("Longitude", "text", search_term, help="Enter the current longitude")
+    with col2:
+        input_field("Best ETA PBG (LT)", "date", search_term, help="Enter the best estimated time of arrival at Pilot Boarding Ground (Local Time)")
+        input_field("Best ETA PBG Time (LT)", "time", search_term, help="Enter the best estimated time of arrival at Pilot Boarding Ground (Local Time)")
+        input_field("Best ETA PBG (UTC)", "date", search_term, help="Enter the best estimated time of arrival at Pilot Boarding Ground (UTC)")
+        input_field("Best ETA PBG Time (UTC)", "time", search_term, help="Enter the best estimated time of arrival at Pilot Boarding Ground (UTC)")
+
+def weather_section(search_term):
+    col1, col2 = st.columns(2)
+    with col1:
+        input_field("Wind Direction", "selectbox", search_term, options=["North", "East", "South", "West", "North East", "North West", "South East", "South West"], help="Select the wind direction")
+        input_field("Wind Force", "number", search_term, min_value=0, max_value=12, help="Enter the wind force on the Beaufort scale")
+        input_field("Visibility (nm)", "number", search_term, min_value=0.0, step=0.1, help="Enter the visibility in nautical miles")
+        input_field("Sea Height (m)", "number", search_term, min_value=0.0, step=0.1, help="Enter the sea height in meters")
+        input_field("Sea Direction", "selectbox", search_term, options=["North", "East", "South", "West", "North East", "North West", "South East", "South West"], help="Select the sea direction")
+    with col2:
+        input_field("Swell Height (m)", "number", search_term, min_value=0.0, step=0.1, help="Enter the swell height in meters")
+        input_field("Swell Direction", "selectbox", search_term, options=["North", "East", "South", "West", "North East", "North West", "South East", "South West"], help="Select the swell direction")
+        input_field("Current Set (kts)", "number", search_term, min_value=0.0, step=0.1, help="Enter the current set in knots")
+        input_field("Current Drift", "selectbox", search_term, options=["North", "East", "South", "West", "North East", "North West", "South East", "South West"], help="Select the current drift direction")
+        input_field("Air Temp (°C)", "number", search_term, min_value=-50.0, max_value=50.0, step=0.1, help="Enter the air temperature in Celsius")
+        input_field("Icing on Deck?", "checkbox", search_term, help="Check if there is icing on the deck")
+    input_field("Period of bad Weather (beyond BF scale 5, in Hours)", "number", search_term, min_value=0.0, step=0.1, help="Enter the duration of bad weather in hours")
+
+def special_areas_section(search_term):
+    col1, col2 = st.columns(2)
+    with col1:
+        input_field("Is vessel currently in Gulf of Aden / HRA or will be Transiting Gulf of Aden / HRA within next 14 days?", "radio", search_term, options=["Yes", "No"], help="Select if the vessel is in or approaching a High Risk Area")
+        if st.session_state.get("Is vessel currently in Gulf of Aden / HRA or will be Transiting Gulf of Aden / HRA within next 14 days?") == "Yes":
+            input_field("Entry into HRA Date", "date", search_term, help="Enter the date of entry into the High Risk Area")
+            input_field("Entry into HRA Time", "time", search_term, help="Enter the time of entry into the High Risk Area")
+            input_field("Exit from HRA Date", "date", search_term, help="Enter the date of exit from the High Risk Area")
+            input_field("Exit from HRA Time", "time", search_term, help="Enter the time of exit from the High Risk Area")
+    with col2:
+        input_field("Is vessel in an ECA area or will enter ECA area within next 3 days?", "radio", search_term, options=["Yes", "No"], help="Select if the vessel is in or approaching an Emission Control Area")
+        if st.session_state.get("Is vessel in an ECA area or will enter ECA area within next 3 days?") == "Yes":
+            input_field("Entry into ECA Date", "date", search_term, help="Enter the date of entry into the Emission Control Area")
+            input_field("Entry into ECA Time", "time", search_term, help="Enter the time of entry into the Emission Control Area")
+            input_field("Exit from ECA Date", "date", search_term, help="Enter the date of exit from the
