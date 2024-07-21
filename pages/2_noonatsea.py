@@ -100,5 +100,39 @@ with tabs[0]:
         air_temp = st.number_input("Air Temp (°C)", min_value=-50.0, max_value=50.0, step=0.1, key="air_temp")
         icing_on_deck = st.checkbox("Icing on Deck?", key="icing_on_deck")
 
-if st.button("Submit", key="submit_noon_at_sea"):
-    st.write("Noon at Sea report submitted successfully!")
+    # High Risk and Special Areas Section
+    st.header("High Risk and Special Areas")
+    hra_col1, hra_col2 = st.columns([1, 3])
+    
+    with hra_col1:
+        in_hra = st.radio("Is vessel currently in Gulf of Aden / HRA or will be Transiting Gulf of Aden / HRA in next 14 days?", ["Yes", "No"], key="in_hra")
+    with hra_col2:
+        hra_entry_date = st.date_input("Entry into HRA", datetime.now().date(), key="hra_entry_date")
+        hra_entry_time = st.time_input("Entry into HRA Time", datetime.now().time(), key="hra_entry_time")
+        hra_exit_date = st.date_input("Exit From HRA", datetime.now().date(), key="hra_exit_date")
+        hra_exit_time = st.time_input("Exit From HRA Time", datetime.now().time(), key="hra_exit_time")
+
+    # Environmental Control Area Section
+    st.header("Environmental Control Area")
+    eca_col1, eca_col2 = st.columns([1, 3])
+    
+    with eca_col1:
+        in_eca = st.radio("Is vessel in an ECA area or will enter ECA area within next 3 days?", ["Yes", "No"], key="in_eca")
+    with eca_col2:
+        eca_entry_date = st.date_input("Entry into ECA", datetime.now().date(), key="eca_entry_date")
+        eca_entry_time = st.time_input("Entry into ECA Time", datetime.now().time(), key="eca_entry_time")
+        eca_exit_date = st.date_input("Exit From ECA", datetime.now().date(), key="eca_exit_date")
+        eca_exit_time = st.time_input("Exit From ECA Time", datetime.now().time(), key="eca_exit_time")
+        eca_latitude = st.text_input("Latitude", key="eca_latitude")
+        eca_longitude = st.text_input("Longitude", key="eca_longitude")
+        fuel_used_in_eca = st.selectbox("Fuel used in ECA", ["IFO", "MDO", "MGO"], key="fuel_used_in_eca")
+        fuel_c_o_time = st.date_input("Fuel C/O Time", datetime.now().date(), key="fuel_c_o_time")
+
+    # Breaching International Navigating Limits Section
+    st.header("Breaching International Navigating Limits")
+    in_iwl = st.radio("Is the vessel in IWL Breach area or will enter IWL Breach area within next 7 days?", ["Yes", "No"], key="in_iwl")
+    
+    iwl_entry_date = st.date_input("Entry into IWL Breach", datetime.now().date(), key="iwl_entry_date")
+    iwl_entry_time = st.time_input("Entry into IWL Breach Time", datetime.now().time(), key="iwl_entry_time")
+    iwl_exit_date = st.date_input("Exit From IWL Breach", datetime.now().date(), key="iwl_exit_date")
+    iwl_exit_time = st.time_input("Exit From IWL Breach Time", datetime.now().time(), key="iwl_exit_time")
