@@ -4,135 +4,158 @@ from datetime import datetime
 st.title("Vessel Departure Report")
 
 # Tabs for different sections
-tabs = st.tabs([
-    "General Information", "Bilge, Sludge", "Voyage Planning", 
-    "Remarks", "Lube Oil", "Fresh Water", "Services in Port", 
-    "Consumption", "Cargo Operations", "Ballasting / Deballasting", 
-    "Tank Cleaning", "Other Operations", "Emission in Port"
-])
+tabs = st.tabs(["General Information", "Operations", "Emissions in Port"])
 
+# General Information Tab
 with tabs[0]:
     st.header("General Information")
-    vessel = st.text_input("Vessel")
-    voyage_no = st.text_input("Voyage No")
-    port = st.text_input("Port")
-    next_port = st.text_input("Next Port")
-    berth_location = st.text_input("Name of Berth/Location")
-    cosp = st.text_input("COSP")
-    ship_mean_time_utc = st.time_input("Ship Mean Time (UTC)", datetime.now().time())
-    ship_mean_time_lt = st.time_input("Ship Mean Time (LT)", datetime.now().time())
-    departure_date = st.date_input("Departure Date", datetime.now().date())
-    pilot_on_board = st.datetime_input("Pilot on Board (POB)", datetime.now())
-    standby_engines = st.datetime_input("Standby Engines (SBE)", datetime.now())
-    all_gone_and_clear = st.datetime_input("All Gone and Clear (AGC)", datetime.now())
-    anchor_aweigh = st.datetime_input("Anchor Aweigh (AAW)", datetime.now())
-    dropping_of_last_outward_sea_pilot = st.datetime_input("Dropping of Last Outward Sea Pilot (DLOSP)", datetime.now())
-    pilot_full_away = st.datetime_input("Pilot Full Away (PFA)", datetime.now())
-    commencement_of_sea_passage = st.datetime_input("Commencement of Sea Passage (COSP)", datetime.now())
-    ballast_laden = st.selectbox("Ballast/Laden", ["Ballast", "Laden"])
-    draft_f = st.number_input("Draft F (m)", min_value=0.0, step=0.01)
-    draft_a = st.number_input("Draft A (m)", min_value=0.0, step=0.01)
-    start_new_voyage = st.checkbox("Start New Voyage")
-    off_hire_delay = st.number_input("Off Hire Delay (hrs)", min_value=0.0, step=0.01)
-    maneuvering = st.number_input("Maneuvering (hrs)", min_value=0.0, step=0.01)
-    maneuvering_distance = st.number_input("Maneuvering distance (nm)", min_value=0.0, step=0.01)
-    last_port = st.text_input("Last Port")
-    next_port_operation = st.text_input("Next Port operation")
-    distance_to_go = st.number_input("Distance to Go (nm)", min_value=0.0, step=0.01)
-    eta = st.datetime_input("ETA", datetime.now())
-    me_time_counter_at_cosp = st.text_input("ME Time Counter at COSP")
-    shaft_generator_power = st.number_input("Shaft Generator Power (kw)", min_value=0.0, step=0.01)
-
-with tabs[1]:
-    st.header("Bilge, Sludge")
-    quantity_of_sludge_landed = st.number_input("Quantity of Sludge Landed (cu.m)", min_value=0.0, step=0.01)
-    quantity_of_bilge_water_landed = st.number_input("Quantity of Bilge Water Landed (cu.m)", min_value=0.0, step=0.01)
-    quantity_of_garbage_landed = st.number_input("Quantity of Garbage Landed (cu.m)", min_value=0.0, step=0.01)
-    lo_sample_presence = st.checkbox("LO Sample presence")
-
-with tabs[2]:
+    # General Information Fields
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        vessel = st.text_input("Vessel")
+        voyage_no = st.text_input("Voyage No")
+        port = st.text_input("Port")
+        next_port = st.text_input("Next Port")
+    with col2:
+        berth_location = st.text_input("Name of Berth/Location")
+        cosp = st.text_input("COSP")
+        ship_mean_time_utc = st.time_input("Ship Mean Time (UTC)", datetime.now().time())
+        ship_mean_time_lt = st.time_input("Ship Mean Time (LT)", datetime.now().time())
+    with col3:
+        departure_date = st.date_input("Departure Date", datetime.now().date())
+        last_port = st.text_input("Last Port")
+        next_port_operation = st.text_input("Next Port operation")
+        distance_to_go = st.number_input("Distance to Go (nm)", min_value=0.0, step=0.01)
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        eta = st.date_input("ETA Date", datetime.now().date())
+        eta_time = st.time_input("ETA Time", datetime.now().time())
+        me_time_counter_at_cosp = st.text_input("ME Time Counter at COSP")
+        shaft_generator_power = st.number_input("Shaft Generator Power (kw)", min_value=0.0, step=0.01)
+    with col2:
+        draft_f = st.number_input("Draft F (m)", min_value=0.0, step=0.01)
+        draft_a = st.number_input("Draft A (m)", min_value=0.0, step=0.01)
+        start_new_voyage = st.checkbox("Start New Voyage")
+        off_hire_delay = st.number_input("Off Hire Delay (hrs)", min_value=0.0, step=0.01)
+        maneuvering = st.number_input("Maneuvering (hrs)", min_value=0.0, step=0.01)
+        maneuvering_distance = st.number_input("Maneuvering distance (nm)", min_value=0.0, step=0.01)
+    
     st.header("Voyage Planning")
-    optimum_speed = st.checkbox("Optimum Speed")
-    optimum_trim = st.checkbox("Optimum Trim")
-    most_efficient_route = st.checkbox("Most Efficient Route")
-    cargo_stowage = st.checkbox("Cargo Stowage")
-    any_cargo_tank_cargo_hold_cleaning = st.checkbox("Any Cargo tank / Cargo Hold Cleaning")
-    charter_standard = st.text_input("Charter Standard")
+    col1, col2 = st.columns(2)
+    with col1:
+        optimum_speed = st.checkbox("Optimum Speed")
+        optimum_trim = st.checkbox("Optimum Trim")
+        most_efficient_route = st.checkbox("Most Efficient Route")
+        cargo_stowage = st.checkbox("Cargo Stowage")
+    with col2:
+        any_cargo_tank_cargo_hold_cleaning = st.checkbox("Any Cargo tank / Cargo Hold Cleaning")
+        charter_standard = st.text_input("Charter Standard")
     voyage_plan_remarks = st.text_area("Voyage Plan Remarks")
-
-with tabs[3]:
+    
     st.header("Remarks")
     remarks = st.text_area("Remarks")
-
-with tabs[4]:
-    st.header("Lube Oil (Ltrs)")
-    me_cylinder_oil_40 = {
-        "Prev. ROB": st.number_input("ME Cylinder Oil 40 TBN - Prev. ROB", min_value=0.0, step=0.01),
-        "Cons": st.number_input("ME Cylinder Oil 40 TBN - Cons", min_value=0.0, step=0.01),
-        "Received": st.number_input("ME Cylinder Oil 40 TBN - Received", min_value=0.0, step=0.01),
-        "ROB": st.number_input("ME Cylinder Oil 40 TBN - ROB", min_value=0.0, step=0.01)
-    }
-    me_cylinder_oil_50 = {
-        "Prev. ROB": st.number_input("ME Cylinder Oil 50 TBN - Prev. ROB", min_value=0.0, step=0.01),
-        "Cons": st.number_input("ME Cylinder Oil 50 TBN - Cons", min_value=0.0, step=0.01),
-        "Received": st.number_input("ME Cylinder Oil 50 TBN - Received", min_value=0.0, step=0.01),
-        "ROB": st.number_input("ME Cylinder Oil 50 TBN - ROB", min_value=0.0, step=0.01)
-    }
-    # Repeat for other lube oil types
-
-with tabs[5]:
-    st.header("Fresh Water")
-    domestic_fresh_water = {
-        "Previous ROB": st.number_input("Domestic Fresh Water - Previous ROB", min_value=0.0, step=0.01),
-        "Received": st.number_input("Domestic Fresh Water - Received", min_value=0.0, step=0.01),
-        "ROB on Dep": st.number_input("Domestic Fresh Water - ROB on Dep", min_value=0.0, step=0.01),
-        "Cons": st.number_input("Domestic Fresh Water - Cons", min_value=0.0, step=0.01)
-    }
-    drinking_water = {
-        "Previous ROB": st.number_input("Drinking Water - Previous ROB", min_value=0.0, step=0.01),
-        "Received": st.number_input("Drinking Water - Received", min_value=0.0, step=0.01),
-        "ROB on Dep": st.number_input("Drinking Water - ROB on Dep", min_value=0.0, step=0.01),
-        "Cons": st.number_input("Drinking Water - Cons", min_value=0.0, step=0.01)
-    }
-    # Repeat for other water types
-
-with tabs[6]:
+    
     st.header("Services in Port")
     service_type = st.text_input("Service Type")
-    qty = st.number_input("Qty", min_value=0.0, step=0.01)
-    unit = st.text_input("Unit")
-    est_cost = st.number_input("Est Cost", min_value=0.0, step=0.01)
-    currency = st.text_input("Currency")
-    service_on = st.text_input("Service On")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        qty = st.number_input("Qty", min_value=0.0, step=0.01)
+        unit = st.text_input("Unit")
+    with col2:
+        est_cost = st.number_input("Est Cost", min_value=0.0, step=0.01)
+        currency = st.text_input("Currency")
+    with col3:
+        service_on = st.text_input("Service On")
     remarks_service = st.text_area("Remarks")
-
-with tabs[7]:
+    
     st.header("Consumption (MT)")
-    complied_with_guidelines = st.checkbox("Have you read and complied with guidelines in Circulars T17 and T17D?")
-    local_port_agent_confirmed = st.checkbox("Local Port Agent has confirmed that your ship can use fuel with more than 0.1%S?")
-    fuel_types = {
-        "Previous ROB": st.number_input("Fuel Types - Previous ROB", min_value=0.0, step=0.01),
-        "In Port - M/E": st.number_input("Fuel Types - In Port - M/E", min_value=0.0, step=0.01),
-        "In Port - A/E": st.number_input("Fuel Types - In Port - A/E", min_value=0.0, step=0.01),
-        "In Port - BLR": st.number_input("Fuel Types - In Port - BLR", min_value=0.0, step=0.01),
-        "In Port - IGG": st.number_input("Fuel Types - In Port - IGG", min_value=0.0, step=0.01),
-        "In Port - GE/EG": st.number_input("Fuel Types - In Port - GE/EG", min_value=0.0, step=0.01),
-        "In Port - OTH": st.number_input("Fuel Types - In Port - OTH", min_value=0.0, step=0.01),
-        "Bunker Qty": st.number_input("Fuel Types - Bunker Qty", min_value=0.0, step=0.01),
-        "Sulphur %": st.number_input("Fuel Types - Sulphur %", min_value=0.0, step=0.01),
-        "ROB @ (BDN)": st.number_input("Fuel Types - ROB @ (BDN)", min_value=0.0, step=0.01),
-        "At Harbour - M/E": st.number_input("Fuel Types - At Harbour - M/E", min_value=0.0, step=0.01),
-        "At Harbour - A/E": st.number_input("Fuel Types - At Harbour - A/E", min_value=0.0, step=0.01),
-        "At Harbour - BLR": st.number_input("Fuel Types - At Harbour - BLR", min_value=0.0, step=0.01),
-        "At Harbour - IGG": st.number_input("Fuel Types - At Harbour - IGG", min_value=0.0, step=0.01),
-        "At Harbour - GE/EG": st.number_input("Fuel Types - At Harbour - GE/EG", min_value=0.0, step=0.01),
-        "At Harbour - OTH": st.number_input("Fuel Types - At Harbour - OTH", min_value=0.0, step=0.01),
-        "ROB @ (COSP)": st.number_input("Fuel Types - ROB @ (COSP)", min_value=0.0, step=0.01)
-    }
+    col1, col2 = st.columns(2)
+    with col1:
+        complied_with_guidelines = st.checkbox("Have you read and complied with guidelines in Circulars T17 and T17D?")
+        local_port_agent_confirmed = st.checkbox("Local Port Agent has confirmed that your ship can use fuel with more than 0.1%S?")
+    with col2:
+        fuel_types_prev_rob = st.number_input("Previous ROB", min_value=0.0, step=0.01)
+        fuel_types_in_port_me = st.number_input("In Port - M/E", min_value=0.0, step=0.01)
+        fuel_types_in_port_ae = st.number_input("In Port - A/E", min_value=0.0, step=0.01)
+        fuel_types_in_port_blr = st.number_input("In Port - BLR", min_value=0.0, step=0.01)
+        fuel_types_in_port_igg = st.number_input("In Port - IGG", min_value=0.0, step=0.01)
+        fuel_types_in_port_geeg = st.number_input("In Port - GE/EG", min_value=0.0, step=0.01)
+        fuel_types_in_port_oth = st.number_input("In Port - OTH", min_value=0.0, step=0.01)
+        fuel_types_bunker_qty = st.number_input("Bunker Qty", min_value=0.0, step=0.01)
+        fuel_types_sulphur = st.number_input("Sulphur %", min_value=0.0, step=0.01)
+        fuel_types_rob_bdn = st.number_input("ROB @ (BDN)", min_value=0.0, step=0.01)
+        fuel_types_rob_cosp = st.number_input("ROB @ (COSP)", min_value=0.0, step=0.01)
     action = st.text_input("Action")
+    
+    st.header("Fresh Water")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        domestic_fresh_water_prev_rob = st.number_input("Domestic Fresh Water - Previous ROB", min_value=0.0, step=0.01)
+        domestic_fresh_water_received = st.number_input("Domestic Fresh Water - Received", min_value=0.0, step=0.01)
+        domestic_fresh_water_rob_dep = st.number_input("Domestic Fresh Water - ROB on Dep", min_value=0.0, step=0.01)
+        domestic_fresh_water_cons = st.number_input("Domestic Fresh Water - Cons", min_value=0.0, step=0.01)
+    with col2:
+        drinking_water_prev_rob = st.number_input("Drinking Water - Previous ROB", min_value=0.0, step=0.01)
+        drinking_water_received = st.number_input("Drinking Water - Received", min_value=0.0, step=0.01)
+        drinking_water_rob_dep = st.number_input("Drinking Water - ROB on Dep", min_value=0.0, step=0.01)
+        drinking_water_cons = st.number_input("Drinking Water - Cons", min_value=0.0, step=0.01)
+    with col3:
+        boiler_water_prev_rob = st.number_input("Boiler Water - Previous ROB", min_value=0.0, step=0.01)
+        boiler_water_received = st.number_input("Boiler Water - Received", min_value=0.0, step=0.01)
+        boiler_water_rob_dep = st.number_input("Boiler Water - ROB on Dep", min_value=0.0, step=0.01)
+        boiler_water_cons = st.number_input("Boiler Water - Cons", min_value=0.0, step=0.01)
+        tank_cleaning_water_prev_rob = st.number_input("Tank Cleaning Water - Previous ROB", min_value=0.0, step=0.01)
+        tank_cleaning_water_received = st.number_input("Tank Cleaning Water - Received", min_value=0.0, step=0.01)
+        tank_cleaning_water_rob_dep = st.number_input("Tank Cleaning Water - ROB on Dep", min_value=0.0, step=0.01)
+        tank_cleaning_water_cons = st.number_input("Tank Cleaning Water - Cons", min_value=0.0, step=0.01)
+    
+    st.header("Lube Oil (Ltrs)")
+    me_cylinder_oil_40_prev_rob = st.number_input("ME Cylinder Oil 40 TBN - Prev. ROB", min_value=0.0, step=0.01)
+    me_cylinder_oil_40_cons = st.number_input("ME Cylinder Oil 40 TBN - Cons", min_value=0.0, step=0.01)
+    me_cylinder_oil_40_received = st.number_input("ME Cylinder Oil 40 TBN - Received", min_value=0.0, step=0.01)
+    me_cylinder_oil_40_rob = st.number_input("ME Cylinder Oil 40 TBN - ROB", min_value=0.0, step=0.01)
+    
+    me_cylinder_oil_50_prev_rob = st.number_input("ME Cylinder Oil 50 TBN - Prev. ROB", min_value=0.0, step=0.01)
+    me_cylinder_oil_50_cons = st.number_input("ME Cylinder Oil 50 TBN - Cons", min_value=0.0, step=0.01)
+    me_cylinder_oil_50_received = st.number_input("ME Cylinder Oil 50 TBN - Received", min_value=0.0, step=0.01)
+    me_cylinder_oil_50_rob = st.number_input("ME Cylinder Oil 50 TBN - ROB", min_value=0.0, step=0.01)
+    
+    me_cylinder_oil_70_prev_rob = st.number_input("ME Cylinder Oil 70 TBN - Prev. ROB", min_value=0.0, step=0.01)
+    me_cylinder_oil_70_cons = st.number_input("ME Cylinder Oil 70 TBN - Cons", min_value=0.0, step=0.01)
+    me_cylinder_oil_70_received = st.number_input("ME Cylinder Oil 70 TBN - Received", min_value=0.0, step=0.01)
+    me_cylinder_oil_70_rob = st.number_input("ME Cylinder Oil 70 TBN - ROB", min_value=0.0, step=0.01)
+    
+    me_cylinder_oil_100_prev_rob = st.number_input("ME Cylinder Oil 100 TBN - Prev. ROB", min_value=0.0, step=0.01)
+    me_cylinder_oil_100_cons = st.number_input("ME Cylinder Oil 100 TBN - Cons", min_value=0.0, step=0.01)
+    me_cylinder_oil_100_received = st.number_input("ME Cylinder Oil 100 TBN - Received", min_value=0.0, step=0.01)
+    me_cylinder_oil_100_rob = st.number_input("ME Cylinder Oil 100 TBN - ROB", min_value=0.0, step=0.01)
+    
+    me_mt_system_oil_prev_rob = st.number_input("ME/MT System Oil - Prev. ROB", min_value=0.0, step=0.01)
+    me_mt_system_oil_cons = st.number_input("ME/MT System Oil - Cons", min_value=0.0, step=0.01)
+    me_mt_system_oil_received = st.number_input("ME/MT System Oil - Received", min_value=0.0, step=0.01)
+    me_mt_system_oil_rob = st.number_input("ME/MT System Oil - ROB", min_value=0.0, step=0.01)
+    
+    ae_system_oil_prev_rob = st.number_input("AE System Oil - Prev. ROB", min_value=0.0, step=0.01)
+    ae_system_oil_cons = st.number_input("AE System Oil - Cons", min_value=0.0, step=0.01)
+    ae_system_oil_received = st.number_input("AE System Oil - Received", min_value=0.0, step=0.01)
+    ae_system_oil_rob = st.number_input("AE System Oil - ROB", min_value=0.0, step=0.01)
+    
+    ae_system_oil_15_prev_rob = st.number_input("AE System Oil 15TBN - Prev. ROB", min_value=0.0, step=0.01)
+    ae_system_oil_15_cons = st.number_input("AE System Oil 15TBN - Cons", min_value=0.0, step=0.01)
+    ae_system_oil_15_received = st.number_input("AE System Oil 15TBN - Received", min_value=0.0, step=0.01)
+    ae_system_oil_15_rob = st.number_input("AE System Oil 15TBN - ROB", min_value=0.0, step=0.01)
+    
+    tg_system_oil_prev_rob = st.number_input("T/O System Oil - Prev. ROB", min_value=0.0, step=0.01)
+    tg_system_oil_cons = st.number_input("T/O System Oil - Cons", min_value=0.0, step=0.01)
+    tg_system_oil_received = st.number_input("T/O System Oil - Received", min_value=0.0, step=0.01)
+    tg_system_oil_rob = st.number_input("T/O System Oil - ROB", min_value=0.0, step=0.01)
 
-with tabs[8]:
-    st.header("Cargo Operations")
+# Operations Tab
+with tabs[1]:
+    st.header("Operations")
+    
+    st.subheader("Cargo Operations")
     no_cargo_operations = st.checkbox("No Cargo Operations in this port")
     cargo_operation = {
         "Cargo": st.text_input("Cargo"),
@@ -143,58 +166,76 @@ with tabs[8]:
         "Oil Major": st.text_input("Oil Major"),
         "Basis of Final Qty": st.text_input("Basis of Final Qty"),
         "BTB Transfer Y/N": st.text_input("BTB Transfer Y/N"),
-        "Commenced": st.datetime_input("Commenced", datetime.now()),
-        "Completed": st.datetime_input("Completed", datetime.now()),
+        "Commenced": st.date_input("Commenced Date", datetime.now().date()),
+        "Commenced Time": st.time_input("Commenced Time", datetime.now().time()),
+        "Completed": st.date_input("Completed Date", datetime.now().date()),
+        "Completed Time": st.time_input("Completed Time", datetime.now().time()),
         "Action": st.text_input("Action")
     }
-
-with tabs[9]:
-    st.header("Ballasting / Deballasting")
-    commenced_ballasting = st.datetime_input("Commenced Ballasting", datetime.now())
-    completed_ballasting = st.datetime_input("Completed Ballasting", datetime.now())
+    
+    st.subheader("Ballasting / Deballasting")
+    commenced_ballasting = st.date_input("Commenced Ballasting Date", datetime.now().date())
+    commenced_ballasting_time = st.time_input("Commenced Ballasting Time", datetime.now().time())
+    completed_ballasting = st.date_input("Completed Ballasting Date", datetime.now().date())
+    completed_ballasting_time = st.time_input("Completed Ballasting Time", datetime.now().time())
     quantity_ballasted = st.number_input("Quantity Ballasted (MT)", min_value=0.0, step=0.01)
-    commenced_deballasting = st.datetime_input("Commenced Deballasting", datetime.now())
-    completed_deballasting = st.datetime_input("Completed Deballasting", datetime.now())
+    commenced_deballasting = st.date_input("Commenced Deballasting Date", datetime.now().date())
+    commenced_deballasting_time = st.time_input("Commenced Deballasting Time", datetime.now().time())
+    completed_deballasting = st.date_input("Completed Deballasting Date", datetime.now().date())
+    completed_deballasting_time = st.time_input("Completed Deballasting Time", datetime.now().time())
     quantity_deballasted = st.number_input("Quantity Deballasted (MT)", min_value=0.0, step=0.01)
-
-with tabs[10]:
-    st.header("Tank Cleaning")
+    
+    st.subheader("Tank Cleaning")
     hold_tank_cleaning = st.checkbox("Hold / Tank Cleaning")
-    hold_tank_cleaning_commenced = st.datetime_input("Hold / Tank Cleaning Commenced", datetime.now())
-    hold_tank_cleaning_completed = st.datetime_input("Hold / Tank Cleaning Completed", datetime.now())
+    hold_tank_cleaning_commenced = st.date_input("Hold / Tank Cleaning Commenced Date", datetime.now().date())
+    hold_tank_cleaning_commenced_time = st.time_input("Hold / Tank Cleaning Commenced Time", datetime.now().time())
+    hold_tank_cleaning_completed = st.date_input("Hold / Tank Cleaning Completed Date", datetime.now().date())
+    hold_tank_cleaning_completed_time = st.time_input("Hold / Tank Cleaning Completed Time", datetime.now().time())
     stripping_draining = st.checkbox("Stripping / Draining")
     stripping_draining_remarks = st.text_area("Stripping / Draining Remarks")
-
-with tabs[11]:
-    st.header("Other Operations")
+    
+    st.subheader("Other Operations")
     other_operations = {
         "Description": st.text_area("Description"),
-        "Commenced": st.datetime_input("Commenced", datetime.now()),
-        "Completed": st.datetime_input("Completed", datetime.now()),
+        "Commenced Date": st.date_input("Commenced Date", datetime.now().date()),
+        "Commenced Time": st.time_input("Commenced Time", datetime.now().time()),
+        "Completed Date": st.date_input("Completed Date", datetime.now().date()),
+        "Completed Time": st.time_input("Completed Time", datetime.now().time()),
         "Action": st.text_input("Action")
     }
 
-with tabs[12]:
-    st.header("Emission in Port")
+# Emissions in Port Tab
+with tabs[2]:
+    st.header("Emissions in Port")
     vessel_name = st.text_input("Vessel Name")
     voyage_no_emission = st.text_input("Voyage No")
     port_emission = st.text_input("Port")
     ballast_laden_emission = st.checkbox("Ballast/Laden")
     eu_port = st.checkbox("EU Port")
-    arrival = st.datetime_input("Arrival", datetime.now())
-    departure = st.datetime_input("Departure", datetime.now())
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        arrival = st.date_input("Arrival Date", datetime.now().date())
+        arrival_time = st.time_input("Arrival Time", datetime.now().time())
+    with col2:
+        departure = st.date_input("Departure Date", datetime.now().date())
+        departure_time = st.time_input("Departure Time", datetime.now().time())
+    
     total_time_in_port = st.number_input("Total Time in Port (hrs)", min_value=0.0, step=0.01)
     total_aggregated_co2_emitted = st.number_input("Total Aggregated CO2 Emitted (T CO2)", min_value=0.0, step=0.01)
-
+    
     st.subheader("Consumption (Emission in Port)")
-    fuel_type = st.text_input("Fuel Type")
-    emission_factor = st.number_input("Emission Factor", min_value=0.0, step=0.01)
-    rob_at_fwe = st.number_input("ROB @ FWE", min_value=0.0, step=0.01)
-    bunkered = st.number_input("Bunkered", min_value=0.0, step=0.01)
-    rob_at_swe = st.number_input("ROB @ SWE", min_value=0.0, step=0.01)
-    total_fo_cons = st.number_input("Total FO Cons", min_value=0.0, step=0.01)
-    cargo_heating_cons = st.number_input("Cargo Heating Cons", min_value=0.0, step=0.01)
-    aggregated_co2_emitted = st.number_input("Aggregated CO2 Emitted (MT CO2)", min_value=0.0, step=0.01)
+    col1, col2 = st.columns(2)
+    with col1:
+        fuel_type = st.text_input("Fuel Type")
+        emission_factor = st.number_input("Emission Factor", min_value=0.0, step=0.01)
+        rob_at_fwe = st.number_input("ROB @ FWE", min_value=0.0, step=0.01)
+        bunkered = st.number_input("Bunkered", min_value=0.0, step=0.01)
+    with col2:
+        rob_at_swe = st.number_input("ROB @ SWE", min_value=0.0, step=0.01)
+        total_fo_cons = st.number_input("Total FO Cons", min_value=0.0, step=0.01)
+        cargo_heating_cons = st.number_input("Cargo Heating Cons", min_value=0.0, step=0.01)
+        aggregated_co2_emitted = st.number_input("Aggregated CO2 Emitted (MT CO2)", min_value=0.0, step=0.01)
 
 if st.button("Submit"):
     st.write("Form submitted successfully!")
