@@ -1,8 +1,10 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime, time
-import time as tm
 import json
+
+# Set page configuration
+st.set_page_config(layout="wide", page_title="Maritime Report")
 
 # Initialize session state
 if 'form_data' not in st.session_state:
@@ -34,8 +36,6 @@ def load_form_data():
 
 # Main app
 def main():
-    st.set_page_config(layout="wide", page_title="Maritime Report")
-    
     # Dark mode toggle
     if st.sidebar.checkbox("Dark Mode"):
         st.markdown("""
@@ -80,7 +80,7 @@ def main():
         st.success("Report submitted and saved successfully!")
 
     # Auto-save every 5 minutes
-    if tm.time() % 300 < 1:  # Every 5 minutes
+    if time.time() % 300 < 1:  # Every 5 minutes
         save_form_data()
 
     # Update progress
@@ -187,11 +187,6 @@ def position_navigation_section(search_term):
     with col1:
         input_field("Latitude", "text", search_term, help="Enter the current latitude")
         input_field("Longitude", "text", search_term, help="Enter the current longitude")
-    with col2:
-        input_field("Best ETA PBG (LT)", "date", search_term, help="Enter the best estimated time of arrival at Pilot Boarding Ground (Local Time)")
-        input_field("Best ETA PBG Time (LT)", "time", search_term, help="Enter the best estimated time of arrival at Pilot Boarding Ground (Local Time)")
-        input_field("Best ETA PBG (UTC)", "date", search_term, help="Enter the best estimated time of arrival at Pilot Boarding Ground (UTC)")
-        input_field("Best ETA PBG Time (UTC)", "time", search_term, help="Enter the best estimated time of arrival at Pilot Boarding Ground (UTC)")
 
 def weather_section(search_term):
     col1, col2 = st.columns(2)
