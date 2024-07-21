@@ -10,84 +10,121 @@ tabs = st.tabs(["General Information", "Operations", "Emissions in Port"])
 
 # General Information Tab
 with tabs[0]:
-    st.header("Voyage Information - A")
+    st.header("General Information")
+    # General Information Fields
     col1, col2, col3 = st.columns(3)
     with col1:
         vessel = st.text_input("Vessel", key="vessel")
-        imo_number = st.text_input("IMO Number", key="imo_number")
-        port_of_departure = st.text_input("Port of Departure", key="port_of_departure")
-        port_of_departure_unloc = st.text_input("UNLOC", key="port_of_departure_unloc")
-        port_of_arrival = st.text_input("Port of Arrival", key="port_of_arrival")
-        port_of_arrival_unloc = st.text_input("UNLOC", key="port_of_arrival_unloc")
-        drafts_forward = st.number_input("Drafts Forward", min_value=0.0, step=0.01, key="drafts_forward")
-        gm = st.number_input("GM", min_value=0.0, step=0.01, key="gm")
-        cargo_type = st.text_input("Cargo Type", key="cargo_type")
-        cargo_weight = st.number_input("Cargo Weight", min_value=0.0, step=0.01, key="cargo_weight")
+        voyage_no = st.text_input("Voyage No", key="voyage_no")
+        port = st.text_input("Port", key="port")
+        next_port = st.text_input("Next Port", key="next_port")
+        eta = st.date_input("ETA Date", datetime.now().date(), key="eta_date")
+        eta_time = st.time_input("ETA Time", datetime.now().time(), key="eta_time")
     with col2:
-        voyage_id = st.text_input("Voyage ID", key="voyage_id")
-        date = st.date_input("Date", datetime.now().date(), key="date")
-        voyage_leg = st.text_input("Voyage Leg", key="voyage_leg")
-        time_zone_departure = st.text_input("Time Zone", key="time_zone_departure")
-        time_zone_arrival = st.text_input("Time Zone", key="time_zone_arrival")
-        operation_departure = st.text_input("Operation", key="operation_departure")
-        operation_arrival = st.text_input("Operation", key="operation_arrival")
-        drafts_aft = st.number_input("Drafts Aft", min_value=0.0, step=0.01, key="drafts_aft")
-        ballast_weight = st.number_input("Ballast Weight", min_value=0.0, step=0.01, key="ballast_weight")
-        bill_of_lading_date = st.date_input("Bill of Lading Date", datetime.now().date(), key="bill_of_lading_date")
-        volume = st.number_input("Volume", min_value=0.0, step=0.01, key="volume")
+        berth_location = st.text_input("Name of Berth/Location", key="berth_location")
+        cosp = st.text_input("COSP", key="cosp")
+        ship_mean_time_utc = st.time_input("Ship Mean Time (UTC)", datetime.now().time(), key="ship_mean_time_utc")
+        ship_mean_time_lt = st.time_input("Ship Mean Time (LT)", datetime.now().time(), key="ship_mean_time_lt")
+        me_time_counter_at_cosp = st.text_input("ME Time Counter at COSP", key="me_time_counter_at_cosp")
+        shaft_generator_power = st.number_input("Shaft Generator Power (kw)", min_value=0.0, step=0.01, key="shaft_generator_power")
     with col3:
-        drafts_mean = st.number_input("Drafts Mean", min_value=0.0, step=0.01, key="drafts_mean")
-        displacement = st.number_input("Displacement", min_value=0.0, step=0.01, key="displacement")
-        passengers = st.number_input("Passengers", min_value=0, step=1, key="passengers", format='%d')
-        cargo_parameters = st.text_area("Cargo Parameters to be Modified as per Ship Type", key="cargo_parameters")
+        departure_date = st.date_input("Departure Date", datetime.now().date(), key="departure_date")
+        last_port = st.text_input("Last Port", key="last_port")
+        next_port_operation = st.text_input("Next Port operation", key="next_port_operation")
+        distance_to_go = st.number_input("Distance to Go (nm)", min_value=0.0, step=0.01, key="distance_to_go")
+        draft_f = st.number_input("Draft F (m)", min_value=0.0, step=0.01, key="draft_f")
+        draft_a = st.number_input("Draft A (m)", min_value=0.0, step=0.01, key="draft_a")
+        start_new_voyage = st.checkbox("Start New Voyage", key="start_new_voyage")
+        off_hire_delay = st.number_input("Off Hire Delay (hrs)", min_value=0.0, step=0.01, key="off_hire_delay")
+        maneuvering = st.number_input("Maneuvering (hrs)", min_value=0.0, step=0.01, key="maneuvering")
+        maneuvering_distance = st.number_input("Maneuvering distance (nm)", min_value=0.0, step=0.01, key="maneuvering_distance")
 
-    st.header("Voyage Information - B")
+    st.header("Voyage Planning")
     col1, col2, col3 = st.columns(3)
     with col1:
-        sbe_date = st.date_input("SBE Date", datetime.now().date(), key="sbe_date")
-        sbe_time_lt = st.time_input("SBE Time (LT)", datetime.now().time(), key="sbe_time_lt")
-        sbe_position_terminal = st.text_input("SBE Position / Terminal (Optional)", key="sbe_position_terminal")
-        cosp_date = st.date_input("COSP Date", datetime.now().date(), key="cosp_date")
-        cosp_time_lt = st.time_input("COSP Time (LT)", datetime.now().time(), key="cosp_time_lt")
-        position_latitude = st.text_input("Position Latitude", key="position_latitude")
-        position_longitude = st.text_input("Position Longitude", key="position_longitude")
+        optimum_speed = st.checkbox("Optimum Speed", key="optimum_speed")
+        optimum_trim = st.checkbox("Optimum Trim", key="optimum_trim")
     with col2:
-        sbe_time_utc = st.time_input("SBE Time (UTC)", datetime.now().time(), key="sbe_time_utc")
-        cosp_time_utc = st.time_input("COSP Time (UTC)", datetime.now().time(), key="cosp_time_utc")
-        steaming_time = st.text_input("Steaming Time", key="steaming_time")
-        manoeuvring_distance = st.number_input("Manoeuvring Distance", min_value=0.0, step=0.01, key="manoeuvring_distance")
-        engine_distance = st.number_input("Engine Distance", min_value=0.0, step=0.01, key="engine_distance")
-        sog = st.number_input("SOG", min_value=0.0, step=0.01, key="sog")
-        tugs_used = st.selectbox("Tugs Used", ["One", "Two"], key="tugs_used")
+        most_efficient_route = st.checkbox("Most Efficient Route", key="most_efficient_route")
+        cargo_stowage = st.checkbox("Cargo Stowage", key="cargo_stowage")
     with col3:
-        distance_to_next_port = st.number_input("Distance to Next Port (nm)", min_value=0.0, step=0.01, key="distance_to_next_port")
-        speed_instruction = st.text_input("Speed Instruction", key="speed_instruction")
-        eta_rta_next_port_date = st.date_input("ETA/RTA Next Port Date", datetime.now().date(), key="eta_rta_next_port_date")
-        eta_rta_next_port_time_lt = st.time_input("ETA/RTA Next Port Time (LT)", datetime.now().time(), key="eta_rta_next_port_time_lt")
-        eta_rta_next_port_time_utc = st.time_input("ETA/RTA Next Port Time (UTC)", datetime.now().time(), key="eta_rta_next_port_time_utc")
-        eta_terminal_berth_date = st.date_input("ETA Terminal/Berth Date", datetime.now().date(), key="eta_terminal_berth_date")
-        eta_terminal_berth_time_lt = st.time_input("ETA Terminal/Berth Time (LT)", datetime.now().time(), key="eta_terminal_berth_time_lt")
-        eta_terminal_berth_time_utc = st.time_input("ETA Terminal/Berth Time (UTC)", datetime.now().time(), key="eta_terminal_berth_time_utc")
-
-    st.header("Weather Observation @COSP")
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        wind_force = st.number_input("Wind Force", min_value=0.0, step=0.01, key="wind_force")
-        wind_speed = st.number_input("Wind Speed", min_value=0.0, step=0.01, key="wind_speed")
-        wind_direction_true = st.text_input("Wind Direction (True)", key="wind_direction_true")
-        wind_direction_relative = st.text_input("Wind Direction (Relative)", key="wind_direction_relative")
-    with col2:
-        sea_state_code = st.text_input("Sea State Code", key="sea_state_code")
-        sea_height = st.number_input("Sea Height", min_value=0.0, step=0.01, key="sea_height")
-        sea_direction_true = st.text_input("Sea Direction (True)", key="sea_direction_true")
-        sea_direction_relative = st.text_input("Sea Direction (Relative)", key="sea_direction_relative")
-    with col3:
-        swell_height = st.number_input("Swell Height", min_value=0.0, step=0.01, key="swell_height")
-        swell_direction_true = st.text_input("Swell Direction (True)", key="swell_direction_true")
-        swell_direction_relative = st.text_input("Swell Direction (Relative)", key="swell_direction_relative")
-
+        any_cargo_tank_cargo_hold_cleaning = st.checkbox("Any Cargo tank / Cargo Hold Cleaning", key="any_cargo_tank_cargo_hold_cleaning")
+        charter_standard = st.text_input("Charter Standard", key="charter_standard")
+    voyage_plan_remarks = st.text_area("Voyage Plan Remarks", height=100, key="voyage_plan_remarks")
+    
     st.header("Remarks")
-    remarks_general = st.text_area("Remarks", height=100, key="remarks_general")
+    remarks_general = st.text_area("General Remarks", height=100, key="remarks_general")
+    
+    st.header("Services in Port")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        service_type = st.text_input("Service Type", key="service_type")
+        qty = st.number_input("Qty", min_value=0.0, step=0.01, key="qty")
+    with col2:
+        unit = st.text_input("Unit", key="unit")
+        est_cost = st.number_input("Est Cost", min_value=0.0, step=0.01, key="est_cost")
+    with col3:
+        currency = st.text_input("Currency", key="currency")
+        service_on = st.text_input("Service On", key="service_on")
+    remarks_service = st.text_area("Service Remarks", height=100, key="remarks_service")
+    
+    st.header("Lube Oil (Ltrs)")
+    st.subheader("Lube Oil")
+    lube_oil_data = {
+        "Lube Oil": ["ME Cylinder Oil", "ME Cylinder Oil 40 TBN", "ME Cylinder Oil 70 TBN", "ME Cylinder Oil 100 TBN", "ME/MT System Oil", "AE System Oil", "AE System Oil 15TBN", "T/O System Oil"],
+        "Prev. ROB": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "Cons": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "Received": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "ROB": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    }
+    lube_oil_df = pd.DataFrame(lube_oil_data)
+    st.dataframe(lube_oil_df)
+
+    st.header("Fresh Water")
+    st.subheader("Fresh Water")
+    fresh_water_data = {
+        "Fresh Water": ["Domestic Fresh Water", "Drinking Water", "Boiler Water", "Tank Cleaning Water"],
+        "Previous ROB": [240.0, 0.0, 0.0, 0.0],
+        "Received": [0.0, 0.0, 0.0, 0.0],
+        "ROB on Dep": [232.0, 0.0, 0.0, 0.0],
+        "Cons": [0.0, 0.0, 0.0, 0.0]
+    }
+    fresh_water_df = pd.DataFrame(fresh_water_data)
+    st.dataframe(fresh_water_df)
+    
+    st.header("Consumption (MT)")
+    st.subheader("Consumption (MT)")
+    consumption_data = {
+        "Fuel Type": [
+            "Heavy Fuel Oil RME-RMK - 380cSt", "Heavy Fuel Oil RMA-RMD - 80cSt",
+            "VLSFO RME-RMK Visc >380cSt 0.5%S Max", "VLSFO RMA-RMD Visc >80cSt 0.5%S Max",
+            "ULSFO RME-RMK <380cSt 0.1%S Max", "ULSFO RMA-RMD <80cSt 0.1%S Max",
+            "VLSMGO 0.5%S Max", "ULSMGO 0.1%S Max",
+            "Biofuel - 30", "Biofuel Distillate FO",
+            "LPG - Propane", "LPG - Butane",
+            "LNG (Bunkered)"
+        ],
+        "Previous ROB": [0.0, 0.0, 385.6, 0.0, 0.0, 0.0, 0.0, 571.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "In Port M/E": [0.0, 0.0, 1.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "In Port A/E": [0.0, 0.0, 0.2, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "In Port BLR": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "In Port IGG": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "In Port GE/EG": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "In Port OTH": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "Bunker Qty": [0.0, 0.0, 568.12, 0.0, 0.0, 0.0, 100.51, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "Sulphur %": [0.0, 0.0, 0.48, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "ROB @ BDN": [0.0, 0.0, 892.42, 0.0, 0.0, 0.0, 671.51, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "At Harbour M/E": [0.0, 0.0, 15.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "At Harbour A/E": [0.0, 0.0, 5.12, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "At Harbour BLR": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "At Harbour IGG": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "At Harbour GE/EG": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "At Harbour OTH": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "ROB @ COSP": [0.0, 0.0, 871.8, 0.0, 0.0, 0.0, 671.51, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "Action": ["", "", "", "", "", "", "", "", "", "", "", "", ""]
+    }
+    consumption_df = pd.DataFrame(consumption_data)
+    st.dataframe(consumption_df)
 
 # Operations Tab
 with tabs[1]:
