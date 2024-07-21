@@ -41,7 +41,7 @@ with tabs[0]:
         speed_required = st.number_input("Speed required to achieve Scheduled ETA (kts)", min_value=0.0, step=0.1, key="speed_required")
 
     st.subheader("Best ETA PBG")
-    col1, col2, col3 = st.columns(3)
+    col1, col2 = st.columns(2)
     with col1:
         best_eta_pbg_lt_date = st.date_input("Best ETA PBG (LT) Date", datetime.now().date(), key="best_eta_pbg_lt_date")
         best_eta_pbg_lt_time = st.time_input("Best ETA PBG (LT) Time", datetime.now().time(), key="best_eta_pbg_lt_time")
@@ -50,6 +50,34 @@ with tabs[0]:
         best_eta_pbg_utc_time = st.time_input("Best ETA PBG (UTC) Time", datetime.now().time(), key="best_eta_pbg_utc_time")
 
     ballast_laden = st.radio("Ballast/Laden", ["Ballast", "Laden"], key="ballast_laden")
+
+    # Speed and Consumption Section
+    st.header("Speed and Consumption")
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        full_speed_hrs = st.number_input("Full Speed (hrs)", min_value=0.0, step=0.1, key="full_speed_hrs")
+        full_speed_nm = st.number_input("Full Speed (nm)", min_value=0.0, step=0.1, key="full_speed_nm")
+        reduced_speed_hrs = st.number_input("Reduced Speed/Slow Steaming (hrs)", min_value=0.0, step=0.1, key="reduced_speed_hrs")
+        reduced_speed_nm = st.number_input("Reduced Speed/Slow Steaming (nm)", min_value=0.0, step=0.1, key="reduced_speed_nm")
+        stopped_hrs = st.number_input("Stopped (hrs)", min_value=0.0, step=0.1, key="stopped_hrs")
+
+    with col2:
+        distance_observed = st.number_input("Distance Observed (nm)", min_value=0.0, step=0.1, key="distance_observed")
+        obs_speed_sog = st.number_input("Obs Speed (SOG) (kts)", min_value=0.0, step=0.1, key="obs_speed_sog")
+        em_log_speed = st.number_input("EM Log Speed (LOG) (kts)", min_value=0.0, step=0.1, key="em_log_speed")
+        voyage_average_speed = st.number_input("Voyage Average Speed (kts)", min_value=0.0, step=0.1, key="voyage_average_speed")
+        distance_to_go = st.number_input("Distance To Go (nm)", min_value=0.0, step=0.1, key="distance_to_go")
+
+    with col3:
+        distance_since_cosp = st.number_input("Distance since COSP (nm)", min_value=0.0, step=0.1, key="distance_since_cosp")
+        voyage_order_speed = st.number_input("Voyage Order Speed (kts)", min_value=0.0, step=0.1, key="voyage_order_speed")
+        voyage_order_me_fo_cons = st.number_input("Voyage Order ME FO Cons (mt)", min_value=0.0, step=0.1, key="voyage_order_me_fo_cons")
+        voyage_order_me_do_cons = st.number_input("Voyage Order ME DO Cons (mt)", min_value=0.0, step=0.1, key="voyage_order_me_do_cons")
+        course = st.number_input("Course (°T)", min_value=0.0, step=0.1, key="course")
+        draft_f = st.number_input("Draft F (m)", min_value=0.0, step=0.1, key="draft_f")
+        draft_a = st.number_input("Draft A (m)", min_value=0.0, step=0.1, key="draft_a")
+        displacement = st.number_input("Displacement (mt)", min_value=0.0, step=0.1, key="displacement")
 
 if st.button("Submit", key="submit_noon_at_sea"):
     st.write("Noon at Sea report submitted successfully!")
