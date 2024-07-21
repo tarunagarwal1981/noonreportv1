@@ -78,5 +78,27 @@ with tabs[0]:
         draft_a = st.number_input("Draft A (m)", min_value=0.0, step=0.1, key="draft_a")
         displacement = st.number_input("Displacement (mt)", min_value=0.0, step=0.1, key="displacement")
 
+    # Wind and Weather Section
+    st.header("Wind and Weather")
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        wind_direction = st.selectbox("Wind Direction", ["N", "NE", "E", "SE", "S", "SW", "W", "NW"], key="wind_direction")
+        wind_force = st.number_input("Wind Force", min_value=0, step=1, key="wind_force")
+        visibility = st.number_input("Visibility (nm)", min_value=0.0, step=0.1, key="visibility")
+        bad_weather_period = st.number_input("Period of bad Weather (hrs)", min_value=0.0, step=0.1, key="bad_weather_period")
+        
+    with col2:
+        sea_height = st.number_input("Sea Height (m)", min_value=0.0, step=0.1, key="sea_height")
+        sea_direction = st.selectbox("Sea Direction", ["N", "NE", "E", "SE", "S", "SW", "W", "NW"], key="sea_direction")
+        swell_height = st.number_input("Swell Height (m)", min_value=0.0, step=0.1, key="swell_height")
+        swell_direction = st.selectbox("Swell Direction", ["N", "NE", "E", "SE", "S", "SW", "W", "NW"], key="swell_direction")
+        
+    with col3:
+        current_set = st.number_input("Current Set (kts)", min_value=0.0, step=0.1, key="current_set")
+        current_drift = st.selectbox("Current Drift", ["N", "NE", "E", "SE", "S", "SW", "W", "NW"], key="current_drift")
+        air_temp = st.number_input("Air Temp (°C)", min_value=-50.0, max_value=50.0, step=0.1, key="air_temp")
+        icing_on_deck = st.checkbox("Icing on Deck?", key="icing_on_deck")
+
 if st.button("Submit", key="submit_noon_at_sea"):
     st.write("Noon at Sea report submitted successfully!")
