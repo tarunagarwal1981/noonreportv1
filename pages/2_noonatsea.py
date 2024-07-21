@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime, time
-import time as tm
 import json
 
 # Initialize session state
@@ -9,9 +8,6 @@ if 'form_data' not in st.session_state:
     st.session_state.form_data = {}
 if 'progress' not in st.session_state:
     st.session_state.progress = 0
-
-# Set page configuration at the top-level
-st.set_page_config(layout="wide", page_title="Maritime Report")
 
 # Function to update progress
 def update_progress():
@@ -35,8 +31,55 @@ def load_form_data():
     except FileNotFoundError:
         st.warning("No saved form data found.")
 
-# Main app
+# Function to create input fields
+def input_field(label, field_type, search_term, **kwargs):
+    if search_term.lower() in label.lower():
+        st.markdown(f"**{label}**")
+    if field_type == "text":
+        return st.text_input(label, key=label, help=kwargs.get("help", ""), value=st.session_state.form_data.get(label, ""))
+    elif field_type == "number":
+        return st.number_input(label, key=label, help=kwargs.get("help", ""), value=float(st.session_state.form_data.get(label, 0.0)), **kwargs)
+    elif field_type == "date":
+        return st.date_input(label, key=label, help=kwargs.get("help", ""), value=st.session_state.form_data.get(label, datetime.now().date()))
+    elif field_type == "time":
+        return st.time_input(label, key=label, help=kwargs.get("help", ""), value=st.session_state.form_data.get(label, datetime.now().time()))
+    elif field_type == "selectbox":
+        return st.selectbox(label, key=label, help=kwargs.get("help", ""), options=kwargs.get("options", []), index=kwargs.get("options", []).index(st.session_state.form_data.get(label, kwargs.get("options", [""])[0])))
+    elif field_type == "radio":
+        return st.radio(label, key=label, help=kwargs.get("help", ""), options=kwargs.get("options", []), index=kwargs.get("options", []).index(st.session_state.form_data.get(label, kwargs.get("options", [""])[0])))
+    elif field_type == "checkbox":
+        return st.checkbox(label, key=label, help=kwargs.get("help", ""), value=st.session_state.form_data.get(label, False))
+
+# Function to create summary
+def create_summary():
+    summary = {}
+    for key, value in st.session_state.items():
+        if not key.startswith('_') and key != 'form_data':
+            summary[key] = value
+    return summary
+
+# Function to display summary
+def display_summary():
+    st.title("Report Summary")
+    summary = create_summary()
+    for section, fields in summary.items():
+        st.header(section)
+        for field, value in fields.items():
+            st.write(f"{field}: {value}")
+
+# Function to save report
+def save_report():
+    summary = create_summary()
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"maritime_report_{timestamp}.json"
+    with open(filename, "w") as f:
+        json.dump(summary, f)
+    st.success(f"Report saved as {filename}")
+
+# Main app function
 def main():
+    st.set_page_config(layout="wide", page_title="Maritime Report")
+    
     # Dark mode toggle
     if st.sidebar.checkbox("Dark Mode"):
         st.markdown("""
@@ -93,6 +136,7 @@ def main():
         if st.button("Close Summary"):
             st.session_state.show_summary = False
 
+# Deck tab function
 def deck_tab(search_term):
     st.header("Deck Information")
 
@@ -110,6 +154,7 @@ def deck_tab(search_term):
         with st.expander(section_name, expanded=True):
             section_function(search_term)
 
+# Engine tab function
 def engine_tab(search_term):
     st.header("Engine Information")
 
@@ -358,47 +403,6 @@ def detailed_fuel_consumption_section(search_term):
     }
     consumptions_df = pd.DataFrame(consumptions_data)
     st.data_editor(consumptions_df, key="detailed_fuel_consumption_editor", hide_index=True)
-
-def input_field(label, field_type, search_term, **kwargs):
-    if search_term.lower() in label.lower():
-        st.markdown(f"**{label}**")
-    if field_type == "text":
-        return st.text_input(label, key=label, help=kwargs.get("help", ""), value=st.session_state.form_data.get(label, ""))
-    elif field_type == "number":
-        return st.number_input(label, key=label, help=kwargs.get("help", ""), value=st.session_state.form_data.get(label, 0.0), **kwargs)
-    elif field_type == "date":
-        return st.date_input(label, key=label, help=kwargs.get("help", ""), value=st.session_state.form_data.get(label, datetime.now().date()))
-    elif field_type == "time":
-        return st.time_input(label, key=label, help=kwargs.get("help", ""), value=st.session_state.form_data.get(label, datetime.now().time()))
-    elif field_type == "selectbox":
-        return st.selectbox(label, key=label, help=kwargs.get("help", ""), options=kwargs.get("options", []), index=kwargs.get("options", []).index(st.session_state.form_data.get(label, kwargs.get("options", [""])[0])))
-    elif field_type == "radio":
-        return st.radio(label, key=label, help=kwargs.get("help", ""), options=kwargs.get("options", []), index=kwargs.get("options", []).index(st.session_state.form_data.get(label, kwargs.get("options", [""])[0])))
-    elif field_type == "checkbox":
-        return st.checkbox(label, key=label, help=kwargs.get("help", ""), value=st.session_state.form_data.get(label, False))
-
-def create_summary():
-    summary = {}
-    for key, value in st.session_state.items():
-        if not key.startswith('_') and key != 'form_data':
-            summary[key] = value
-    return summary
-
-def display_summary():
-    st.title("Report Summary")
-    summary = create_summary()
-    for section, fields in summary.items():
-        st.header(section)
-        for field, value in fields.items():
-            st.write(f"{field}: {value}")
-
-def save_report():
-    summary = create_summary()
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"maritime_report_{timestamp}.json"
-    with open(filename, "w") as f:
-        json.dump(summary, f)
-    st.success(f"Report saved as {filename}")
 
 # Add keyboard shortcuts
 st.markdown("""
