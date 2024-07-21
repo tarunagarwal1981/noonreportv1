@@ -205,7 +205,7 @@ def operations_tab():
         st.checkbox("Stripping / Draining", key="stripping_draining")
         st.text_area("Stripping / Draining Remarks", height=100, key="stripping_draining_remarks")
 
-   with st.expander("Other Operations", expanded=True):
+    with st.expander("Other Operations", expanded=True):
         st.text_area("Description", height=100, key="other_operations_description")
         col1, col2 = st.columns(2)
         with col1:
