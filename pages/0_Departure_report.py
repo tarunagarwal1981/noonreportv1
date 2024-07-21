@@ -22,27 +22,45 @@ with tabs[0]:
         longitude = st.text_input("Longitude", key="longitude")
         ship_mean_time_utc = st.time_input("Ship Mean Time (UTC)", datetime.now().time(), key="ship_mean_time_utc")
         ship_mean_time_lt = st.time_input("Ship Mean Time (LT)", datetime.now().time(), key="ship_mean_time_lt")
-    with col2:
+
+    col1, col2, col3 = st.columns([2, 1, 1])
+    with col1:
         cosp = st.text_input("COSP", key="cosp")
         departure_date = st.date_input("Departure Date", datetime.now().date(), key="departure_date")
-        pilot_on_board_pob_lt = st.time_input("Pilot on Board (POB) LT", datetime.now().time(), key="pilot_on_board_pob_lt")
-        pilot_on_board_pob_utc = st.time_input("Pilot on Board (POB) UTC", datetime.now().time(), key="pilot_on_board_pob_utc")
-        standby_engines_sbe_lt = st.time_input("Standby Engines (SBE) LT", datetime.now().time(), key="standby_engines_sbe_lt")
-        standby_engines_sbe_utc = st.time_input("Standby Engines (SBE) UTC", datetime.now().time(), key="standby_engines_sbe_utc")
-        all_gone_and_clear_llc_lt = st.time_input("All Gone and Clear (LLC) LT", datetime.now().time(), key="all_gone_and_clear_llc_lt")
-        all_gone_and_clear_llc_utc = st.time_input("All Gone and Clear (LLC) UTC", datetime.now().time(), key="all_gone_and_clear_llc_utc")
-        anchor_aweigh_aaw_lt = st.time_input("Anchor Aweigh (AAW) LT", datetime.now().time(), key="anchor_aweigh_aaw_lt")
-        anchor_aweigh_aaw_utc = st.time_input("Anchor Aweigh (AAW) UTC", datetime.now().time(), key="anchor_aweigh_aaw_utc")
-    with col3:
-        dropping_of_last_outward_sea_pilot_dlosp_lt = st.time_input("Dropping of Last Outward Sea Pilot (DLOSP) LT", datetime.now().time(), key="dropping_of_last_outward_sea_pilot_dlosp_lt")
-        dropping_of_last_outward_sea_pilot_dlosp_utc = st.time_input("Dropping of Last Outward Sea Pilot (DLOSP) UTC", datetime.now().time(), key="dropping_of_last_outward_sea_pilot_dlosp_utc")
-        ring_full_away_rfa_lt = st.time_input("Ring Full Away (RFA) LT", datetime.now().time(), key="ring_full_away_rfa_lt")
-        ring_full_away_rfa_utc = st.time_input("Ring Full Away (RFA) UTC", datetime.now().time(), key="ring_full_away_rfa_utc")
-        commencement_of_sea_passage_cosp_lt = st.time_input("Commencement of Sea Passage (COSP) LT", datetime.now().time(), key="commencement_of_sea_passage_cosp_lt")
-        commencement_of_sea_passage_cosp_utc = st.time_input("Commencement of Sea Passage (COSP) UTC", datetime.now().time(), key="commencement_of_sea_passage_cosp_utc")
+        
+    st.header("Event Times")
+    for event in ["Pilot on Board (POB)", "Standby Engines (SBE)", "All Gone and Clear (LLC)", "Anchor Aweigh (AAW)", "Dropping of Last Outward Sea Pilot (DLOSP)", "Ring Full Away (RFA)", "Commencement of Sea Passage (COSP)"]:
+        col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
+        with col1:
+            st.write(event)
+        with col2:
+            st.date_input(f"{event} LT Date", datetime.now().date(), key=f"{event}_lt_date")
+            st.time_input(f"{event} LT Time", datetime.now().time(), key=f"{event}_lt_time")
+        with col3:
+            st.date_input(f"{event} UTC Date", datetime.now().date(), key=f"{event}_utc_date")
+            st.time_input(f"{event} UTC Time", datetime.now().time(), key=f"{event}_utc_time")
+            
+    col1, col2 = st.columns([1, 1])
+    with col1:
         ballast_laden = st.radio("Ballast/Laden", ["Ballast", "Laden"], key="ballast_laden")
         draft_f = st.number_input("Draft F (m)", min_value=0.0, step=0.01, key="draft_f")
         draft_a = st.number_input("Draft A (m)", min_value=0.0, step=0.01, key="draft_a")
+    with col2:
+        start_new_voyage = st.checkbox("Start New Voyage", key="start_new_voyage")
+        off_hire_delay = st.number_input("Off Hire Delay (hrs)", min_value=0.0, step=0.01, key="off_hire_delay")
+        maneuvering = st.number_input("Maneuvering (hrs)", min_value=0.0, step=0.01, key="maneuvering")
+        maneuvering_distance = st.number_input("Maneuvering distance (nm)", min_value=0.0, step=0.01, key="maneuvering_distance")
+
+    col1, col2 = st.columns([1, 1])
+    with col1:
+        next_port = st.text_input("Next Port", key="next_port")
+        next_port_operation = st.text_input("Next Port operation", key="next_port_operation")
+        distance_to_go = st.number_input("Distance to Go (nm)", min_value=0.0, step=0.01, key="distance_to_go")
+    with col2:
+        eta = st.date_input("ETA Date", datetime.now().date(), key="eta_date")
+        eta_time = st.time_input("ETA Time", datetime.now().time(), key="eta_time")
+        me_time_counter_at_cosp = st.text_input("ME Time Counter at COSP", key="me_time_counter_at_cosp")
+        shaft_generator_power = st.number_input("Shaft Generator Power (kw)", min_value=0.0, step=0.01, key="shaft_generator_power")
 
     st.header("Voyage Planning")
     col1, col2, col3 = st.columns([1, 1, 1])
