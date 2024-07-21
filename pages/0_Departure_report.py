@@ -67,98 +67,55 @@ with tabs[0]:
         service_on = st.text_input("Service On")
     remarks_service = st.text_area("Service Remarks", height=100)
     
-    st.header("Consumption (MT)")
-    col1, col2 = st.columns(2)
-    with col1:
-        complied_with_guidelines = st.checkbox("Have you read and complied with guidelines in Circulars T17 and T17D?")
-        local_port_agent_confirmed = st.checkbox("Local Port Agent has confirmed that your ship can use fuel with more than 0.1%S?")
-        fuel_types_prev_rob = st.number_input("Fuel Types - Previous ROB", min_value=0.0, step=0.01)
-        fuel_types_in_port_me = st.number_input("Fuel Types - In Port - M/E", min_value=0.0, step=0.01)
-        fuel_types_in_port_ae = st.number_input("Fuel Types - In Port - A/E", min_value=0.0, step=0.01)
-    with col2:
-        fuel_types_in_port_blr = st.number_input("Fuel Types - In Port - BLR", min_value=0.0, step=0.01)
-        fuel_types_in_port_igg = st.number_input("Fuel Types - In Port - IGG", min_value=0.0, step=0.01)
-        fuel_types_in_port_geeg = st.number_input("Fuel Types - In Port - GE/EG", min_value=0.0, step=0.01)
-        fuel_types_in_port_oth = st.number_input("Fuel Types - In Port - OTH", min_value=0.0, step=0.01)
-        fuel_types_bunker_qty = st.number_input("Fuel Types - Bunker Qty", min_value=0.0, step=0.01)
-        fuel_types_sulphur = st.number_input("Fuel Types - Sulphur %", min_value=0.0, step=0.01)
-        fuel_types_rob_bdn = st.number_input("Fuel Types - ROB @ (BDN)", min_value=0.0, step=0.01)
-        fuel_types_rob_cosp = st.number_input("Fuel Types - ROB @ (COSP)", min_value=0.0, step=0.01)
-    action = st.text_input("Consumption Action")
-    
-    st.header("Fresh Water")
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        domestic_fresh_water_prev_rob = st.number_input("Domestic Fresh Water - Previous ROB", min_value=0.0, step=0.01)
-        domestic_fresh_water_received = st.number_input("Domestic Fresh Water - Received", min_value=0.0, step=0.01)
-    with col2:
-        domestic_fresh_water_rob_dep = st.number_input("Domestic Fresh Water - ROB on Dep", min_value=0.0, step=0.01)
-        domestic_fresh_water_cons = st.number_input("Domestic Fresh Water - Cons", min_value=0.0, step=0.01)
-    with col3:
-        drinking_water_prev_rob = st.number_input("Drinking Water - Previous ROB", min_value=0.0, step=0.01)
-        drinking_water_received = st.number_input("Drinking Water - Received", min_value=0.0, step=0.01)
-        drinking_water_rob_dep = st.number_input("Drinking Water - ROB on Dep", min_value=0.0, step=0.01)
-        drinking_water_cons = st.number_input("Drinking Water - Cons", min_value=0.0, step=0.01)
-    
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        boiler_water_prev_rob = st.number_input("Boiler Water - Previous ROB", min_value=0.0, step=0.01)
-        boiler_water_received = st.number_input("Boiler Water - Received", min_value=0.0, step=0.01)
-    with col2:
-        boiler_water_rob_dep = st.number_input("Boiler Water - ROB on Dep", min_value=0.0, step=0.01)
-        boiler_water_cons = st.number_input("Boiler Water - Cons", min_value=0.0, step=0.01)
-    with col3:
-        tank_cleaning_water_prev_rob = st.number_input("Tank Cleaning Water - Previous ROB", min_value=0.0, step=0.01)
-        tank_cleaning_water_received = st.number_input("Tank Cleaning Water - Received", min_value=0.0, step=0.01)
-        tank_cleaning_water_rob_dep = st.number_input("Tank Cleaning Water - ROB on Dep", min_value=0.0, step=0.01)
-        tank_cleaning_water_cons = st.number_input("Tank Cleaning Water - Cons", min_value=0.0, step=0.01)
-    
     st.header("Lube Oil (Ltrs)")
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        me_cylinder_oil_40_prev_rob = st.number_input("ME Cylinder Oil 40 TBN - Prev. ROB", min_value=0.0, step=0.01)
-        me_cylinder_oil_40_cons = st.number_input("ME Cylinder Oil 40 TBN - Cons", min_value=0.0, step=0.01)
-        me_cylinder_oil_40_received = st.number_input("ME Cylinder Oil 40 TBN - Received", min_value=0.0, step=0.01)
-        me_cylinder_oil_40_rob = st.number_input("ME Cylinder Oil 40 TBN - ROB", min_value=0.0, step=0.01)
-    with col2:
-        me_cylinder_oil_50_prev_rob = st.number_input("ME Cylinder Oil 50 TBN - Prev. ROB", min_value=0.0, step=0.01)
-        me_cylinder_oil_50_cons = st.number_input("ME Cylinder Oil 50 TBN - Cons", min_value=0.0, step=0.01)
-        me_cylinder_oil_50_received = st.number_input("ME Cylinder Oil 50 TBN - Received", min_value=0.0, step=0.01)
-        me_cylinder_oil_50_rob = st.number_input("ME Cylinder Oil 50 TBN - ROB", min_value=0.0, step=0.01)
-    with col3:
-        me_cylinder_oil_70_prev_rob = st.number_input("ME Cylinder Oil 70 TBN - Prev. ROB", min_value=0.0, step=0.01)
-        me_cylinder_oil_70_cons = st.number_input("ME Cylinder Oil 70 TBN - Cons", min_value=0.0, step=0.01)
-        me_cylinder_oil_70_received = st.number_input("ME Cylinder Oil 70 TBN - Received", min_value=0.0, step=0.01)
-        me_cylinder_oil_70_rob = st.number_input("ME Cylinder Oil 70 TBN - ROB", min_value=0.0, step=0.01)
+    st.subheader("Lube Oil")
+    lube_oil_data = {
+        "Lube Oil": ["ME Cylinder Oil", "ME Cylinder Oil 40 TBN", "ME Cylinder Oil 70 TBN", "ME Cylinder Oil 100 TBN", "ME/MT System Oil", "AE System Oil", "AE System Oil 15TBN", "T/O System Oil"],
+        "Prev. ROB": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "Cons": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "Received": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "ROB": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    }
+    lube_oil_df = pd.DataFrame(lube_oil_data)
+    st.dataframe(lube_oil_df)
+
+    st.header("Fresh Water")
+    st.subheader("Fresh Water")
+    fresh_water_data = {
+        "Fresh Water": ["Domestic Fresh Water", "Drinking Water", "Boiler Water", "Tank Cleaning Water"],
+        "Previous ROB": [240.0, 0.0, 0.0, 0.0],
+        "Received": [0.0, 0.0, 0.0, 0.0],
+        "ROB on Dep": [232.0, 0.0, 0.0, 0.0],
+        "Cons": [0.0, 0.0, 0.0, 0.0]
+    }
+    fresh_water_df = pd.DataFrame(fresh_water_data)
+    st.dataframe(fresh_water_df)
     
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        me_cylinder_oil_100_prev_rob = st.number_input("ME Cylinder Oil 100 TBN - Prev. ROB", min_value=0.0, step=0.01)
-        me_cylinder_oil_100_cons = st.number_input("ME Cylinder Oil 100 TBN - Cons", min_value=0.0, step=0.01)
-        me_cylinder_oil_100_received = st.number_input("ME Cylinder Oil 100 TBN - Received", min_value=0.0, step=0.01)
-        me_cylinder_oil_100_rob = st.number_input("ME Cylinder Oil 100 TBN - ROB", min_value=0.0, step=0.01)
-    with col2:
-        me_mt_system_oil_prev_rob = st.number_input("ME/MT System Oil - Prev. ROB", min_value=0.0, step=0.01)
-        me_mt_system_oil_cons = st.number_input("ME/MT System Oil - Cons", min_value=0.0, step=0.01)
-        me_mt_system_oil_received = st.number_input("ME/MT System Oil - Received", min_value=0.0, step=0.01)
-        me_mt_system_oil_rob = st.number_input("ME/MT System Oil - ROB", min_value=0.0, step=0.01)
-    with col3:
-        ae_system_oil_prev_rob = st.number_input("AE System Oil - Prev. ROB", min_value=0.0, step=0.01)
-        ae_system_oil_cons = st.number_input("AE System Oil - Cons", min_value=0.0, step=0.01)
-        ae_system_oil_received = st.number_input("AE System Oil - Received", min_value=0.0, step=0.01)
-        ae_system_oil_rob = st.number_input("AE System Oil - ROB", min_value=0.0, step=0.01)
-    
-    col1, col2 = st.columns(2)
-    with col1:
-        ae_system_oil_15_prev_rob = st.number_input("AE System Oil 15TBN - Prev. ROB", min_value=0.0, step=0.01)
-        ae_system_oil_15_cons = st.number_input("AE System Oil 15TBN - Cons", min_value=0.0, step=0.01)
-        ae_system_oil_15_received = st.number_input("AE System Oil 15TBN - Received", min_value=0.0, step=0.01)
-        ae_system_oil_15_rob = st.number_input("AE System Oil 15TBN - ROB", min_value=0.0, step=0.01)
-    with col2:
-        tg_system_oil_prev_rob = st.number_input("T/O System Oil - Prev. ROB", min_value=0.0, step=0.01)
-        tg_system_oil_cons = st.number_input("T/O System Oil - Cons", min_value=0.0, step=0.01)
-        tg_system_oil_received = st.number_input("T/O System Oil - Received", min_value=0.0, step=0.01)
-        tg_system_oil_rob = st.number_input("T/O System Oil - ROB", min_value=0.0, step=0.01)
+    st.header("Consumption (MT)")
+    st.subheader("Consumption (MT)")
+    consumption_data = {
+        "Fuel Type": ["Heavy Fuel Oil RME-RMK - 380cSt", "Heavy Fuel Oil RMA-RMD - 80cSt"],
+        "Previous ROB": [0.0, 0.0],
+        "In Port M/E": [0.0, 0.0],
+        "In Port A/E": [0.0, 0.0],
+        "In Port BLR": [0.0, 0.0],
+        "In Port IGG": [0.0, 0.0],
+        "In Port GE/EG": [0.0, 0.0],
+        "In Port OTH": [0.0, 0.0],
+        "Bunker Qty": [0.0, 0.0],
+        "Sulphur %": [0.0, 0.0],
+        "ROB @ BDN": [0.0, 0.0],
+        "At Harbour M/E": [0.0, 0.0],
+        "At Harbour A/E": [0.0, 0.0],
+        "At Harbour BLR": [0.0, 0.0],
+        "At Harbour IGG": [0.0, 0.0],
+        "At Harbour GE/EG": [0.0, 0.0],
+        "At Harbour OTH": [0.0, 0.0],
+        "ROB @ COSP": [0.0, 0.0],
+        "Action": ["", ""]
+    }
+    consumption_df = pd.DataFrame(consumption_data)
+    st.dataframe(consumption_df)
 
 # Operations Tab
 with tabs[1]:
