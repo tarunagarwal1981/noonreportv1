@@ -213,4 +213,250 @@ def special_areas_section(search_term):
         if st.session_state.get("Is vessel in an ECA area or will enter ECA area within next 3 days?") == "Yes":
             input_field("Entry into ECA Date", "date", search_term, help="Enter the date of entry into the Emission Control Area")
             input_field("Entry into ECA Time", "time", search_term, help="Enter the time of entry into the Emission Control Area")
-            input_field("Exit from ECA Date", "date", search_term, help="Enter the date of exit from the
+            input_field("Exit from ECA Date", "date", search_term, help="Enter the date of exit from the Emission Control Area")
+            input_field("Exit from ECA Time", "time", search_term, help="Enter the time of exit from the Emission Control Area")
+            input_field("Latitude (ECA)", "text", search_term, help="Enter the latitude when entering/exiting the ECA")
+            input_field("Longitude (ECA)", "text", search_term, help="Enter the longitude when entering/exiting the ECA")
+            input_field("Fuel used in ECA", "text", search_term, help="Enter the type of fuel used in the ECA")
+            input_field("Fuel C/O Time", "time", search_term, help="Enter the time of fuel changeover for ECA compliance")
+
+def inl_section(search_term):
+    input_field("Is the vessel in IWL Breach area or will enter IWL Breach area within next 7 days?", "radio", search_term, options=["Yes", "No"], help="Select if the vessel is in or approaching an International Navigating Limits Breach area")
+    if st.session_state.get("Is the vessel in IWL Breach area or will enter IWL Breach area within next 7 days?") == "Yes":
+        col1, col2 = st.columns(2)
+        with col1:
+            input_field("Entry into IWL Breach Date", "date", search_term, help="Enter the date of entry into the IWL Breach area")
+            input_field("Entry into IWL Breach Time", "time", search_term, help="Enter the time of entry into the IWL Breach area")
+        with col2:
+            input_field("Exit from IWL Breach Date", "date", search_term, help="Enter the date of exit from the IWL Breach area")
+            input_field("Exit from IWL Breach Time", "time", search_term, help="Enter the time of exit from the IWL Breach area")
+
+def drifting_section(search_term):
+    col1, col2 = st.columns(2)
+    with col1:
+        input_field("Drifting Start Latitude", "text", search_term, help="Enter the latitude where drifting started")
+        input_field("Drifting Start Longitude", "text", search_term, help="Enter the longitude where drifting started")
+        input_field("Drifting Start Date", "date", search_term, help="Enter the date when drifting started")
+        input_field("Drifting Start Time", "time", search_term, help="Enter the time when drifting started")
+        input_field("Drifting Distance (nm)", "number", search_term, min_value=0.0, step=0.1, help="Enter the total distance drifted")
+    with col2:
+        input_field("Drifting End Latitude", "text", search_term, help="Enter the latitude where drifting ended")
+        input_field("Drifting End Longitude", "text", search_term, help="Enter the longitude where drifting ended")
+        input_field("Drifting End Date", "date", search_term, help="Enter the date when drifting ended")
+        input_field("Drifting End Time", "time", search_term, help="Enter the time when drifting ended")
+        input_field("Drifting Time (hrs)", "number", search_term, min_value=0.0, step=0.1, help="Enter the total time spent drifting")
+
+def main_engine_section(search_term):
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        input_field("ME Rev Counter", "number", search_term, min_value=0, step=1, help="Enter the Main Engine revolution counter reading")
+        input_field("Average RPM", "number", search_term, min_value=0.0, step=0.1, help="Enter the average RPM of the Main Engine")
+        input_field("Avg RPM since COSP", "number", search_term, min_value=0.0, step=0.1, help="Enter the average RPM since Commencement of Sea Passage")
+        input_field("Power Output", "radio", search_term, options=["BHP", "KW"], help="Select the unit of power output")
+        input_field("Calculated BHP", "number", search_term, min_value=0, step=1, help="Enter the calculated Brake Horse Power")
+    with col2:
+        input_field("Governor Setting or Fuel rack Setting (%)", "number", search_term, min_value=0.0, max_value=100.0, step=0.1, help="Enter the governor setting or fuel rack setting as a percentage")
+        input_field("Speed Setting", "number", search_term, min_value=0.0, step=0.1, help="Enter the speed setting")
+        input_field("Scav Air Temp (°C)", "number", search_term, min_value=0.0, step=0.1, help="Enter the scavenging air temperature in Celsius")
+        input_field("Scav Air Press (bar)", "number", search_term, min_value=0.0, step=0.1, help="Enter the scavenging air pressure in bar")
+        input_field("FO Inlet Temp (°C)", "number", search_term, min_value=0.0, step=0.1, help="Enter the fuel oil inlet temperature in Celsius")
+    with col3:
+        input_field("FO Cat Fines (ppm)", "number", search_term, min_value=0.0, step=0.1, help="Enter the fuel oil catalyst fines content in parts per million")
+        input_field("FO Press (bar)", "number", search_term, min_value=0.0, step=0.1, help="Enter the fuel oil pressure in bar")
+        input_field("Exh Temp Max (°C)", "number", search_term, min_value=0.0, step=0.1, help="Enter the maximum exhaust temperature in Celsius")
+        input_field("Exh Temp Min (°C)", "number", search_term, min_value=0.0, step=0.1, help="Enter the minimum exhaust temperature in Celsius")
+        input_field("Exh Press (bar)", "number", search_term, min_value=0.0, step=0.1, help="Enter the exhaust pressure in bar")
+
+def auxiliary_engines_section(search_term):
+    col1, col2 = st.columns(2)
+    with col1:
+        input_field("A/E No.1 Generator Load (kw)", "number", search_term, min_value=0, step=1, help="Enter the load of Auxiliary Engine No.1 Generator in kilowatts")
+        input_field("A/E No.2 Generator Load (kw)", "number", search_term, min_value=0, step=1, help="Enter the load of Auxiliary Engine No.2 Generator in kilowatts")
+        input_field("A/E No.3 Generator Load (kw)", "number", search_term, min_value=0, step=1, help="Enter the load of Auxiliary Engine No.3 Generator in kilowatts")
+        input_field("A/E No.4 Generator Load (kw)", "number", search_term, min_value=0, step=1, help="Enter the load of Auxiliary Engine No.4 Generator in kilowatts")
+    with col2:
+        input_field("A/E No.1 Generator Hours of Operation (hrs)", "number", search_term, min_value=0.0, step=0.1, help="Enter the hours of operation for Auxiliary Engine No.1 Generator")
+        input_field("A/E No.2 Generator Hours of Operation (hrs)", "number", search_term, min_value=0.0, step=0.1, help="Enter the hours of operation for Auxiliary Engine No.2 Generator")
+        input_field("A/E No.3 Generator Hours of Operation (hrs)", "number", search_term, min_value=0.0, step=0.1, help="Enter the hours of operation for Auxiliary Engine No.3 Generator")
+        input_field("A/E No.4 Generator Hours of Operation (hrs)", "number", search_term, min_value=0.0, step=0.1, help="Enter the hours of operation for Auxiliary Engine No.4 Generator")
+    input_field("Shaft Generator Power (kw)", "number", search_term, min_value=0.0, step=0.1, help="Enter the power output of the Shaft Generator in kilowatts")
+
+def lube_oil_section(search_term):
+    lube_oil_data = {
+        "Lube Oil": ["ME Cylinder Oil", "ME Cylinder Oil 40 TBN", "ME Cylinder Oil 70 TBN", "ME Cylinder Oil 100 TBN", "ME/MT System Oil", "AE System Oil", "AE System Oil 15TBN", "TG System Oil", "Other Lub Oils"],
+        "Prev.ROB": [0.0] * 9,
+        "Cons": [0.0] * 9,
+        "Received": [0.0] * 9,
+        "ROB": [0.0] * 9
+    }
+    lube_oil_df = pd.DataFrame(lube_oil_data)
+    st.data_editor(lube_oil_df, key="lube_oil_editor", hide_index=True)
+
+def fresh_water_section(search_term):
+    fresh_water_data = {
+        "Fresh Water": ["Domestic Fresh Water", "Drinking Water", "Boiler Water", "Tank Cleaning Water"],
+        "Previous ROB": [0.0] * 4,
+        "Produced": [0.0] * 4,
+        "ROB": [0.0] * 4,
+        "Consumption": [0.0] * 4
+    }
+    fresh_water_df = pd.DataFrame(fresh_water_data)
+    st.data_editor(fresh_water_df, key="fresh_water_editor", hide_index=True)
+
+def fuel_consumption_section(search_term):
+    col1, col2 = st.columns(2)
+    with col1:
+        input_field("FO Cons Rate (mt/day)", "number", search_term, min_value=0.0, step=0.1, help="Enter the Fuel Oil consumption rate in metric tons per day")
+        input_field("DO Cons Rate (mt/day)", "number", search_term, min_value=0.0, step=0.1, help="Enter the Diesel Oil consumption rate in metric tons per day")
+        input_field("Density @ 15°C", "number", search_term, min_value=0.0, step=0.001, help="Enter the fuel density at 15°C")
+        input_field("Sulphur Content %", "number", search_term, min_value=0.0, max_value=100.0, step=0.01, help="Enter the fuel sulphur content as a percentage")
+    with col2:
+        input_field("FO Cons since COSP (mt/day)", "number", search_term, min_value=0.0, step=0.1, help="Enter the Fuel Oil consumption since Commencement of Sea Passage")
+        input_field("DO Cons since COSP (mt/day)", "number", search_term, min_value=0.0, step=0.1, help="Enter the Diesel Oil consumption since Commencement of Sea Passage")
+        input_field("Bilge Tank ROB (cu.m)", "number", search_term, min_value=0.0, step=0.1, help="Enter the Remaining on Board volume of the Bilge Tank in cubic meters")
+        input_field("Total Sludge Retained onboard (cu.m)", "number", search_term, min_value=0.0, step=0.1, help="Enter the total volume of sludge retained onboard in cubic meters")
+
+def detailed_fuel_consumption_section(search_term):
+    consumptions_data = {
+        "Oil Type": [
+            "Heavy Fuel Oil RME-RMK - 80cSt", "Heavy Fuel Oil RMA-RMD - 80cSt",
+            "VLSFO RME-RMK Visc >80cSt 0.5%S Max", "VLSFO RMA-RMD Visc >80cSt 0.5%S Max",
+            "ULSFO RME-RMK <80cSt 0.1%S Max", "ULSFO RMA-RMD <80cSt 0.1%S Max",
+            "VLSMGO 0.5%S Max", "ULSMGO 0.1%S Max",
+            "Biofuel - 30", "Biofuel Distillate FO",
+            "LPG - Propane", "LPG - Butane",
+            "LNG Boil Off", "LNG (Bunkered)"
+        ],
+        "Previous ROB": [0.0] * 14,
+        "AT SEA M/E": [0.0] * 14,
+        "AT SEA A/E": [0.0] * 14,
+        "AT SEA BLR": [0.0] * 14,
+        "AT SEA IGG": [0.0] * 14,
+        "AT SEA C/ENG": [0.0] * 14,
+        "AT SEA OTH": [0.0] * 14,
+        "IN PORT M/E": [0.0] * 14,
+        "IN PORT A/E": [0.0] * 14,
+        "IN PORT BLR": [0.0] * 14,
+        "IN PORT IGG": [0.0] * 14,
+        "IN PORT C/ENG": [0.0] * 14,
+        "IN PORT OTH": [0.0] * 14,
+        "Bunker Qty": [0.0] * 14,
+        "Sulphur %": [0.0] * 14,
+        "Total": [0.0] * 14,
+        "ROB at Noon": [0.0] * 14
+    }
+    consumptions_df = pd.DataFrame(consumptions_data)
+    st.data_editor(consumptions_df, key="detailed_fuel_consumption_editor", hide_index=True)
+
+def input_field(label, field_type, search_term, **kwargs):
+    if search_term.lower() in label.lower():
+        st.markdown(f"**{label}**")
+    if field_type == "text":
+        return st.text_input(label, key=label, help=kwargs.get("help", ""), value=st.session_state.form_data.get(label, ""))
+    elif field_type == "number":
+        return st.number_input(label, key=label, help=kwargs.get("help", ""), value=st.session_state.form_data.get(label, 0.0), **kwargs)
+    elif field_type == "date":
+        return st.date_input(label, key=label, help=kwargs.get("help", ""), value=st.session_state.form_data.get(label, datetime.now().date()))
+    elif field_type == "time":
+        return st.time_input(label, key=label, help=kwargs.get("help", ""), value=st.session_state.form_data.get(label, datetime.now().time()))
+    elif field_type == "selectbox":
+        return st.selectbox(label, key=label, help=kwargs.get("help", ""), options=kwargs.get("options", []), index=kwargs.get("options", []).index(st.session_state.form_data.get(label, kwargs.get("options", [""])[0])))
+    elif field_type == "radio":
+        return st.radio(label, key=label, help=kwargs.get("help", ""), options=kwargs.get("options", []), index=kwargs.get("options", []).index(st.session_state.form_data.get(label, kwargs.get("options", [""])[0])))
+    elif field_type == "checkbox":
+        return st.checkbox(label, key=label, help=kwargs.get("help", ""), value=st.session_state.form_data.get(label, False))
+
+def create_summary():
+    summary = {}
+    for key, value in st.session_state.items():
+        if not key.startswith('_') and key != 'form_data':
+            summary[key] = value
+    return summary
+
+def display_summary():
+    st.title("Report Summary")
+    summary = create_summary()
+    for section, fields in summary.items():
+        st.header(section)
+        for field, value in fields.items():
+            st.write(f"{field}: {value}")
+
+def save_report():
+    summary = create_summary()
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"maritime_report_{timestamp}.json"
+    with open(filename, "w") as f:
+        json.dump(summary, f)
+    st.success(f"Report saved as {filename}")
+
+# Add keyboard shortcuts
+st.markdown("""
+<script>
+document.addEventListener('keydown', function(e) {
+    if (e.ctrlKey && e.key === 's') {
+        document.querySelector('button:contains("Save Current Report")').click();
+        e.preventDefault();
+    } else if (e.ctrlKey && e.key === 'r') {
+        document.querySelector('button:contains("Review Summary")').click();
+        e.preventDefault();
+    }
+});
+</script>
+""", unsafe_allow_html=True)
+
+# Main function (updated)
+def main():
+    st.set_page_config(layout="wide", page_title="Maritime Report")
+    
+    # Dark mode toggle
+    if st.sidebar.checkbox("Dark Mode"):
+        st.markdown("""
+        <style>
+        .stApp {
+            background-color: #0e1117;
+            color: #ffffff;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+
+    st.title("Maritime Report")
+
+    # Progress indicator
+    st.progress(st.session_state.progress)
+
+    # Quick Fill and Save buttons
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        if st.button("Quick Fill from Previous Report"):
+            load_form_data()
+    with col2:
+        if st.button("Save Current Report"):
+            save_form_data()
+    with col3:
+        if st.button("Review Summary"):
+            display_summary()
+
+    # Search function
+    search_term = st.sidebar.text_input("Search fields")
+
+    tabs = st.tabs(["Deck", "Engine"])
+
+    with tabs[0]:
+        deck_tab(search_term)
+
+    with tabs[1]:
+        engine_tab(search_term)
+
+    if st.button("Submit Report", type="primary"):
+        save_report()
+        st.success("Report submitted and saved successfully!")
+
+    # Auto-save every 5 minutes
+    if tm.time() % 300 < 1:  # Every 5 minutes
+        save_form_data()
+
+    # Update progress
+    update_progress()
+
+if __name__ == "__main__":
+    main()
