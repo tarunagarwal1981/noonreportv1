@@ -4,10 +4,6 @@ from datetime import datetime, time
 import time as tm
 import json
 
-# Custom imports
-from streamlit_extras.switch_page_button import switch_page
-from streamlit_extras.add_vertical_space import add_vertical_space
-
 # Initialize session state
 if 'form_data' not in st.session_state:
     st.session_state.form_data = {}
@@ -66,7 +62,7 @@ def main():
             save_form_data()
     with col3:
         if st.button("Review Summary"):
-            switch_page("summary")
+            st.session_state.show_summary = True
 
     # Search function
     search_term = st.sidebar.text_input("Search fields")
@@ -80,11 +76,22 @@ def main():
         engine_tab(search_term)
 
     if st.button("Submit Report", type="primary"):
-        st.success("Report submitted successfully!")
+        save_report()
+        st.success("Report submitted and saved successfully!")
 
     # Auto-save every 5 minutes
     if tm.time() % 300 < 1:  # Every 5 minutes
         save_form_data()
+
+    # Update progress
+    update_progress()
+
+    # Display summary if requested
+    if st.session_state.get('show_summary', False):
+        display_summary()
+        if st.button("Close Summary"):
+            st.session_state.show_summary = False
+
 
 def deck_tab(search_term):
     st.header("Deck Information")
