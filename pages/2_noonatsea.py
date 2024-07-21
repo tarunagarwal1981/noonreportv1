@@ -10,6 +10,9 @@ if 'form_data' not in st.session_state:
 if 'progress' not in st.session_state:
     st.session_state.progress = 0
 
+# Set page configuration at the top-level
+st.set_page_config(layout="wide", page_title="Maritime Report")
+
 # Function to update progress
 def update_progress():
     total_fields = 100  # Estimate of total fields
@@ -34,8 +37,6 @@ def load_form_data():
 
 # Main app
 def main():
-    st.set_page_config(layout="wide", page_title="Maritime Report")
-    
     # Dark mode toggle
     if st.sidebar.checkbox("Dark Mode"):
         st.markdown("""
@@ -91,7 +92,6 @@ def main():
         display_summary()
         if st.button("Close Summary"):
             st.session_state.show_summary = False
-
 
 def deck_tab(search_term):
     st.header("Deck Information")
@@ -149,7 +149,7 @@ def general_info_section(search_term):
         input_field("Next Port", "text", search_term, help="Enter the next port of call")
         input_field("ETA Date", "date", search_term, help="Enter the estimated date of arrival at the next port")
         input_field("ETA Time", "time", search_term, help="Enter the estimated time of arrival at the next port")
-        input_field("Speed required to achieve Scheduled ETA (kts)", "number", search_term, min_value=0.0, step=0.1, help="Enter the required speed to meet the scheduled ETA", value=0.0)
+        input_field("Speed required to achieve Scheduled ETA (kts)", "number", search_term, min_value=0.0, step=0.1, help="Enter the required speed to meet the scheduled ETA")
         input_field("ETB", "date", search_term, help="Enter the Estimated Time of Berthing")
         input_field("ETC/D", "date", search_term, help="Enter the Estimated Time of Completion/Departure")
         input_field("Ballast/Laden", "radio", search_term, options=["Ballast", "Laden"], help="Select whether the vessel is in ballast or laden condition")
@@ -161,26 +161,26 @@ def general_info_section(search_term):
 def speed_consumption_section(search_term):
     col1, col2, col3 = st.columns(3)
     with col1:
-        input_field("Full Speed (hrs)", "number", search_term, min_value=0.0, step=0.1, help="Enter the time spent at full speed", value=0.0)
-        input_field("Full Speed (nm)", "number", search_term, min_value=0.0, step=0.1, help="Enter the distance covered at full speed", value=0.0)
-        input_field("Reduced Speed/Slow Steaming (hrs)", "number", search_term, min_value=0.0, step=0.1, help="Enter the time spent at reduced speed", value=0.0)
-        input_field("Reduced Speed/Slow Steaming (nm)", "number", search_term, min_value=0.0, step=0.1, help="Enter the distance covered at reduced speed", value=0.0)
-        input_field("Stopped (hrs)", "number", search_term, min_value=0.0, step=0.1, help="Enter the time spent stopped", value=0.0)
-        input_field("Distance Observed (nm)", "number", search_term, min_value=0.0, step=0.1, help="Enter the total distance observed", value=0.0)
+        input_field("Full Speed (hrs)", "number", search_term, min_value=0.0, step=0.1, help="Enter the time spent at full speed")
+        input_field("Full Speed (nm)", "number", search_term, min_value=0.0, step=0.1, help="Enter the distance covered at full speed")
+        input_field("Reduced Speed/Slow Steaming (hrs)", "number", search_term, min_value=0.0, step=0.1, help="Enter the time spent at reduced speed")
+        input_field("Reduced Speed/Slow Steaming (nm)", "number", search_term, min_value=0.0, step=0.1, help="Enter the distance covered at reduced speed")
+        input_field("Stopped (hrs)", "number", search_term, min_value=0.0, step=0.1, help="Enter the time spent stopped")
+        input_field("Distance Observed (nm)", "number", search_term, min_value=0.0, step=0.1, help="Enter the total distance observed")
     with col2:
-        input_field("Obs Speed (SOG) (kts)", "number", search_term, min_value=0.0, step=0.1, help="Enter the observed speed over ground", value=0.0)
-        input_field("EM Log Speed (LOG) (kts)", "number", search_term, min_value=0.0, step=0.1, help="Enter the speed from the electromagnetic log", value=0.0)
-        input_field("Voyage Average Speed (kts)", "number", search_term, min_value=0.0, step=0.1, help="Enter the average speed for the voyage", value=0.0)
-        input_field("Distance To Go (nm)", "number", search_term, min_value=0.0, step=0.1, help="Enter the remaining distance to the destination", value=0.0)
-        input_field("Distance since COSP (nm)", "number", search_term, min_value=0.0, step=0.1, help="Enter the distance traveled since Commencement of Sea Passage", value=0.0)
+        input_field("Obs Speed (SOG) (kts)", "number", search_term, min_value=0.0, step=0.1, help="Enter the observed speed over ground")
+        input_field("EM Log Speed (LOG) (kts)", "number", search_term, min_value=0.0, step=0.1, help="Enter the speed from the electromagnetic log")
+        input_field("Voyage Average Speed (kts)", "number", search_term, min_value=0.0, step=0.1, help="Enter the average speed for the voyage")
+        input_field("Distance To Go (nm)", "number", search_term, min_value=0.0, step=0.1, help="Enter the remaining distance to the destination")
+        input_field("Distance since COSP (nm)", "number", search_term, min_value=0.0, step=0.1, help="Enter the distance traveled since Commencement of Sea Passage")
     with col3:
-        input_field("Voyage Order Speed (kts)", "number", search_term, min_value=0.0, step=0.1, help="Enter the ordered speed for the voyage", value=0.0)
-        input_field("Voyage Order ME FO Cons (mt)", "number", search_term, min_value=0.0, step=0.1, help="Enter the ordered Main Engine Fuel Oil consumption", value=0.0)
-        input_field("Voyage Order ME DO Cons (mt)", "number", search_term, min_value=0.0, step=0.1, help="Enter the ordered Main Engine Diesel Oil consumption", value=0.0)
-        input_field("Course (°)", "number", search_term, min_value=0.0, max_value=360.0, step=1.0, help="Enter the current course in degrees", value=0.0)
-        input_field("Draft F (m)", "number", search_term, min_value=0.0, step=0.01, help="Enter the forward draft in meters", value=0.0)
-        input_field("Draft A (m)", "number", search_term, min_value=0.0, step=0.01, help="Enter the aft draft in meters", value=0.0)
-        input_field("Displacement (mt)", "number", search_term, min_value=0.0, step=0.1, help="Enter the current displacement in metric tons", value=0.0)
+        input_field("Voyage Order Speed (kts)", "number", search_term, min_value=0.0, step=0.1, help="Enter the ordered speed for the voyage")
+        input_field("Voyage Order ME FO Cons (mt)", "number", search_term, min_value=0.0, step=0.1, help="Enter the ordered Main Engine Fuel Oil consumption")
+        input_field("Voyage Order ME DO Cons (mt)", "number", search_term, min_value=0.0, step=0.1, help="Enter the ordered Main Engine Diesel Oil consumption")
+        input_field("Course (°)", "number", search_term, min_value=0.0, max_value=360.0, step=1.0, help="Enter the current course in degrees")
+        input_field("Draft F (m)", "number", search_term, min_value=0.0, step=0.01, help="Enter the forward draft in meters")
+        input_field("Draft A (m)", "number", search_term, min_value=0.0, step=0.01, help="Enter the aft draft in meters")
+        input_field("Displacement (mt)", "number", search_term, min_value=0.0, step=0.1, help="Enter the current displacement in metric tons")
 
 def position_navigation_section(search_term):
     col1, col2 = st.columns(2)
@@ -197,18 +197,18 @@ def weather_section(search_term):
     col1, col2 = st.columns(2)
     with col1:
         input_field("Wind Direction", "selectbox", search_term, options=["North", "East", "South", "West", "North East", "North West", "South East", "South West"], help="Select the wind direction")
-        input_field("Wind Force", "number", search_term, min_value=0, max_value=12, help="Enter the wind force on the Beaufort scale", value=0)
-        input_field("Visibility (nm)", "number", search_term, min_value=0.0, step=0.1, help="Enter the visibility in nautical miles", value=0.0)
-        input_field("Sea Height (m)", "number", search_term, min_value=0.0, step=0.1, help="Enter the sea height in meters", value=0.0)
+        input_field("Wind Force", "number", search_term, min_value=0, max_value=12, help="Enter the wind force on the Beaufort scale")
+        input_field("Visibility (nm)", "number", search_term, min_value=0.0, step=0.1, help="Enter the visibility in nautical miles")
+        input_field("Sea Height (m)", "number", search_term, min_value=0.0, step=0.1, help="Enter the sea height in meters")
         input_field("Sea Direction", "selectbox", search_term, options=["North", "East", "South", "West", "North East", "North West", "South East", "South West"], help="Select the sea direction")
     with col2:
-        input_field("Swell Height (m)", "number", search_term, min_value=0.0, step=0.1, help="Enter the swell height in meters", value=0.0)
+        input_field("Swell Height (m)", "number", search_term, min_value=0.0, step=0.1, help="Enter the swell height in meters")
         input_field("Swell Direction", "selectbox", search_term, options=["North", "East", "South", "West", "North East", "North West", "South East", "South West"], help="Select the swell direction")
-        input_field("Current Set (kts)", "number", search_term, min_value=0.0, step=0.1, help="Enter the current set in knots", value=0.0)
+        input_field("Current Set (kts)", "number", search_term, min_value=0.0, step=0.1, help="Enter the current set in knots")
         input_field("Current Drift", "selectbox", search_term, options=["North", "East", "South", "West", "North East", "North West", "South East", "South West"], help="Select the current drift direction")
-        input_field("Air Temp (°C)", "number", search_term, min_value=-50.0, max_value=50.0, step=0.1, help="Enter the air temperature in Celsius", value=0.0)
+        input_field("Air Temp (°C)", "number", search_term, min_value=-50.0, max_value=50.0, step=0.1, help="Enter the air temperature in Celsius")
         input_field("Icing on Deck?", "checkbox", search_term, help="Check if there is icing on the deck")
-    input_field("Period of bad Weather (beyond BF scale 5, in Hours)", "number", search_term, min_value=0.0, step=0.1, help="Enter the duration of bad weather in hours", value=0.0)
+    input_field("Period of bad Weather (beyond BF scale 5, in Hours)", "number", search_term, min_value=0.0, step=0.1, help="Enter the duration of bad weather in hours")
 
 def special_areas_section(search_term):
     col1, col2 = st.columns(2)
@@ -249,48 +249,48 @@ def drifting_section(search_term):
         input_field("Drifting Start Longitude", "text", search_term, help="Enter the longitude where drifting started")
         input_field("Drifting Start Date", "date", search_term, help="Enter the date when drifting started")
         input_field("Drifting Start Time", "time", search_term, help="Enter the time when drifting started")
-        input_field("Drifting Distance (nm)", "number", search_term, min_value=0.0, step=0.1, help="Enter the total distance drifted", value=0.0)
+        input_field("Drifting Distance (nm)", "number", search_term, min_value=0.0, step=0.1, help="Enter the total distance drifted")
     with col2:
         input_field("Drifting End Latitude", "text", search_term, help="Enter the latitude where drifting ended")
         input_field("Drifting End Longitude", "text", search_term, help="Enter the longitude where drifting ended")
         input_field("Drifting End Date", "date", search_term, help="Enter the date when drifting ended")
         input_field("Drifting End Time", "time", search_term, help="Enter the time when drifting ended")
-        input_field("Drifting Time (hrs)", "number", search_term, min_value=0.0, step=0.1, help="Enter the total time spent drifting", value=0.0)
+        input_field("Drifting Time (hrs)", "number", search_term, min_value=0.0, step=0.1, help="Enter the total time spent drifting")
 
 def main_engine_section(search_term):
     col1, col2, col3 = st.columns(3)
     with col1:
-        input_field("ME Rev Counter", "number", search_term, min_value=0, step=1, help="Enter the Main Engine revolution counter reading", value=0)
-        input_field("Average RPM", "number", search_term, min_value=0.0, step=0.1, help="Enter the average RPM of the Main Engine", value=0.0)
-        input_field("Avg RPM since COSP", "number", search_term, min_value=0.0, step=0.1, help="Enter the average RPM since Commencement of Sea Passage", value=0.0)
+        input_field("ME Rev Counter", "number", search_term, min_value=0, step=1, help="Enter the Main Engine revolution counter reading")
+        input_field("Average RPM", "number", search_term, min_value=0.0, step=0.1, help="Enter the average RPM of the Main Engine")
+        input_field("Avg RPM since COSP", "number", search_term, min_value=0.0, step=0.1, help="Enter the average RPM since Commencement of Sea Passage")
         input_field("Power Output", "radio", search_term, options=["BHP", "KW"], help="Select the unit of power output")
-        input_field("Calculated BHP", "number", search_term, min_value=0, step=1, help="Enter the calculated Brake Horse Power", value=0)
+        input_field("Calculated BHP", "number", search_term, min_value=0, step=1, help="Enter the calculated Brake Horse Power")
     with col2:
-        input_field("Governor Setting or Fuel rack Setting (%)", "number", search_term, min_value=0.0, max_value=100.0, step=0.1, help="Enter the governor setting or fuel rack setting as a percentage", value=0.0)
-        input_field("Speed Setting", "number", search_term, min_value=0.0, step=0.1, help="Enter the speed setting", value=0.0)
-        input_field("Scav Air Temp (°C)", "number", search_term, min_value=0.0, step=0.1, help="Enter the scavenging air temperature in Celsius", value=0.0)
-        input_field("Scav Air Press (bar)", "number", search_term, min_value=0.0, step=0.1, help="Enter the scavenging air pressure in bar", value=0.0)
-        input_field("FO Inlet Temp (°C)", "number", search_term, min_value=0.0, step=0.1, help="Enter the fuel oil inlet temperature in Celsius", value=0.0)
+        input_field("Governor Setting or Fuel rack Setting (%)", "number", search_term, min_value=0.0, max_value=100.0, step=0.1, help="Enter the governor setting or fuel rack setting as a percentage")
+        input_field("Speed Setting", "number", search_term, min_value=0.0, step=0.1, help="Enter the speed setting")
+        input_field("Scav Air Temp (°C)", "number", search_term, min_value=0.0, step=0.1, help="Enter the scavenging air temperature in Celsius")
+        input_field("Scav Air Press (bar)", "number", search_term, min_value=0.0, step=0.1, help="Enter the scavenging air pressure in bar")
+        input_field("FO Inlet Temp (°C)", "number", search_term, min_value=0.0, step=0.1, help="Enter the fuel oil inlet temperature in Celsius")
     with col3:
-        input_field("FO Cat Fines (ppm)", "number", search_term, min_value=0.0, step=0.1, help="Enter the fuel oil catalyst fines content in parts per million", value=0.0)
-        input_field("FO Press (bar)", "number", search_term, min_value=0.0, step=0.1, help="Enter the fuel oil pressure in bar", value=0.0)
-        input_field("Exh Temp Max (°C)", "number", search_term, min_value=0.0, step=0.1, help="Enter the maximum exhaust temperature in Celsius", value=0.0)
-        input_field("Exh Temp Min (°C)", "number", search_term, min_value=0.0, step=0.1, help="Enter the minimum exhaust temperature in Celsius", value=0.0)
-        input_field("Exh Press (bar)", "number", search_term, min_value=0.0, step=0.1, help="Enter the exhaust pressure in bar", value=0.0)
+        input_field("FO Cat Fines (ppm)", "number", search_term, min_value=0.0, step=0.1, help="Enter the fuel oil catalyst fines content in parts per million")
+        input_field("FO Press (bar)", "number", search_term, min_value=0.0, step=0.1, help="Enter the fuel oil pressure in bar")
+        input_field("Exh Temp Max (°C)", "number", search_term, min_value=0.0, step=0.1, help="Enter the maximum exhaust temperature in Celsius")
+        input_field("Exh Temp Min (°C)", "number", search_term, min_value=0.0, step=0.1, help="Enter the minimum exhaust temperature in Celsius")
+        input_field("Exh Press (bar)", "number", search_term, min_value=0.0, step=0.1, help="Enter the exhaust pressure in bar")
 
 def auxiliary_engines_section(search_term):
     col1, col2 = st.columns(2)
     with col1:
-        input_field("A/E No.1 Generator Load (kw)", "number", search_term, min_value=0, step=1, help="Enter the load of Auxiliary Engine No.1 Generator in kilowatts", value=0)
-        input_field("A/E No.2 Generator Load (kw)", "number", search_term, min_value=0, step=1, help="Enter the load of Auxiliary Engine No.2 Generator in kilowatts", value=0)
-        input_field("A/E No.3 Generator Load (kw)", "number", search_term, min_value=0, step=1, help="Enter the load of Auxiliary Engine No.3 Generator in kilowatts", value=0)
-        input_field("A/E No.4 Generator Load (kw)", "number", search_term, min_value=0, step=1, help="Enter the load of Auxiliary Engine No.4 Generator in kilowatts", value=0)
+        input_field("A/E No.1 Generator Load (kw)", "number", search_term, min_value=0, step=1, help="Enter the load of Auxiliary Engine No.1 Generator in kilowatts")
+        input_field("A/E No.2 Generator Load (kw)", "number", search_term, min_value=0, step=1, help="Enter the load of Auxiliary Engine No.2 Generator in kilowatts")
+        input_field("A/E No.3 Generator Load (kw)", "number", search_term, min_value=0, step=1, help="Enter the load of Auxiliary Engine No.3 Generator in kilowatts")
+        input_field("A/E No.4 Generator Load (kw)", "number", search_term, min_value=0, step=1, help="Enter the load of Auxiliary Engine No.4 Generator in kilowatts")
     with col2:
-        input_field("A/E No.1 Generator Hours of Operation (hrs)", "number", search_term, min_value=0.0, step=0.1, help="Enter the hours of operation for Auxiliary Engine No.1 Generator", value=0.0)
-        input_field("A/E No.2 Generator Hours of Operation (hrs)", "number", search_term, min_value=0.0, step=0.1, help="Enter the hours of operation for Auxiliary Engine No.2 Generator", value=0.0)
-        input_field("A/E No.3 Generator Hours of Operation (hrs)", "number", search_term, min_value=0.0, step=0.1, help="Enter the hours of operation for Auxiliary Engine No.3 Generator", value=0.0)
-        input_field("A/E No.4 Generator Hours of Operation (hrs)", "number", search_term, min_value=0.0, step=0.1, help="Enter the hours of operation for Auxiliary Engine No.4 Generator", value=0.0)
-    input_field("Shaft Generator Power (kw)", "number", search_term, min_value=0.0, step=0.1, help="Enter the power output of the Shaft Generator in kilowatts", value=0.0)
+        input_field("A/E No.1 Generator Hours of Operation (hrs)", "number", search_term, min_value=0.0, step=0.1, help="Enter the hours of operation for Auxiliary Engine No.1 Generator")
+        input_field("A/E No.2 Generator Hours of Operation (hrs)", "number", search_term, min_value=0.0, step=0.1, help="Enter the hours of operation for Auxiliary Engine No.2 Generator")
+        input_field("A/E No.3 Generator Hours of Operation (hrs)", "number", search_term, min_value=0.0, step=0.1, help="Enter the hours of operation for Auxiliary Engine No.3 Generator")
+        input_field("A/E No.4 Generator Hours of Operation (hrs)", "number", search_term, min_value=0.0, step=0.1, help="Enter the hours of operation for Auxiliary Engine No.4 Generator")
+    input_field("Shaft Generator Power (kw)", "number", search_term, min_value=0.0, step=0.1, help="Enter the power output of the Shaft Generator in kilowatts")
 
 def lube_oil_section(search_term):
     lube_oil_data = {
@@ -317,15 +317,15 @@ def fresh_water_section(search_term):
 def fuel_consumption_section(search_term):
     col1, col2 = st.columns(2)
     with col1:
-        input_field("FO Cons Rate (mt/day)", "number", search_term, min_value=0.0, step=0.1, help="Enter the Fuel Oil consumption rate in metric tons per day", value=0.0)
-        input_field("DO Cons Rate (mt/day)", "number", search_term, min_value=0.0, step=0.1, help="Enter the Diesel Oil consumption rate in metric tons per day", value=0.0)
-        input_field("Density @ 15°C", "number", search_term, min_value=0.0, step=0.001, help="Enter the fuel density at 15°C", value=0.0)
-        input_field("Sulphur Content %", "number", search_term, min_value=0.0, max_value=100.0, step=0.01, help="Enter the fuel sulphur content as a percentage", value=0.0)
+        input_field("FO Cons Rate (mt/day)", "number", search_term, min_value=0.0, step=0.1, help="Enter the Fuel Oil consumption rate in metric tons per day")
+        input_field("DO Cons Rate (mt/day)", "number", search_term, min_value=0.0, step=0.1, help="Enter the Diesel Oil consumption rate in metric tons per day")
+        input_field("Density @ 15°C", "number", search_term, min_value=0.0, step=0.001, help="Enter the fuel density at 15°C")
+        input_field("Sulphur Content %", "number", search_term, min_value=0.0, max_value=100.0, step=0.01, help="Enter the fuel sulphur content as a percentage")
     with col2:
-        input_field("FO Cons since COSP (mt/day)", "number", search_term, min_value=0.0, step=0.1, help="Enter the Fuel Oil consumption since Commencement of Sea Passage", value=0.0)
-        input_field("DO Cons since COSP (mt/day)", "number", search_term, min_value=0.0, step=0.1, help="Enter the Diesel Oil consumption since Commencement of Sea Passage", value=0.0)
-        input_field("Bilge Tank ROB (cu.m)", "number", search_term, min_value=0.0, step=0.1, help="Enter the Remaining on Board volume of the Bilge Tank in cubic meters", value=0.0)
-        input_field("Total Sludge Retained onboard (cu.m)", "number", search_term, min_value=0.0, step=0.1, help="Enter the total volume of sludge retained onboard in cubic meters", value=0.0)
+        input_field("FO Cons since COSP (mt/day)", "number", search_term, min_value=0.0, step=0.1, help="Enter the Fuel Oil consumption since Commencement of Sea Passage")
+        input_field("DO Cons since COSP (mt/day)", "number", search_term, min_value=0.0, step=0.1, help="Enter the Diesel Oil consumption since Commencement of Sea Passage")
+        input_field("Bilge Tank ROB (cu.m)", "number", search_term, min_value=0.0, step=0.1, help="Enter the Remaining on Board volume of the Bilge Tank in cubic meters")
+        input_field("Total Sludge Retained onboard (cu.m)", "number", search_term, min_value=0.0, step=0.1, help="Enter the total volume of sludge retained onboard in cubic meters")
 
 def detailed_fuel_consumption_section(search_term):
     consumptions_data = {
@@ -365,7 +365,7 @@ def input_field(label, field_type, search_term, **kwargs):
     if field_type == "text":
         return st.text_input(label, key=label, help=kwargs.get("help", ""), value=st.session_state.form_data.get(label, ""))
     elif field_type == "number":
-        return st.number_input(label, key=label, help=kwargs.get("help", ""), value=float(st.session_state.form_data.get(label, 0.0)), **kwargs)
+        return st.number_input(label, key=label, help=kwargs.get("help", ""), value=st.session_state.form_data.get(label, 0.0), **kwargs)
     elif field_type == "date":
         return st.date_input(label, key=label, help=kwargs.get("help", ""), value=st.session_state.form_data.get(label, datetime.now().date()))
     elif field_type == "time":
@@ -414,60 +414,6 @@ document.addEventListener('keydown', function(e) {
 });
 </script>
 """, unsafe_allow_html=True)
-
-# Main function (updated)
-def main():
-    st.set_page_config(layout="wide", page_title="Maritime Report")
-    
-    # Dark mode toggle
-    if st.sidebar.checkbox("Dark Mode"):
-        st.markdown("""
-        <style>
-        .stApp {
-            background-color: #0e1117;
-            color: #ffffff;
-        }
-        </style>
-        """, unsafe_allow_html=True)
-
-    st.title("Maritime Report")
-
-    # Progress indicator
-    st.progress(st.session_state.progress)
-
-    # Quick Fill and Save buttons
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        if st.button("Quick Fill from Previous Report"):
-            load_form_data()
-    with col2:
-        if st.button("Save Current Report"):
-            save_form_data()
-    with col3:
-        if st.button("Review Summary"):
-            display_summary()
-
-    # Search function
-    search_term = st.sidebar.text_input("Search fields")
-
-    tabs = st.tabs(["Deck", "Engine"])
-
-    with tabs[0]:
-        deck_tab(search_term)
-
-    with tabs[1]:
-        engine_tab(search_term)
-
-    if st.button("Submit Report", type="primary"):
-        save_report()
-        st.success("Report submitted and saved successfully!")
-
-    # Auto-save every 5 minutes
-    if tm.time() % 300 < 1:  # Every 5 minutes
-        save_form_data()
-
-    # Update progress
-    update_progress()
 
 if __name__ == "__main__":
     main()
