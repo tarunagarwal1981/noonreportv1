@@ -39,7 +39,6 @@ with tabs[0]:
             st.date_input(f"{event} UTC Date", datetime.now().date(), key=f"{event}_utc_date_arrival")
             st.time_input(f"{event} UTC Time", datetime.now().time(), key=f"{event}_utc_time_arrival")
 
-    st.header("Additional Information")
     col1, col2 = st.columns(2)
     with col1:
         fpg_date = st.date_input("Free Pratique Granted (FPG) Date", datetime.now().date(), key="fpg_date")
