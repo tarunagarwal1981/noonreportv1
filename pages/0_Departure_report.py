@@ -11,14 +11,13 @@ tabs = st.tabs(["General Information", "Operations", "Emissions in Port"])
 # General Information Tab
 with tabs[0]:
     st.header("General Information")
-    # General Information Fields
     col1, col2, col3 = st.columns(3)
     with col1:
         vessel = st.text_input("Vessel", key="vessel")
         voyage_no = st.text_input("Voyage No", key="voyage_no")
         port = st.text_input("Port", key="port")
         next_port = st.text_input("Next Port", key="next_port")
-        eta = st.date_input("ETA Date", datetime.now().date(), key="eta_date")
+        eta_date = st.date_input("ETA Date", datetime.now().date(), key="eta_date")
         eta_time = st.time_input("ETA Time", datetime.now().time(), key="eta_time")
     with col2:
         berth_location = st.text_input("Name of Berth/Location", key="berth_location")
