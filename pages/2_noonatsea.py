@@ -39,11 +39,17 @@ with tabs[0]:
         eta_date = st.date_input("ETA Date", datetime.now().date(), key="eta_date")
         eta_time = st.time_input("ETA Time", datetime.now().time(), key="eta_time")
         speed_required = st.number_input("Speed required to achieve Scheduled ETA (kts)", min_value=0.0, step=0.1, key="speed_required")
+
+    st.subheader("Best ETA PBG")
+    col1, col2, col3 = st.columns(3)
+    with col1:
         best_eta_pbg_lt_date = st.date_input("Best ETA PBG (LT) Date", datetime.now().date(), key="best_eta_pbg_lt_date")
         best_eta_pbg_lt_time = st.time_input("Best ETA PBG (LT) Time", datetime.now().time(), key="best_eta_pbg_lt_time")
+    with col2:
         best_eta_pbg_utc_date = st.date_input("Best ETA PBG (UTC) Date", datetime.now().date(), key="best_eta_pbg_utc_date")
         best_eta_pbg_utc_time = st.time_input("Best ETA PBG (UTC) Time", datetime.now().time(), key="best_eta_pbg_utc_time")
-        ballast_laden = st.radio("Ballast/Laden", ["Ballast", "Laden"], key="ballast_laden")
+
+    ballast_laden = st.radio("Ballast/Laden", ["Ballast", "Laden"], key="ballast_laden")
 
 if st.button("Submit", key="submit_noon_at_sea"):
     st.write("Noon at Sea report submitted successfully!")
