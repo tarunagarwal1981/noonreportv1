@@ -38,7 +38,7 @@ with tabs[0]:
     with col3:
         drafts_mean = st.number_input("Drafts Mean", min_value=0.0, step=0.01, key="drafts_mean")
         displacement = st.number_input("Displacement", min_value=0.0, step=0.01, key="displacement")
-        passengers = st.number_input("Passengers", min_value=0.0, step=1, key="passengers")
+        passengers = st.number_input("Passengers", min_value=0, step=1, key="passengers", format='%d')
         cargo_parameters = st.text_area("Cargo Parameters to be Modified as per Ship Type", key="cargo_parameters")
 
     st.header("Voyage Information - B")
