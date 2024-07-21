@@ -153,6 +153,10 @@ def general_info_section(search_term):
         input_field("ETB", "date", search_term, help="Enter the Estimated Time of Berthing")
         input_field("ETC/D", "date", search_term, help="Enter the Estimated Time of Completion/Departure")
         input_field("Ballast/Laden", "radio", search_term, options=["Ballast", "Laden"], help="Select whether the vessel is in ballast or laden condition")
+        input_field("Best ETA PBG (LT)", "date", search_term, help="Enter the best estimated time of arrival at Pilot Boarding Ground (Local Time)")
+        input_field("Best ETA PBG Time (LT)", "time", search_term, help="Enter the best estimated time of arrival at Pilot Boarding Ground (Local Time)")
+        input_field("Best ETA PBG (UTC)", "date", search_term, help="Enter the best estimated time of arrival at Pilot Boarding Ground (UTC)")
+        input_field("Best ETA PBG Time (UTC)", "time", search_term, help="Enter the best estimated time of arrival at Pilot Boarding Ground (UTC)")
 
 def speed_consumption_section(search_term):
     col1, col2, col3 = st.columns(3)
@@ -410,60 +414,6 @@ document.addEventListener('keydown', function(e) {
 });
 </script>
 """, unsafe_allow_html=True)
-
-# Main function (updated)
-def main():
-    st.set_page_config(layout="wide", page_title="Maritime Report")
-    
-    # Dark mode toggle
-    if st.sidebar.checkbox("Dark Mode"):
-        st.markdown("""
-        <style>
-        .stApp {
-            background-color: #0e1117;
-            color: #ffffff;
-        }
-        </style>
-        """, unsafe_allow_html=True)
-
-    st.title("Maritime Report")
-
-    # Progress indicator
-    st.progress(st.session_state.progress)
-
-    # Quick Fill and Save buttons
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        if st.button("Quick Fill from Previous Report"):
-            load_form_data()
-    with col2:
-        if st.button("Save Current Report"):
-            save_form_data()
-    with col3:
-        if st.button("Review Summary"):
-            display_summary()
-
-    # Search function
-    search_term = st.sidebar.text_input("Search fields")
-
-    tabs = st.tabs(["Deck", "Engine"])
-
-    with tabs[0]:
-        deck_tab(search_term)
-
-    with tabs[1]:
-        engine_tab(search_term)
-
-    if st.button("Submit Report", type="primary"):
-        save_report()
-        st.success("Report submitted and saved successfully!")
-
-    # Auto-save every 5 minutes
-    if tm.time() % 300 < 1:  # Every 5 minutes
-        save_form_data()
-
-    # Update progress
-    update_progress()
 
 if __name__ == "__main__":
     main()
