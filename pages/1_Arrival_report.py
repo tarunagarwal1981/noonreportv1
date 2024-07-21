@@ -26,7 +26,7 @@ with tabs[0]:
     with col2:
         eosp = st.text_input("EOSP", key="eosp_arrival")
         fwe = st.text_input("FWE", key="fwe_arrival")
-        
+
     st.header("Event Times")
     for event in ["Arrival Date", "End of Sea Passage (EOSP)", "APS", "Arrival customary Anchorage", "Arrival drifting position", "Anchor aweigh", "Commenced proceeding to berth from drifting position", "Pilot on Board (POB)", "First Line Ashore (FLA)", "First Shackle in water (FSW)", "Let Go Anchor (LGA)", "All Fast", "Gangway Down", "Finished with Engine (FWE)", "Pilot Away (POB)"]:
         col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
@@ -38,6 +38,22 @@ with tabs[0]:
         with col3:
             st.date_input(f"{event} UTC Date", datetime.now().date(), key=f"{event}_utc_date_arrival")
             st.time_input(f"{event} UTC Time", datetime.now().time(), key=f"{event}_utc_time_arrival")
+
+    st.header("Additional Information")
+    col1, col2 = st.columns(2)
+    with col1:
+        fpg_date = st.date_input("Free Pratique Granted (FPG) Date", datetime.now().date(), key="fpg_date")
+        fpg_time = st.time_input("Free Pratique Granted (FPG) Time", datetime.now().time(), key="fpg_time")
+        etb_date = st.date_input("ETB Date", datetime.now().date(), key="etb_date")
+        etb_time = st.time_input("ETB Time", datetime.now().time(), key="etb_time")
+        etd_date = st.date_input("ETD Date", datetime.now().date(), key="etd_date")
+        etd_time = st.time_input("ETD Time", datetime.now().time(), key="etd_time")
+        ballast_laden = st.radio("Ballast/Laden", ["Ballast", "Laden"], key="ballast_laden")
+    with col2:
+        start_new_voyage = st.checkbox("Start New Voyage", key="start_new_voyage")
+        maneuvering_hrs = st.number_input("Maneuvering (hrs)", min_value=0.0, step=0.01, key="maneuvering_hrs")
+        maneuvering_distance = st.number_input("Maneuvering Distance (nm)", min_value=0.0, step=0.01, key="maneuvering_distance")
+        me_rev_counter_fwe = st.text_input("ME Rev Counter @ FWE", key="me_rev_counter_fwe")
 
 # From Noon to EOSP Tab
 with tabs[1]:
