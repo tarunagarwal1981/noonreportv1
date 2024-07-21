@@ -40,7 +40,6 @@ with tabs[0]:
         eta_time = st.time_input("ETA Time", datetime.now().time(), key="eta_time")
         speed_required = st.number_input("Speed required to achieve Scheduled ETA (kts)", min_value=0.0, step=0.1, key="speed_required")
 
-    st.subheader("Best ETA PBG")
     col1, col2 = st.columns(2)
     with col1:
         best_eta_pbg_lt_date = st.date_input("Best ETA PBG (LT) Date", datetime.now().date(), key="best_eta_pbg_lt_date")
