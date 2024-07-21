@@ -48,21 +48,40 @@ def deck_tab():
             st.date_input("ETC/D", datetime.now().date())
             st.radio("Ballast/Laden", ["Ballast", "Laden"])
 
-    with st.expander("Position and Navigation"):
-        col1, col2 = st.columns(2)
+    with st.expander("Speed and Consumption", expanded=True):
+        col1, col2, col3 = st.columns(3)
         with col1:
-            st.text_input("Latitude")
-            st.text_input("Longitude")
-            st.number_input("Course (°)", min_value=0, max_value=360)
-            st.number_input("Draft F (m)", min_value=0.0, step=0.01)
-            st.number_input("Draft A (m)", min_value=0.0, step=0.01)
-            st.number_input("Displacement (mt)", min_value=0.0, step=0.1)
+            st.number_input("Full Speed (hrs)", min_value=0.0, step=0.1)
+            st.number_input("Full Speed (nm)", min_value=0.0, step=0.1)
+            st.number_input("Reduced Speed/Slow Steaming (hrs)", min_value=0.0, step=0.1)
+            st.number_input("Reduced Speed/Slow Steaming (nm)", min_value=0.0, step=0.1)
+            st.number_input("Stopped (hrs)", min_value=0.0, step=0.1)
+            st.number_input("Distance Observed (nm)", min_value=0.0, step=0.1)
         with col2:
             st.number_input("Obs Speed (SOG) (kts)", min_value=0.0, step=0.1)
             st.number_input("EM Log Speed (LOG) (kts)", min_value=0.0, step=0.1)
             st.number_input("Voyage Average Speed (kts)", min_value=0.0, step=0.1)
             st.number_input("Distance To Go (nm)", min_value=0.0, step=0.1)
             st.number_input("Distance since COSP (nm)", min_value=0.0, step=0.1)
+        with col3:
+            st.number_input("Voyage Order Speed (kts)", min_value=0.0, step=0.1)
+            st.number_input("Voyage Order ME FO Cons (mt)", min_value=0.0, step=0.1)
+            st.number_input("Voyage Order ME DO Cons (mt)", min_value=0.0, step=0.1)
+            st.number_input("Course (°)", min_value=0.0, step=1.0)
+            st.number_input("Draft F (m)", min_value=0.0, step=0.01)
+            st.number_input("Draft A (m)", min_value=0.0, step=0.01)
+            st.number_input("Displacement (mt)", min_value=0.0, step=0.1)
+
+    with st.expander("Position and Navigation"):
+        col1, col2 = st.columns(2)
+        with col1:
+            st.text_input("Latitude")
+            st.text_input("Longitude")
+        with col2:
+            st.date_input("Best ETA PBG (LT)", datetime.now().date())
+            st.time_input("Best ETA PBG Time (LT)", datetime.now().time())
+            st.date_input("Best ETA PBG (UTC)", datetime.now().date())
+            st.time_input("Best ETA PBG Time (UTC)", datetime.now().time())
 
     with st.expander("Weather"):
         col1, col2 = st.columns(2)
@@ -79,6 +98,7 @@ def deck_tab():
             st.selectbox("Current Drift", ["North", "East", "South", "West", "North East", "North West", "South East", "South West"])
             st.number_input("Air Temp (°C)", min_value=-50.0, step=0.1)
             st.checkbox("Icing on Deck?")
+        st.number_input("Period of bad Weather (beyond BF scale 5, in Hours)", min_value=0.0, step=0.1)
 
     with st.expander("Special Areas"):
         col1, col2 = st.columns(2)
@@ -98,6 +118,31 @@ def deck_tab():
             st.text_input("Longitude (ECA)")
             st.text_input("Fuel used in ECA")
             st.time_input("Fuel C/O Time", datetime.now().time())
+
+    with st.expander("Breaching International Navigating Limits"):
+        col1, col2 = st.columns(2)
+        with col1:
+            st.radio("Is the vessel in IWL Breach area or will enter IWL Breach area within next 7 days?", ["Yes", "No"])
+            st.date_input("Entry into IWL Breach Date", datetime.now().date())
+            st.time_input("Entry into IWL Breach Time", datetime.now().time())
+        with col2:
+            st.date_input("Exit from IWL Breach Date", datetime.now().date())
+            st.time_input("Exit from IWL Breach Time", datetime.now().time())
+
+    with st.expander("Drifting"):
+        col1, col2 = st.columns(2)
+        with col1:
+            st.text_input("Drifting Start Latitude")
+            st.text_input("Drifting Start Longitude")
+            st.date_input("Drifting Start Date", datetime.now().date())
+            st.time_input("Drifting Start Time", datetime.now().time())
+            st.number_input("Drifting Distance (nm)", min_value=0.0, step=0.1)
+        with col2:
+            st.text_input("Drifting End Latitude")
+            st.text_input("Drifting End Longitude")
+            st.date_input("Drifting End Date", datetime.now().date())
+            st.time_input("Drifting End Time", datetime.now().time())
+            st.number_input("Drifting Time (hrs)", min_value=0.0, step=0.1)
 
 def engine_tab():
     st.header("Engine Information")
