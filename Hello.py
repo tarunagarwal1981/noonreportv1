@@ -43,7 +43,7 @@ def get_metadata_fields():
     return run_query(query)
 
 # Streamlit app title
-st.title('Maritime Reporting Database Viewer')
+st.title('Optilog - DB Schema, Table, Fields & Metadata')
 
 # Sidebar for filters
 st.sidebar.header('Filters')
