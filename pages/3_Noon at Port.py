@@ -35,34 +35,8 @@ def load_form_data():
 # Main app
 def main():
     st.set_page_config(layout="wide", page_title="Maritime Report")
-    
-    # Dark mode toggle
-    if st.sidebar.checkbox("Dark Mode"):
-        st.markdown("""
-        <style>
-        .stApp {
-            background-color: #0e1117;
-            color: #ffffff;
-        }
-        </style>
-        """, unsafe_allow_html=True)
 
-    st.title("Maritime Report")
-
-    # Progress indicator
-    st.progress(st.session_state.progress)
-
-    # Quick Fill and Save buttons
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        if st.button("Quick Fill from Previous Report"):
-            load_form_data()
-    with col2:
-        if st.button("Save Current Report"):
-            save_form_data()
-    with col3:
-        if st.button("Review Summary"):
-            st.session_state.show_summary = True
+    st.title("Noon Report - At Port")
 
     # Search function
     search_term = st.sidebar.text_input("Search fields")
@@ -86,14 +60,8 @@ def main():
     # Update progress
     update_progress()
 
-    # Display summary if requested
-    if st.session_state.get('show_summary', False):
-        display_summary()
-        if st.button("Close Summary"):
-            st.session_state.show_summary = False
-
 def deck_tab(search_term):
-    st.header("Deck")
+    st.header("Deck Information")
 
     sections = [
         ("General Information", general_info_section),
@@ -145,11 +113,14 @@ def general_info_section(search_term):
         input_field("Speed required to achieve Scheduled ETA (kts)", "number", search_term, min_value=0.0, step=0.1, help="Enter the required speed to meet the scheduled ETA")
         input_field("ETB", "date", search_term, help="Enter the Estimated Time of Berthing")
         input_field("ETC/D", "date", search_term, help="Enter the Estimated Time of Completion/Departure")
+        input_field("Ballast/Laden", "radio", search_term, options=["Ballast", "Laden"], help="Select whether the vessel is in ballast or laden condition")
+        col1, col2 = st.columns(2)
+    with col1:
         input_field("Best ETA PBG (LT)", "date", search_term, help="Enter the best estimated time of arrival at Pilot Boarding Ground (Local Time)")
         input_field("Best ETA PBG Time (LT)", "time", search_term, help="Enter the best estimated time of arrival at Pilot Boarding Ground (Local Time)")
+    with col2:
         input_field("Best ETA PBG (UTC)", "date", search_term, help="Enter the best estimated time of arrival at Pilot Boarding Ground (UTC)")
         input_field("Best ETA PBG Time (UTC)", "time", search_term, help="Enter the best estimated time of arrival at Pilot Boarding Ground (UTC)")
-        input_field("Ballast/Laden", "radio", search_term, options=["Ballast", "Laden"], help="Select whether the vessel is in ballast or laden condition")
 
 def speed_consumption_section(search_term):
     col1, col2, col3 = st.columns(3)
@@ -194,12 +165,11 @@ def wind_weather_section(search_term):
     st.subheader("Forecast next 24 Hrs")
     col1, col2 = st.columns(2)
     with col1:
-        input_field("Wind Direction (next 24 hrs)", "selectbox", search_term, options=["North", "East", "South", "West", "North East", "North West", "South East", "South West"], help="Select the wind direction for the next 24 hours")
-        input_field("Wind Force (next 24 hrs)", "number", search_term, min_value=0, max_value=12, help="Enter the wind force on the Beaufort scale for the next 24 hours")
-        input_field("Sea Height (next 24 hrs)", "number", search_term, min_value=0.0, step=0.1, help="Enter the sea height in meters for the next 24 hours")
+        input_field("Wind Direction (Forecast)", "selectbox", search_term, options=["North", "East", "South", "West", "North East", "North West", "South East", "South West"], help="Select the forecast wind direction")
+        input_field("Wind Force (Forecast)", "number", search_term, min_value=0, max_value=12, help="Enter the forecast wind force on the Beaufort scale")
     with col2:
-        input_field("Sea Direction (next 24 hrs)", "selectbox", search_term, options=["North", "East", "South", "West", "North East", "North West", "South East", "South West"], help="Select the sea direction for the next 24 hours")
-        input_field("Swell Height (next 24 hrs)", "number", search_term, min_value=0.0, step=0.1, help="Enter the swell height in meters for the next 24 hours")
+        input_field("Sea Height (Forecast)", "number", search_term, min_value=0.0, step=0.1, help="Enter the forecast sea height in meters")
+        input_field("Swell Height (Forecast)", "number", search_term, min_value=0.0, step=0.1, help="Enter the forecast swell height in meters")
 
 def drifting_section(search_term):
     col1, col2 = st.columns(2)
@@ -221,11 +191,11 @@ def engine_general_section(search_term):
     with col1:
         input_field("Engine Distance (nm)", "number", search_term, min_value=0.0, step=0.1, help="Enter the engine distance in nautical miles")
         input_field("Slip (%)", "number", search_term, min_value=0.0, step=0.1, help="Enter the slip percentage")
-        input_field("Average Slip since COSP (%)", "number", search_term, min_value=0.0, step=0.1, help="Enter the average slip percentage since Commencement of Sea Passage")
+        input_field("Avg Slip since COSP (%)", "number", search_term, min_value=0.0, step=0.1, help="Enter the average slip since Commencement of Sea Passage")
     with col2:
-        input_field("ER Temp (°C)", "number", search_term, min_value=-50.0, max_value=50.0, step=0.1, help="Enter the engine room temperature in Celsius")
-        input_field("SW Temp (°C)", "number", search_term, min_value=-50.0, max_value=50.0, step=0.1, help="Enter the sea water temperature in Celsius")
-        input_field("SW Press (bar)", "number", search_term, min_value=0.0, step=0.1, help="Enter the sea water pressure in bar")
+        input_field("ER Temp (°C)", "number", search_term, min_value=0.0, step=0.1, help="Enter the Engine Room temperature in Celsius")
+        input_field("SW Temp (°C)", "number", search_term, min_value=0.0, step=0.1, help="Enter the Sea Water temperature in Celsius")
+        input_field("SW Press (bar)", "number", search_term, min_value=0.0, step=0.1, help="Enter the Sea Water pressure in bar")
 
 def auxiliary_engines_section(search_term):
     col1, col2 = st.columns(2)
@@ -253,7 +223,7 @@ def fresh_water_section(search_term):
     }
     fresh_water_df = pd.DataFrame(fresh_water_data)
     st.data_editor(fresh_water_df, key="fresh_water_editor", hide_index=True)
-    input_field("Boiler water Chlorides (ppm)", "number", search_term, min_value=0.0, step=0.1, help="Enter the chloride level in the boiler water in parts per million")
+    input_field("Boiler water Chlorides (ppm)", "number", search_term, min_value=0.0, step=0.1, help="Enter the boiler water chlorides in ppm")
 
 def input_field(label, field_type, search_term, **kwargs):
     if search_term.lower() in label.lower():
@@ -273,21 +243,6 @@ def input_field(label, field_type, search_term, **kwargs):
     elif field_type == "checkbox":
         return st.checkbox(label, key=label, help=kwargs.get("help", ""), value=st.session_state.form_data.get(label, False))
 
-def create_summary():
-    summary = {}
-    for key, value in st.session_state.items():
-        if not key.startswith('_') and key != 'form_data':
-            summary[key] = value
-    return summary
-
-def display_summary():
-    st.title("Report Summary")
-    summary = create_summary()
-    for section, fields in summary.items():
-        st.header(section)
-        for field, value in fields.items():
-            st.write(f"{field}: {value}")
-
 def save_report():
     summary = create_summary()
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -295,6 +250,13 @@ def save_report():
     with open(filename, "w") as f:
         json.dump(summary, f)
     st.success(f"Report saved as {filename}")
+
+def create_summary():
+    summary = {}
+    for key, value in st.session_state.items():
+        if not key.startswith('_') and key != 'form_data':
+            summary[key] = value
+    return summary
 
 if __name__ == "__main__":
     main()
