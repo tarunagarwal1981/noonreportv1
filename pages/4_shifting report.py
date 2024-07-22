@@ -109,5 +109,58 @@ def main():
     service_df = pd.DataFrame(service_data)
     st.data_editor(service_df, key="service_editor", hide_index=True)
 
+    # Lube Oil Section
+    st.subheader("Lube Oil (Ltr)")
+    lube_oil_data = {
+        "Lube Oil": [
+            "ME Cylinder Oil", "ME Cylinder Oil 15 TBN", "ME Cylinder Oil 40 TBN",
+            "ME Cylinder Oil 70 TBN", "ME Cylinder Oil 100 TBN", "ME/MT System Oil",
+            "AE System Oil", "AE System Oil 15TBN", "TG System Oil", "Other Lub Oils"
+        ],
+        "Prev. ROB": [0.0] * 10,
+        "Consumption": [0.0] * 10,
+        "Received": [0.0] * 10,
+        "ROB": [0.0] * 10
+    }
+    lube_oil_df = pd.DataFrame(lube_oil_data)
+    st.data_editor(lube_oil_df, key="lube_oil_editor", hide_index=True)
+
+    # Consumption Section
+    st.subheader("Consumption (mT)")
+    consumption_data = {
+        "Item": [
+            "Heavy Fuel Oil RME-RMK >80cSt", "Heavy Fuel Oil RMA-RMD <80cSt",
+            "VLSFO RME-RMK Visc >80cSt 0.5%S Max", "VLSFO RMA-RMD Visc >80cSt 0.5%S Max",
+            "ULSFO RME-RMK <80cSt 0.1%S Max", "ULSFO RMA-RMD <80cSt 0.1%S Max",
+            "VLSMGO 0.5%S Max", "ULSMGO 0.1%S Max", "Biofuel - 30", "Biofuel Distillate FO",
+            "LPG - Propane", "LPG - Butane", "LNG Boil Off", "LNG (Bunkered)"
+        ],
+        "Previous ROB": [0.0] * 14,
+        "AT SEA M/E": [0.0] * 14,
+        "AT SEA A/E": [0.0] * 14,
+        "AT SEA BLR": [0.0] * 14,
+        "AT SEA IGG": [0.0] * 14,
+        "AT SEA C/ENG": [0.0] * 14,
+        "AT SEA OTH": [0.0] * 14,
+        "IN PORT M/E": [0.0] * 14,
+        "IN PORT A/E": [0.0] * 14,
+        "IN PORT BLR": [0.0] * 14,
+        "IN PORT IGG": [0.0] * 14,
+        "IN PORT C/ENG": [0.0] * 14,
+        "IN PORT OTH": [0.0] * 14,
+        "Bunker Qty": [0.0] * 14,
+        "Sulphur %": [0.0] * 14,
+        "ROB @ BILGE": [0.0] * 14,
+        "AT HARBOUR M/E": [0.0] * 14,
+        "AT HARBOUR A/E": [0.0] * 14,
+        "AT HARBOUR BLR": [0.0] * 14,
+        "AT HARBOUR IGG": [0.0] * 14,
+        "AT HARBOUR C/ENG": [0.0] * 14,
+        "AT HARBOUR OTH": [0.0] * 14,
+        "ROB @ FWE": [0.0] * 14
+    }
+    consumption_df = pd.DataFrame(consumption_data)
+    st.data_editor(consumption_df, key="consumption_editor", hide_index=True)
+
 if __name__ == "__main__":
     main()
