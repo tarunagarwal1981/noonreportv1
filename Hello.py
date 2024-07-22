@@ -2,7 +2,7 @@ import streamlit as st
 import psycopg2
 import pandas as pd
 from psycopg2 import sql
-from st_aggrid import AgGrid, GridOptionsBuilder, GridUpdateMode, DataReturnMode
+from st_aggrid import AgGrid, GridOptionsBuilder
 
 # Set Streamlit page configuration at the very beginning
 st.set_page_config(layout="wide")
@@ -63,9 +63,6 @@ selected_table = st.sidebar.selectbox('Select a table', [table[0] for table in t
 # Option to show only mandatory fields
 show_mandatory = st.sidebar.checkbox('Show only mandatory fields')
 
-# Main content area
-st.header(f'Data View: {selected_schema}.{selected_table}')
-
 if selected_table:
     # Get columns
     columns = get_table_columns(selected_table, selected_schema)
@@ -102,7 +99,6 @@ else:
     st.write("Please select a table to view data.")
 
 # Display table metadata
-st.header(f'Metadata for {selected_table}')
 metadata = get_metadata_fields()
 
 if metadata:
@@ -121,8 +117,8 @@ if metadata:
         gb.configure_default_column(resizable=True, wrapText=True, autoHeight=True)
         gb.configure_grid_options(suppressHorizontalScroll=False)
         gridOptions = gb.build()
-        st.subheader(f'Metadata for {selected_schema}.{selected_table}')
-        AgGrid(filtered_metadata_df, gridOptions=gridOptions, height=500, theme='streamlit')
+        st.subheader(f'Metadata for {selected_table}')
+        AgGrid(filtered_metadata_df, gridOptions=gridOptions, height=300, theme='streamlit')
     else:
         st.write("No metadata found for this table.")
 else:
