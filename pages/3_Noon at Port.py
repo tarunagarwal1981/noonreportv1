@@ -1,19 +1,35 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime, time
-import time as tm
 import json
 
 # Initialize session state
 if 'form_data' not in st.session_state:
     st.session_state.form_data = {}
 
+# Function to save form data
+def save_form_data():
+    st.session_state.form_data.update({k: v for k, v in st.session_state.items() if not k.startswith('_')})
+    with open('form_data.json', 'w') as f:
+        json.dump(st.session_state.form_data, f)
+    st.success("Form data saved successfully!")
+
+# Function to load form data
+def load_form_data():
+    try:
+        with open('form_data.json', 'r') as f:
+            st.session_state.form_data = json.load(f)
+        st.success("Form data loaded successfully!")
+    except FileNotFoundError:
+        st.warning("No saved form data found.")
+
 # Main app
 def main():
     st.set_page_config(layout="wide", page_title="Maritime Report")
 
-    st.title("Maritime Report")
+    st.title("Noon Report at Port")
 
+    # Search function
     search_term = st.sidebar.text_input("Search fields")
 
     tabs = st.tabs(["Deck", "Engine"])
@@ -62,31 +78,24 @@ def general_info_section(search_term):
         input_field("Ship Mean Time", "number", search_term, min_value=-12, max_value=14, help="Enter the ship mean time")
         input_field("Report Date (LT)", "date", search_term, help="Enter the local date of the report")
         input_field("Report Time (LT)", "time", search_term, help="Enter the local time of the report")
-        input_field("Report Date (UTC)", "date", search_term, help="Enter the UTC date of the report")
-        input_field("Report Time (UTC)", "time", search_term, help="Enter the UTC time of the report")
+        input_field("UTC", "time", search_term, help="Enter the UTC time of the report")
         input_field("IDL Crossing", "text", search_term, help="Enter International Date Line crossing information if applicable")
         input_field("IDL Direction", "selectbox", search_term, options=["--Select--", "East", "West"], help="Select the direction of IDL crossing")
+    with col2:
         input_field("Voyage No", "text", search_term, help="Enter the voyage number")
         input_field("Cargo No", "text", search_term, help="Enter the cargo number")
         input_field("Vessel's Status", "selectbox", search_term, options=["At Sea", "In Port"], help="Select the current status of the vessel")
-    with col2:
         input_field("Current Port", "text", search_term, help="Enter the current port if in port")
         input_field("Last Port", "text", search_term, help="Enter the last port visited")
+        input_field("Off Port Limits", "checkbox", search_term, help="Check if the vessel is at off port limits")
+    with col3:
         input_field("Berth / Location", "text", search_term, help="Enter the specific berth or location")
         input_field("Latitude", "text", search_term, help="Enter the current latitude")
         input_field("Longitude", "text", search_term, help="Enter the current longitude")
         input_field("Next Port", "text", search_term, help="Enter the next port of call")
         input_field("ETA Date", "date", search_term, help="Enter the estimated date of arrival at the next port")
         input_field("ETA Time", "time", search_term, help="Enter the estimated time of arrival at the next port")
-    with col3:
         input_field("Speed required to achieve Scheduled ETA (kts)", "number", search_term, min_value=0.0, step=0.1, help="Enter the required speed to meet the scheduled ETA")
-        input_field("ETB", "date", search_term, help="Enter the Estimated Time of Berthing")
-        input_field("ETC/D", "date", search_term, help="Enter the Estimated Time of Completion/Departure")
-        input_field("Best ETA PBG (LT)", "date", search_term, help="Enter the best estimated time of arrival at Pilot Boarding Ground (Local Time)")
-        input_field("Best ETA PBG Time (LT)", "time", search_term, help="Enter the best estimated time of arrival at Pilot Boarding Ground (Local Time)")
-        input_field("Best ETA PBG (UTC)", "date", search_term, help="Enter the best estimated time of arrival at Pilot Boarding Ground (UTC)")
-        input_field("Best ETA PBG Time (UTC)", "time", search_term, help="Enter the best estimated time of arrival at Pilot Boarding Ground (UTC)")
-        input_field("Ballast/Laden", "radio", search_term, options=["Ballast", "Laden"], help="Select whether the vessel is in ballast or laden condition")
 
 def speed_consumption_section(search_term):
     col1, col2, col3 = st.columns(3)
@@ -128,6 +137,14 @@ def wind_weather_section(search_term):
         input_field("Air Temp (°C)", "number", search_term, min_value=-50.0, max_value=50.0, step=0.1, help="Enter the air temperature in Celsius")
         input_field("Icing on Deck?", "checkbox", search_term, help="Check if there is icing on the deck")
     input_field("Period of bad Weather (beyond BF scale 5, in Hours)", "number", search_term, min_value=0.0, step=0.1, help="Enter the duration of bad weather in hours")
+    st.subheader("Forecast next 24 Hrs")
+    with col1:
+        input_field("Wind Direction", "selectbox", search_term, options=["North", "East", "South", "West", "North East", "North West", "South East", "South West"], help="Select the forecast wind direction")
+        input_field("Wind Force", "number", search_term, min_value=0, max_value=12, help="Enter the forecast wind force on the Beaufort scale")
+    with col2:
+        input_field("Sea Height (m)", "number", search_term, min_value=0.0, step=0.1, help="Enter the forecast sea height in meters")
+        input_field("Sea Direction", "selectbox", search_term, options=["North", "East", "South", "West", "North East", "North West", "South East", "South West"], help="Select the forecast sea direction")
+        input_field("Swell Height (m)", "number", search_term, min_value=0.0, step=0.1, help="Enter the forecast swell height in meters")
 
 def drifting_section(search_term):
     col1, col2 = st.columns(2)
@@ -148,12 +165,12 @@ def engine_general_section(search_term):
     col1, col2, col3 = st.columns(3)
     with col1:
         input_field("Engine Distance", "number", search_term, min_value=0.0, step=0.1, help="Enter the engine distance")
-        input_field("Slip", "number", search_term, min_value=0.0, max_value=100.0, step=0.1, help="Enter the slip percentage")
+        input_field("Slip", "number", search_term, min_value=0.0, step=0.1, help="Enter the slip percentage")
         input_field("Avg Slip since COSP", "number", search_term, min_value=0.0, step=0.1, help="Enter the average slip since Commencement of Sea Passage")
-        input_field("ER Temp (°C)", "number", search_term, min_value=0.0, step=0.1, help="Enter the engine room temperature in Celsius")
     with col2:
-        input_field("SW Temp (°C)", "number", search_term, min_value=0.0, step=0.1, help="Enter the sea water temperature in Celsius")
-        input_field("SW Press (bar)", "number", search_term, min_value=0.0, step=0.1, help="Enter the sea water pressure in bar")
+        input_field("ER Temp (°C)", "number", search_term, min_value=0.0, step=0.1, help="Enter the Engine Room temperature in Celsius")
+        input_field("SW Temp (°C)", "number", search_term, min_value=0.0, step=0.1, help="Enter the Sea Water temperature in Celsius")
+        input_field("SW Press (bar)", "number", search_term, min_value=0.0, step=0.1, help="Enter the Sea Water pressure in bar")
 
 def auxiliary_engines_section(search_term):
     col1, col2 = st.columns(2)
@@ -168,6 +185,8 @@ def auxiliary_engines_section(search_term):
         input_field("A/E No.3 Generator Hours of Operation (hrs)", "number", search_term, min_value=0.0, step=0.1, help="Enter the hours of operation for Auxiliary Engine No.3 Generator")
         input_field("A/E No.4 Generator Hours of Operation (hrs)", "number", search_term, min_value=0.0, step=0.1, help="Enter the hours of operation for Auxiliary Engine No.4 Generator")
     input_field("Shaft Generator Power (kw)", "number", search_term, min_value=0.0, step=0.1, help="Enter the power output of the Shaft Generator in kilowatts")
+    input_field("Earth Fault Monitor 440 Volts", "number", search_term, min_value=0.0, step=0.1, help="Enter the earth fault monitor reading for 440 Volts")
+    input_field("Earth Fault Monitor 230/110 Volts", "number", search_term, min_value=0.0, step=0.1, help="Enter the earth fault monitor reading for 230/110 Volts")
 
 def fresh_water_section(search_term):
     fresh_water_data = {
@@ -199,6 +218,13 @@ def input_field(label, field_type, search_term, **kwargs):
     elif field_type == "checkbox":
         return st.checkbox(label, key=label, help=kwargs.get("help", ""), value=st.session_state.form_data.get(label, False))
 
+def create_summary():
+    summary = {}
+    for key, value in st.session_state.items():
+        if not key.startswith('_') and key != 'form_data':
+            summary[key] = value
+    return summary
+
 def save_report():
     summary = create_summary()
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -206,13 +232,6 @@ def save_report():
     with open(filename, "w") as f:
         json.dump(summary, f)
     st.success(f"Report saved as {filename}")
-
-def create_summary():
-    summary = {}
-    for key, value in st.session_state.items():
-        if not key.startswith('_') and key != 'form_data':
-            summary[key] = value
-    return summary
 
 if __name__ == "__main__":
     main()
