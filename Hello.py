@@ -37,22 +37,19 @@ def init_connection():
 conn = init_connection()
 
 # Database query functions
-@st.cache_data(ttl=600)
 def run_query(query, params=None):
     with conn.cursor() as cur:
         cur.execute(query, params)
         return cur.fetchall()
 
-@st.cache_data(ttl=600)
 def get_table_columns(table_name, schema):
-    query = sql.SQL("""
+    query = """
         SELECT column_name 
         FROM information_schema.columns 
         WHERE table_schema = %s AND table_name = %s
-    """)
+    """
     return [col[0] for col in run_query(query, (schema, table_name))]
 
-@st.cache_data(ttl=600)
 def get_metadata_fields():
     query = """
     SELECT table_name, column_name, data_element_name, definition, standard_unit, additional_info
@@ -91,11 +88,7 @@ if selected_table:
     if columns:
         # Construct and execute query
         columns_str = ', '.join(columns)
-        query = sql.SQL("SELECT {} FROM {}.{}").format(
-            sql.SQL(columns_str),
-            sql.Identifier(selected_schema),
-            sql.Identifier(selected_table)
-        )
+        query = f"SELECT {columns_str} FROM {selected_schema}.{selected_table}"
         data = run_query(query)
         
         # Display data using AgGrid
