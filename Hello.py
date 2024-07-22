@@ -76,8 +76,10 @@ with col1:
     tables = run_query("SELECT table_name FROM information_schema.tables WHERE table_schema = %s", (selected_schema,))
     selected_table = st.selectbox('Select a table', [table[0] for table in tables])
 
-    # Option to show only mandatory fields
-    show_mandatory = st.checkbox('Show only mandatory fields')
+    # Option to show only mandatory fields (only visible when public schema is selected)
+    show_mandatory = False
+    if selected_schema == 'public':
+        show_mandatory = st.checkbox('Show only mandatory fields')
 
 # Main content area
 with col2:
@@ -127,7 +129,7 @@ with col2:
         metadata_df = pd.DataFrame(metadata, columns=['Table Name', 'Column', 'Data Element', 'Definition', 'Unit', 'Additional Info'])
         filtered_metadata_df = metadata_df[metadata_df['Table Name'] == selected_table]
         
-        if show_mandatory:
+        if show_mandatory and selected_schema == 'public':
             filtered_metadata_df = filtered_metadata_df[filtered_metadata_df['Additional Info'].str.contains('mandatory', case=False, na=False)]
         
         if not filtered_metadata_df.empty:
