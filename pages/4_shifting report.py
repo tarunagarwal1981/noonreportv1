@@ -7,38 +7,32 @@ st.set_page_config(layout="wide", page_title="Maritime Shifting Report")
 def main():
     st.title("Maritime Shifting Report")
 
-    col1, col2 = st.columns([1, 3])
-
-    with col1:
-        st.header("Filters")
-        vessel = st.text_input("Vessel", key="vessel")
-        voyage_no = st.text_input("Voyage No", key="voyage_no")
-        port = st.text_input("Port", key="port")
-
-    with col2:
-        general_info_section()
-        detailed_times_section()
-        bilge_sludge_section()
-        remarks_section()
-        counter_section()
-        service_remarks_section()
-        lube_oil_section()
-        consumption_section()
+    general_info_section()
+    detailed_times_section()
+    bilge_sludge_section()
+    remarks_section()
+    counter_section()
+    service_remarks_section()
+    lube_oil_section()
+    consumption_section()
 
 def general_info_section():
     with st.expander("General Information", expanded=True):
         col1, col2, col3 = st.columns(3)
         with col1:
+            st.text_input("Vessel", key="vessel")
+            st.text_input("Voyage No", key="voyage_no")
+            st.text_input("Port", key="port")
             st.text_input("Name of Berth Departed", key="berth_departed")
             st.text_input("Name of Berth Arrived", key="berth_arrived")
+        with col2:
             st.text_input("Latitude", key="latitude")
             st.text_input("Longitude", key="longitude")
-        with col2:
             st.selectbox("Ship Mean Time", ["UTC"], key="ship_mean_time")
             st.number_input("Offset", min_value=-12, max_value=12, step=1, key="offset")
             st.date_input("FWE", datetime.now(), key="fwe_date")
-            st.time_input("FWE Time", datetime.now().time(), key="fwe_time")
         with col3:
+            st.time_input("FWE Time", datetime.now().time(), key="fwe_time")
             st.radio("Ballast/Laden", ["Ballast", "Laden"], key="ballast_laden")
             st.text_input("Next Port", key="next_port")
             st.text_input("ETC/D", key="etc_d")
