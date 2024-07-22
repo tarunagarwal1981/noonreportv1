@@ -1,6 +1,6 @@
 import streamlit as st
-import pandas as pd
 from datetime import datetime
+import pandas as pd
 
 # Set up the page layout
 st.set_page_config(layout="wide", page_title="Noon in Port Report")
@@ -8,7 +8,6 @@ st.set_page_config(layout="wide", page_title="Noon in Port Report")
 def main():
     st.title("Noon in Port Report")
 
-    # Tabs for Deck and Engine
     tabs = st.tabs(["Deck", "Engine"])
 
     with tabs[0]:
@@ -148,32 +147,27 @@ def engine_tab():
     col1, col2 = st.columns(2)
     with col1:
         st.number_input("Engine Distance (nm)", min_value=0.0, step=0.1, key="engine_distance")
-        st.number_input("Slip (%)", min_value=0.0, step=0.1, key="slip")
-        st.number_input("Avg Slip since COSP (%)", min_value=0.0, step=0.1, key="avg_slip_since_cosp")
+        st.number_input("Slip (%)", min_value=0.0, max_value=100.0, step=0.1, key="slip")
+        st.number_input("Avg Slip since COSP (%)", min_value=0.0, max_value=100.0, step=0.1, key="avg_slip")
     with col2:
-        st.number_input("ER Temp (°C)", min_value=0.0, step=0.1, key="er_temp")
-        st.number_input("SW Temp (°C)", min_value=0.0, step=0.1, key="sw_temp")
+        st.number_input("ER Temp (°C)", min_value=-50.0, max_value=100.0, step=0.1, key="er_temp")
+        st.number_input("SW Temp (°C)", min_value=-50.0, max_value=100.0, step=0.1, key="sw_temp")
         st.number_input("SW Press (bar)", min_value=0.0, step=0.1, key="sw_press")
 
     # Auxiliary Engines Section
     st.header("Auxiliary Engines")
     col1, col2 = st.columns(2)
     with col1:
-        st.number_input("A/E No.1 Generator Load (kw)", min_value=0.0, step=0.1, key="ae1_generator_load")
-        st.number_input("A/E No.2 Generator Load (kw)", min_value=0.0, step=0.1, key="ae2_generator_load")
-        st.number_input("A/E No.3 Generator Load (kw)", min_value=0.0, step=0.1, key="ae3_generator_load")
-        st.number_input("A/E No.4 Generator Load (kw)", min_value=0.0, step=0.1, key="ae4_generator_load")
+        st.number_input("A/E No.1 Generator Load (kw)", min_value=0.0, step=0.1, key="ae1_load")
+        st.number_input("A/E No.2 Generator Load (kw)", min_value=0.0, step=0.1, key="ae2_load")
+        st.number_input("A/E No.3 Generator Load (kw)", min_value=0.0, step=0.1, key="ae3_load")
+        st.number_input("A/E No.4 Generator Load (kw)", min_value=0.0, step=0.1, key="ae4_load")
     with col2:
-        st.number_input("A/E No.1 Hours Of Operation (hrs)", min_value=0.0, step=0.1, key="ae1_hours_operation")
-        st.number_input("A/E No.2 Hours Of Operation (hrs)", min_value=0.0, step=0.1, key="ae2_hours_operation")
-        st.number_input("A/E No.3 Hours Of Operation (hrs)", min_value=0.0, step=0.1, key="ae3_hours_operation")
-        st.number_input("A/E No.4 Hours Of Operation (hrs)", min_value=0.0, step=0.1, key="ae4_hours_operation")
-    col1, col2 = st.columns(2)
-    with col1:
-        st.number_input("Shaft Generator Power (kw)", min_value=0.0, step=0.1, key="shaft_generator_power")
-        st.number_input("Earth Fault Monitor 440 Volts (MΩ)", min_value=0.0, step=0.1, key="earth_fault_monitor_440")
-    with col2:
-        st.number_input("Earth Fault Monitor 230/110 Volts (MΩ)", min_value=0.0, step=0.1, key="earth_fault_monitor_230")
+        st.number_input("A/E No.1 Generator Hours of Operation (hrs)", min_value=0.0, step=0.1, key="ae1_hours")
+        st.number_input("A/E No.2 Generator Hours of Operation (hrs)", min_value=0.0, step=0.1, key="ae2_hours")
+        st.number_input("A/E No.3 Generator Hours of Operation (hrs)", min_value=0.0, step=0.1, key="ae3_hours")
+        st.number_input("A/E No.4 Generator Hours of Operation (hrs)", min_value=0.0, step=0.1, key="ae4_hours")
+    st.number_input("Shaft Generator Power (kw)", min_value=0.0, step=0.1, key="shaft_generator_power")
 
     # Fresh Water Section
     st.header("Fresh Water")
@@ -185,9 +179,89 @@ def engine_tab():
         "Consumption": [0.0] * 4
     }
     fresh_water_df = pd.DataFrame(fresh_water_data)
-    st.dataframe(fresh_water_df)
-
+    st.data_editor(fresh_water_df, key="fresh_water_editor", hide_index=True)
     st.number_input("Boiler water Chlorides (ppm)", min_value=0.0, step=0.1, key="boiler_water_chlorides")
+
+    # Main Engine Section
+    st.header("Main Engine")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.number_input("M/E Rev Counter", min_value=0, step=1, key="me_rev_counter")
+        st.checkbox("Defective/Reset", key="me_defective_reset")
+        st.number_input("Average RPM", min_value=0.0, step=0.1, key="average_rpm")
+        st.number_input("Avg RPM since COSP", min_value=0.0, step=0.1, key="avg_rpm_cosp")
+        st.radio("Power Output", ["BHP", "KW"], key="power_output")
+        st.number_input("Calculated BHP", min_value=0.0, step=0.1, key="calculated_bhp")
+    with col2:
+        st.number_input("Avg power output (%)", min_value=0.0, max_value=100.0, step=0.1, key="avg_power_output")
+        st.number_input("Governor Setting or Fuel rack Setting (%)", min_value=0.0, max_value=100.0, step=0.1, key="governor_setting")
+        st.number_input("Speed Setting", min_value=0.0, step=0.1, key="speed_setting")
+        st.number_input("Scav Air Temp (°C)", min_value=0.0, step=0.1, key="scav_air_temp")
+        st.number_input("Scav Air Press (bar)", min_value=0.0, step=0.1, key="scav_air_press")
+    with col3:
+        st.number_input("FO Inlet Temp (°C)", min_value=0.0, step=0.1, key="fo_inlet_temp")
+        st.number_input("FO Cat Fines (ppm)", min_value=0.0, step=0.1, key="fo_cat_fines")
+        st.number_input("FO Press (bar)", min_value=0.0, step=0.1, key="fo_press")
+        st.number_input("Exh Temp Max (°C)", min_value=0.0, step=0.1, key="exh_temp_max")
+        st.number_input("Exh Temp Min (°C)", min_value=0.0, step=0.1, key="exh_temp_min")
+        st.number_input("Exh Press (bar)", min_value=0.0, step=0.1, key="exh_press")
+
+    # Fine Filter Section
+    st.header("Fine Filter")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.number_input("ME FO AUTO BACK WASH Counter", min_value=0, step=1, key="me_fo_back_wash_counter")
+        st.number_input("ME FO AUTO BACK WASH No Of Operations", min_value=0, step=1, key="me_fo_back_wash_operations")
+        st.checkbox("Defect/Reset", key="me_fo_back_wash_defect")
+    with col2:
+        st.number_input("ME LO AUTO BACK WASH Counter", min_value=0, step=1, key="me_lo_back_wash_counter")
+        st.number_input("ME LO AUTO BACK WASH No Of Operations", min_value=0, step=1, key="me_lo_back_wash_operations")
+        st.checkbox("Defect/Reset", key="me_lo_back_wash_defect")
+
+    # Turbocharger Section
+    st.header("Turbocharger")
+    turbo_data = {
+        "T/C No": ["No.1", "No.2", "No.3"],
+        "T/C RPM": [0.0] * 3,
+        "T/C Exh Gas Temp In (°C)": [0.0] * 3,
+        "T/C Exh Gas Temp Out (°C)": [0.0] * 3,
+        "Bearing Oil Temp In (°C)": [0.0] * 3,
+        "Bearing Oil Temp Out (°C)": [0.0] * 3,
+        "Bearing Oil Pressure (bar)": [0.0] * 3,
+        "T/C Suction Pressure drop (bar)": [0.0] * 3
+    }
+    turbo_df = pd.DataFrame(turbo_data)
+    st.data_editor(turbo_df, key="turbo_editor", hide_index=True)
+
+    # Lube Oil Consumptions Section
+    st.header("Lube Oil Consumptions (Ltr)")
+    lube_oil_data = {
+        "Lube Oil": ["ME Cylinder Oil", "ME Cylinder Oil 40 TBN", "ME Cylinder Oil 70 TBN", "ME Cylinder Oil 100 TBN", "ME/MT System Oil", "AE System Oil", "AE System Oil 15TBN", "TG System Oil", "Other Lub Oils"],
+        "Prev.ROB": [0.0] * 9,
+        "Cons": [0.0] * 9,
+        "Received": [0.0] * 9,
+        "ROB": [0.0] * 9
+    }
+    lube_oil_df = pd.DataFrame(lube_oil_data)
+    st.data_editor(lube_oil_df, key="lube_oil_editor", hide_index=True)
+
+    # Fuel, Bilge and Sludge Section
+    st.header("Fuel, Bilge and Sludge")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.number_input("FO Cons Rate (mt/day)", min_value=0.0, step=0.1, key="fo_cons_rate")
+        st.number_input("DO Cons Rate (mt/day)", min_value=0.0, step=0.1, key="do_cons_rate")
+        st.number_input("Density @ 15°C", min_value=0.0, step=0.001, key="density_15")
+        st.number_input("Sulphur Content %", min_value=0.0, max_value=100.0, step=0.01, key="sulphur_content")
+    with col2:
+        st.number_input("FO Cons since COSP (mt)", min_value=0.0, step=0.1, key="fo_cons_cosp")
+        st.number_input("DO Cons since COSP (mt)", min_value=0.0, step=0.1, key="do_cons_cosp")
+        st.number_input("Bilge Tank ROB (cu.m)", min_value=0.0, step=0.1, key="bilge_tank_rob")
+        st.number_input("Total Sludge Retained onboard (cu.m)", min_value=0.0, step=0.1, key="total_sludge_retained")
+    with col3:
+        st.date_input("Last landing of Bilge Water", datetime.now(), key="last_landing_bilge_water")
+        st.number_input("Days since last landing", min_value=0, step=1, key="days_last_landing")
+        st.number_input("Last landing of Sludge (days)", min_value=0, step=1, key="last_landing_sludge")
 
 if __name__ == "__main__":
     main()
