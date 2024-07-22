@@ -4,8 +4,8 @@ import pandas as pd
 from psycopg2 import sql
 from st_aggrid import AgGrid, GridOptionsBuilder, GridUpdateMode, DataReturnMode
 
-# Debugging: Print the secrets to check if they are loaded
-st.write(st.secrets)  # This should print the secrets if they are loaded correctly
+# Set Streamlit page configuration at the very beginning
+st.set_page_config(layout="wide")
 
 # Database connection without caching
 def init_connection():
@@ -42,9 +42,7 @@ def get_metadata_fields():
     """
     return run_query(query)
 
-# Streamlit app
-st.set_page_config(layout="wide")
-
+# Streamlit app title
 st.title('Maritime Reporting Database Viewer')
 
 # Sidebar for filters
