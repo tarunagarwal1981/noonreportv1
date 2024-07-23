@@ -7,15 +7,24 @@ st.set_page_config(layout="wide", page_title="Maritime FWE Report")
 def main():
     st.title("Maritime Finished With Engine (FWE) Report")
 
-    fwe_type = st.selectbox("FWE Type", ["Alongside", "Anchored", "Drifting", "STS Operation"])
+    fwe_scenario = st.selectbox("FWE Scenario", [
+        "After EOSP - Alongside", 
+        "After EOSP - Anchoring",
+        "After EOSP - Drifting",
+        "After EOSP - STS Operation",
+        "Anchoring (without EOSP)",
+        "Drifting (without EOSP)",
+        "STS Operation (without EOSP)",
+        "Before Entering Canal/River"
+    ])
 
     tabs = st.tabs(["FWE Information", "Navigation", "Engine", "Consumption"])
 
     with tabs[0]:
-        fwe_info_tab(fwe_type)
+        fwe_info_tab(fwe_scenario)
 
     with tabs[1]:
-        navigation_tab(fwe_type)
+        navigation_tab(fwe_scenario)
 
     with tabs[2]:
         engine_tab()
@@ -26,14 +35,14 @@ def main():
     if st.button("Submit FWE Report", type="primary"):
         st.success("FWE report submitted successfully!")
 
-def fwe_info_tab(fwe_type):
+def fwe_info_tab(fwe_scenario):
     st.header("FWE Information")
 
     col1, col2, col3 = st.columns(3)
     with col1:
         st.text_input("Vessel", key="vessel_fwe")
         st.text_input("Voyage No", key="voyage_fwe")
-        st.text_input("Port", key="port_fwe")
+        st.text_input("Port/Location", key="port_location_fwe")
         st.text_input("Latitude", key="latitude_fwe")
         st.text_input("Longitude", key="longitude_fwe")
     with col2:
@@ -45,26 +54,36 @@ def fwe_info_tab(fwe_type):
         st.radio("Ballast/Laden", ["Ballast", "Laden"], key="ballast_laden_fwe")
         st.checkbox("Start New Voyage", key="start_new_voyage")
 
-    if fwe_type == "Alongside":
+    if "Alongside" in fwe_scenario:
         st.text_input("Name of Berth", key="berth_name")
         st.time_input("All Fast Time", datetime.now().time(), key="all_fast_time")
         st.time_input("Gangway Down Time", datetime.now().time(), key="gangway_down_time")
-    elif fwe_type == "Anchored":
+    
+    if "Anchoring" in fwe_scenario:
         st.text_input("Anchorage Name", key="anchorage_name")
         st.number_input("Water Depth (m)", min_value=0.0, step=0.1, key="water_depth")
         st.number_input("Chain Length (shackles)", min_value=0, step=1, key="chain_length")
-    elif fwe_type == "Drifting":
+    
+    if "Drifting" in fwe_scenario:
         st.text_input("Drifting Area", key="drifting_area")
         st.number_input("Expected Drifting Time (hrs)", min_value=0.0, step=0.1, key="expected_drifting_time")
-    elif fwe_type == "STS Operation":
+    
+    if "STS" in fwe_scenario:
         st.text_input("STS Area", key="sts_area")
         st.text_input("Name of Other Vessel", key="other_vessel_name")
         st.text_input("Type of STS Operation", key="sts_operation_type")
+    
+    if "Canal/River" in fwe_scenario:
+        st.text_input("Canal/River Name", key="canal_river_name")
+        st.text_input("Waiting Position", key="waiting_position")
 
+    if "After EOSP" in fwe_scenario:
+        st.time_input("EOSP Time", datetime.now().time(), key="eosp_time")
+    
     st.date_input("Free Pratique Granted (FPG) Date", datetime.now(), key="fpg_date")
     st.time_input("Free Pratique Granted (FPG) Time", datetime.now().time(), key="fpg_time")
 
-def navigation_tab(fwe_type):
+def navigation_tab(fwe_scenario):
     st.header("Navigation Details")
 
     col1, col2 = st.columns(2)
@@ -75,7 +94,7 @@ def navigation_tab(fwe_type):
         st.number_input("Trim (m)", min_value=-5.0, max_value=5.0, step=0.1, key="trim")
     with col2:
         st.number_input("DWT/Displacement (mt)", min_value=0.0, step=1.0, key="dwt_displacement")
-        if fwe_type != "Alongside":
+        if "Alongside" not in fwe_scenario:
             st.number_input("Distance to Shore (nm)", min_value=0.0, step=0.1, key="distance_to_shore")
         st.date_input("ETD Date", datetime.now(), key="etd_date")
         st.time_input("ETD Time", datetime.now().time(), key="etd_time")
@@ -93,6 +112,15 @@ def navigation_tab(fwe_type):
     with col3:
         st.number_input("Average Speed (kts)", min_value=0.0, step=0.1, key="average_speed_fwe")
         st.number_input("EM Log Speed (kts)", min_value=0.0, step=0.01, key="em_log_speed")
+
+    if "After EOSP" in fwe_scenario:
+        st.subheader("EOSP to FWE Details")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.number_input("Time from EOSP to FWE (hrs)", min_value=0.0, step=0.1, key="time_eosp_to_fwe")
+            st.number_input("Distance from EOSP to FWE (nm)", min_value=0.0, step=0.1, key="distance_eosp_to_fwe")
+        with col2:
+            st.number_input("Average Speed EOSP to FWE (kts)", min_value=0.0, step=0.1, key="avg_speed_eosp_to_fwe")
 
 def engine_tab():
     st.header("Engine Information")
@@ -137,12 +165,12 @@ def consumption_tab():
         "At Sea IGG": [0.0] * 13,
         "At Sea GE/EG": [0.0] * 13,
         "At Sea OTH": [0.0] * 13,
-        "At Harbor M/E": [0.0] * 13,
-        "At Harbor A/E": [0.0] * 13,
-        "At Harbor BLR": [0.0] * 13,
-        "At Harbor IGG": [0.0] * 13,
-        "At Harbor GE/EG": [0.0] * 13,
-        "At Harbor OTH": [0.0] * 13,
+        "Maneuvering M/E": [0.0] * 13,
+        "Maneuvering A/E": [0.0] * 13,
+        "Maneuvering BLR": [0.0] * 13,
+        "Maneuvering IGG": [0.0] * 13,
+        "Maneuvering GE/EG": [0.0] * 13,
+        "Maneuvering OTH": [0.0] * 13,
         "Total Consumption": [0.0] * 13,
         "ROB @ FWE": [0.0] * 13,
     }
