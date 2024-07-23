@@ -82,6 +82,26 @@ def navigation_tab(vessel_state):
         st.text_input("Canal/River Name")
         st.number_input("Distance Travelled in Canal/River (nm)", min_value=0.0, step=0.1)
 
+def weather_tab():
+    st.header("Weather and Conditions")
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.selectbox("Wind Direction", ["North", "East", "South", "West", "North East", "North West", "South East", "South West"])
+        st.number_input("Wind Force", min_value=0, max_value=12)
+        st.number_input("Visibility (nm)", min_value=0.0, step=0.1)
+        st.number_input("Sea Height (m)", min_value=0.0, step=0.1)
+        st.selectbox("Sea Direction", ["North", "East", "South", "West", "North East", "North West", "South East", "South West"])
+    with col2:
+        st.number_input("Swell Height (m)", min_value=0.0, step=0.1)
+        st.selectbox("Swell Direction", ["North", "East", "South", "West", "North East", "North West", "South East", "South West"])
+        st.number_input("Current Set (kts)", min_value=0.0, step=0.1)
+        st.selectbox("Current Drift", ["North", "East", "South", "West", "North East", "North West", "South East", "South West"])
+        st.number_input("Air Temp (°C)", min_value=-50.0, max_value=50.0, step=0.1)
+        st.checkbox("Icing on Deck?")
+    
+    st.number_input("Period of bad Weather (beyond BF scale 5, in Hours)", min_value=0.0, step=0.1)
+
 def speed_consumption_tab(vessel_state):
     st.header("Speed and Consumption")
 
