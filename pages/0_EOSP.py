@@ -7,13 +7,15 @@ st.set_page_config(layout="wide", page_title="Maritime EOSP Report")
 def main():
     st.title("Maritime EOSP (End of Sea Passage) Report")
 
+    eosp_type = st.selectbox("EOSP Type", ["Arriving at Port", "Anchoring", "Entering Canal/River", "Ending Drift", "Commencing STS"])
+
     tabs = st.tabs(["EOSP Information", "Navigation", "Weather", "Engine", "Consumption"])
 
     with tabs[0]:
-        eosp_info_tab()
+        eosp_info_tab(eosp_type)
 
     with tabs[1]:
-        navigation_tab()
+        navigation_tab(eosp_type)
 
     with tabs[2]:
         weather_tab()
@@ -27,15 +29,13 @@ def main():
     if st.button("Submit EOSP Report", type="primary"):
         st.success("EOSP report submitted successfully!")
 
-def eosp_info_tab():
+def eosp_info_tab(eosp_type):
     st.header("EOSP Information")
 
     col1, col2, col3 = st.columns(3)
     with col1:
         st.text_input("Vessel", key="vessel_eosp")
         st.text_input("Voyage", key="voyage_eosp")
-        st.text_input("Port", key="port_eosp")
-        st.text_input("Name of Berth / Anchorage", key="berth_location_eosp")
         st.text_input("Latitude", key="latitude_eosp")
         st.text_input("Longitude", key="longitude_eosp")
     with col2:
@@ -45,10 +45,34 @@ def eosp_info_tab():
         st.time_input("EOSP Time", datetime.now().time(), key="eosp_time")
     with col3:
         st.radio("Ballast/Laden", ["Ballast", "Laden"], key="ballast_laden_eosp")
+        st.number_input("Total Sea Passage Time (hrs)", min_value=0.0, step=0.1, key="total_sea_passage_time")
+
+    if eosp_type == "Arriving at Port":
+        st.text_input("Port", key="port_eosp")
+        st.text_input("Name of Berth", key="berth_location_eosp")
         st.number_input("Maneuvering (hrs)", min_value=0.0, step=0.01, key="maneuvering_hrs_eosp")
         st.number_input("Maneuvering Distance (nm)", min_value=0.0, step=0.01, key="maneuvering_distance_eosp")
+    
+    elif eosp_type == "Anchoring":
+        st.text_input("Anchorage Name", key="anchorage_name")
+        st.number_input("Water Depth at Anchorage (m)", min_value=0.0, step=0.1, key="water_depth_anchorage")
+        st.number_input("Chain Length (shackles)", min_value=0, step=1, key="chain_length")
+    
+    elif eosp_type == "Entering Canal/River":
+        st.text_input("Canal/River Name", key="canal_river_name")
+        st.text_input("Pilot Station", key="pilot_station")
+        st.number_input("Canal/River Speed Limit (kts)", min_value=0.0, step=0.1, key="canal_speed_limit")
+    
+    elif eosp_type == "Ending Drift":
+        st.number_input("Total Drift Time (hrs)", min_value=0.0, step=0.1, key="total_drift_time")
+        st.number_input("Total Drift Distance (nm)", min_value=0.0, step=0.1, key="total_drift_distance")
+    
+    elif eosp_type == "Commencing STS":
+        st.text_input("STS Location", key="sts_location")
+        st.text_input("Name of Other Vessel", key="other_vessel_name")
+        st.text_input("Type of STS Operation", key="sts_operation_type")
 
-def navigation_tab():
+def navigation_tab(eosp_type):
     st.header("Navigation Details")
 
     col1, col2 = st.columns(2)
@@ -58,10 +82,15 @@ def navigation_tab():
         st.number_input("Draft F (m)", min_value=0.0, step=0.01, key="draft_f_eosp")
         st.number_input("Draft A (m)", min_value=0.0, step=0.01, key="draft_a_eosp")
     with col2:
-        st.date_input("ETB Date", datetime.now(), key="etb_date")
-        st.time_input("ETB Time", datetime.now().time(), key="etb_time")
-        st.date_input("ETD Date", datetime.now(), key="etd_date")
-        st.time_input("ETD Time", datetime.now().time(), key="etd_time")
+        if eosp_type in ["Arriving at Port", "Anchoring"]:
+            st.date_input("ETB Date", datetime.now(), key="etb_date")
+            st.time_input("ETB Time", datetime.now().time(), key="etb_time")
+        if eosp_type == "Arriving at Port":
+            st.date_input("ETD Date", datetime.now(), key="etd_date")
+            st.time_input("ETD Time", datetime.now().time(), key="etd_time")
+        if eosp_type == "Entering Canal/River":
+            st.date_input("ETA End of Passage Date", datetime.now(), key="eta_end_passage_date")
+            st.time_input("ETA End of Passage Time", datetime.now().time(), key="eta_end_passage_time")
 
     st.subheader("From Noon to EOSP")
     col1, col2, col3 = st.columns(3)
@@ -83,23 +112,42 @@ def weather_tab():
 
     col1, col2 = st.columns(2)
     with col1:
-        st.text_input("Wind Direction", key="wind_direction")
-        st.number_input("Wind Force", min_value=0, step=1, key="wind_force")
+        st.selectbox("Wind Direction", ["N", "NE", "E", "SE", "S", "SW", "W", "NW"], key="wind_direction")
+        st.number_input("Wind Force (Beaufort)", min_value=0, max_value=12, step=1, key="wind_force")
         st.number_input("Sea Height (m)", min_value=0.0, step=0.1, key="sea_height")
-        st.text_input("Sea Direction", key="sea_direction")
+        st.selectbox("Sea Direction", ["N", "NE", "E", "SE", "S", "SW", "W", "NW"], key="sea_direction")
     with col2:
-        st.number_input("Swell (m)", min_value=0.0, step=0.1, key="swell")
-        st.text_input("Set and Drift of Current", key="set_and_drift_of_current")
+        st.number_input("Swell Height (m)", min_value=0.0, step=0.1, key="swell")
+        st.selectbox("Swell Direction", ["N", "NE", "E", "SE", "S", "SW", "W", "NW"], key="swell_direction")
+        st.number_input("Current Speed (kts)", min_value=0.0, step=0.1, key="current_speed")
+        st.selectbox("Current Direction", ["N", "NE", "E", "SE", "S", "SW", "W", "NW"], key="current_direction")
         st.number_input("Air Temp (°C)", min_value=-50.0, max_value=50.0, step=0.1, key="air_temp")
-        st.checkbox("Icing on Deck?", key="icing_on_deck")
+        st.number_input("Sea Temp (°C)", min_value=-2.0, max_value=35.0, step=0.1, key="sea_temp")
 
-    st.number_input("DWT/Displacement (mt)", min_value=0.0, step=1.0, key="dwt_displacement")
+    st.number_input("Barometric Pressure (hPa)", min_value=900.0, max_value=1100.0, step=0.1, key="barometric_pressure")
+    st.checkbox("Icing on Deck?", key="icing_on_deck")
+    st.number_input("Visibility (nm)", min_value=0.0, step=0.1, key="visibility")
 
 def engine_tab():
     st.header("Engine Information")
 
-    st.text_input("ME Rev Counter @ EOSP", key="me_rev_counter_eosp")
-    st.number_input("Shaft Generator Power (kw)", min_value=0.0, step=0.1, key="shaft_generator_power_eosp")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.number_input("ME Rev Counter @ EOSP", min_value=0, step=1, key="me_rev_counter_eosp")
+        st.number_input("ME Average RPM", min_value=0.0, step=0.1, key="me_average_rpm")
+        st.number_input("ME Load (%)", min_value=0.0, max_value=100.0, step=0.1, key="me_load_percentage")
+    with col2:
+        st.number_input("Shaft Generator Power (kw)", min_value=0.0, step=0.1, key="shaft_generator_power_eosp")
+        st.number_input("Total Running Hours ME", min_value=0.0, step=0.1, key="total_running_hours_me")
+        st.number_input("Total Revolutions ME", min_value=0, step=1, key="total_revolutions_me")
+
+    st.subheader("Auxiliary Engines")
+    col1, col2 = st.columns(2)
+    for i in range(1, 5):
+        with col1:
+            st.number_input(f"AE{i} Load (%)", min_value=0.0, max_value=100.0, step=0.1, key=f"ae{i}_load_percentage")
+        with col2:
+            st.number_input(f"AE{i} Running Hours", min_value=0.0, step=0.1, key=f"ae{i}_running_hours")
 
 def consumption_tab():
     st.header("Consumption (MT)")
@@ -127,9 +175,19 @@ def consumption_tab():
     consumption_df = pd.DataFrame(consumption_data)
     st.data_editor(consumption_df, key="consumption_editor", hide_index=True)
 
+    st.subheader("Lubrication Oil Consumption")
+    lub_oil_data = {
+        "Lub Oil Type": ["ME Cylinder Oil", "ME System Oil", "AE System Oil", "Thermal Oil"],
+        "Consumption": [0.0] * 4,
+        "ROB @ EOSP": [0.0] * 4
+    }
+    lub_oil_df = pd.DataFrame(lub_oil_data)
+    st.data_editor(lub_oil_df, key="lub_oil_editor", hide_index=True)
+
     st.subheader("Environmental Control Area")
     st.text_input("Fuel Used in ECA", key="fuel_used_in_eca")
     st.number_input("Fuel CO Time (hrs)", min_value=0.0, step=0.01, key="fuel_co_time")
+    st.text_area("ECA Compliance Remarks", key="eca_compliance_remarks")
 
 if __name__ == "__main__":
     main()
