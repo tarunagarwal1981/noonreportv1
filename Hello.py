@@ -1,157 +1,176 @@
 import streamlit as st
-import psycopg2
 import pandas as pd
-from st_aggrid import AgGrid, GridOptionsBuilder, GridUpdateMode
+from datetime import datetime, time
 
-# Set Streamlit page configuration
-st.set_page_config(layout="wide", page_title="Optilog - DB Schema Viewer")
+st.set_page_config(layout="wide", page_title="Maritime Reporting System")
 
-# Apply custom CSS for better visual appeal
-st.markdown("""
-    <style>
-    .stSelectbox {
-        min-width: 200px;
+def main():
+    st.title("Maritime Reporting System")
+
+    report_type = st.sidebar.selectbox("Select Report Type", ["Noon Report", "Departure Report"])
+
+    if report_type == "Noon Report":
+        noon_report()
+    elif report_type == "Departure Report":
+        departure_report()
+
+def noon_report():
+    st.header("Noon Report")
+    
+    tabs = st.tabs(["General Info", "Navigation", "Weather", "Engine", "Consumables"])
+    
+    with tabs[0]:
+        general_info_section()
+    
+    with tabs[1]:
+        navigation_section()
+    
+    with tabs[2]:
+        weather_section()
+    
+    with tabs[3]:
+        engine_section()
+    
+    with tabs[4]:
+        consumables_section()
+
+    if st.button("Submit Noon Report"):
+        st.success("Noon Report submitted successfully!")
+
+def departure_report():
+    st.header("Departure Report")
+    
+    tabs = st.tabs(["Departure Info", "Cargo", "Bunkers", "Voyage Plan"])
+    
+    with tabs[0]:
+        departure_info_section()
+    
+    with tabs[1]:
+        cargo_section()
+    
+    with tabs[2]:
+        bunkers_section()
+    
+    with tabs[3]:
+        voyage_plan_section()
+
+    if st.button("Submit Departure Report"):
+        st.success("Departure Report submitted successfully!")
+
+def general_info_section():
+    st.subheader("General Information")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.text_input("Vessel Name")
+        st.text_input("IMO Number")
+        st.date_input("Date (UTC)")
+    with col2:
+        st.time_input("Time (UTC)")
+        st.number_input("Time Zone", min_value=-12, max_value=12)
+        st.text_input("Master's Name")
+    with col3:
+        st.text_input("Voyage Number")
+        st.selectbox("Report Type", ["Daily", "Arrival", "Departure", "Noon", "Midnight"])
+
+def navigation_section():
+    st.subheader("Navigation Details")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.text_input("Latitude")
+        st.text_input("Longitude")
+        st.number_input("Course", min_value=0, max_value=359)
+    with col2:
+        st.number_input("Speed (knots)", min_value=0.0, step=0.1)
+        st.number_input("Distance Run (NM)", min_value=0.0, step=0.1)
+        st.text_input("Next Port")
+
+def weather_section():
+    st.subheader("Weather and Environmental Conditions")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.selectbox("Wind Direction", ["N", "NE", "E", "SE", "S", "SW", "W", "NW"])
+        st.number_input("Wind Speed (knots)", min_value=0)
+        st.number_input("Sea State (Douglas Scale)", min_value=0, max_value=9)
+    with col2:
+        st.number_input("Air Temperature (°C)", step=0.1)
+        st.number_input("Water Temperature (°C)", step=0.1)
+        st.number_input("Atmospheric Pressure (hPa)", min_value=900, max_value=1100)
+    with col3:
+        st.selectbox("Visibility", ["Good", "Moderate", "Poor"])
+        st.multiselect("Weather Conditions", ["Clear", "Partly Cloudy", "Overcast", "Rain", "Snow", "Fog"])
+
+def engine_section():
+    st.subheader("Engine and Performance Data")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.number_input("Main Engine RPM")
+        st.number_input("Main Engine Power (%)", min_value=0, max_value=100)
+        st.number_input("Shaft Generator Power (kW)")
+    with col2:
+        st.number_input("Auxiliary Engine 1 Load (%)", min_value=0, max_value=100)
+        st.number_input("Auxiliary Engine 2 Load (%)", min_value=0, max_value=100)
+        st.number_input("Boiler Steam Production (t/h)")
+
+def consumables_section():
+    st.subheader("Fuel and Consumables")
+    
+    fuel_data = {
+        "Fuel Type": ["HFO", "LSFO", "MGO", "LNG"],
+        "Consumption (mt)": [0.0, 0.0, 0.0, 0.0],
+        "ROB (mt)": [0.0, 0.0, 0.0, 0.0]
     }
-    .stDownloadButton {
-        margin-top: 1rem;
+    st.dataframe(pd.DataFrame(fuel_data).set_index("Fuel Type"))
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        st.number_input("Fresh Water Consumption (m³)")
+        st.number_input("Fresh Water ROB (m³)")
+    with col2:
+        st.number_input("Lube Oil Consumption (L)")
+        st.number_input("Lube Oil ROB (L)")
+
+def departure_info_section():
+    st.subheader("Departure Information")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.text_input("Port of Departure")
+        st.date_input("Date of Departure (UTC)")
+        st.time_input("Time of Departure (UTC)")
+    with col2:
+        st.text_input("Berth/Terminal")
+        st.number_input("Draft Forward (m)", min_value=0.0, step=0.01)
+        st.number_input("Draft Aft (m)", min_value=0.0, step=0.01)
+    with col3:
+        st.text_input("Next Port")
+        st.date_input("ETA Next Port")
+        st.time_input("ETA Time Next Port")
+
+def cargo_section():
+    st.subheader("Cargo Information")
+    cargo_types = st.multiselect("Cargo Types", ["Containers", "Bulk", "Liquid", "Break Bulk", "Ro-Ro"])
+    
+    for cargo in cargo_types:
+        st.number_input(f"{cargo} Cargo Quantity", min_value=0.0)
+    
+    st.number_input("Total Cargo Weight (mt)", min_value=0.0)
+    st.number_input("Deadweight (mt)", min_value=0.0)
+
+def bunkers_section():
+    st.subheader("Bunkers on Departure")
+    bunker_data = {
+        "Fuel Type": ["HFO", "LSFO", "MGO", "LNG"],
+        "Quantity (mt)": [0.0, 0.0, 0.0, 0.0],
+        "Sulphur Content (%)": [0.0, 0.0, 0.0, 0.0]
     }
-    </style>
-    """, unsafe_allow_html=True)
+    st.dataframe(pd.DataFrame(bunker_data).set_index("Fuel Type"))
 
-# Database connection
-@st.cache_resource
-def init_connection():
-    return psycopg2.connect(
-        host=st.secrets["db_connection"]["host"],
-        port=st.secrets["db_connection"]["port"],
-        dbname=st.secrets["db_connection"]["dbname"],
-        user=st.secrets["db_connection"]["user"],
-        password=st.secrets["db_connection"]["password"]
-    )
+def voyage_plan_section():
+    st.subheader("Voyage Plan")
+    st.text_area("Route Description")
+    st.number_input("Estimated Distance (NM)", min_value=0.0)
+    st.number_input("Estimated Average Speed (knots)", min_value=0.0, step=0.1)
+    st.text_input("Estimated Fuel Consumption (mt)")
+    st.text_area("Additional Remarks")
 
-conn = init_connection()
-
-# Database query functions
-def run_query(query, params=None):
-    with conn.cursor() as cur:
-        cur.execute(query, params)
-        return cur.fetchall()
-
-def get_table_columns(table_name, schema):
-    query = """
-        SELECT column_name 
-        FROM information_schema.columns 
-        WHERE table_schema = %s AND table_name = %s
-    """
-    return [col[0] for col in run_query(query, (schema, table_name))]
-
-def get_metadata_fields():
-    query = """
-    SELECT table_name, column_name, data_element_name, definition, standard_unit, additional_info
-    FROM public.column_metadata
-    """
-    return run_query(query)
-
-# Streamlit app title
-st.title('Optilog - DB Schema, Table, Fields & Metadata')
-
-# Create two columns: one for sidebar (filters) and one for main content
-col1, col2 = st.columns([1, 4])
-
-# Sidebar for filters
-with col1:
-    st.header('Filters')
-
-    # Get all schemas, including 'public'
-    schemas = run_query("""
-        SELECT schema_name 
-        FROM information_schema.schemata 
-        WHERE schema_name NOT IN ('pg_catalog', 'information_schema')
-    """)
-    schema_list = [schema[0] for schema in schemas]
-    default_schema_index = schema_list.index('public') if 'public' in schema_list else 0
-    selected_schema = st.selectbox('Select a schema', schema_list, index=default_schema_index)
-
-    # Get tables for selected schema
-    tables = run_query("SELECT table_name FROM information_schema.tables WHERE table_schema = %s", (selected_schema,))
-    selected_table = st.selectbox('Select a table', [table[0] for table in tables])
-
-    # Option to show only mandatory fields (only visible when public schema is selected)
-    show_mandatory = False
-    if selected_schema == 'public':
-        show_mandatory = st.checkbox('Show only mandatory fields')
-
-# Main content area
-with col2:
-    if selected_table:
-        columns = get_table_columns(selected_table, selected_schema)
-        
-        if columns:
-            # Construct and execute query
-            columns_str = ', '.join(columns)
-            query = f"SELECT {columns_str} FROM {selected_schema}.{selected_table}"
-            data = run_query(query)
-            
-            # Display data using AgGrid
-            df = pd.DataFrame(data, columns=columns)
-            gb = GridOptionsBuilder.from_dataframe(df)
-            gb.configure_default_column(resizable=True, sorteable=True, filter=True, wrapText=True, autoHeight=True)
-            gb.configure_grid_options(domLayout='normal')
-            gb.configure_side_bar()
-            gridOptions = gb.build()
-            
-            st.subheader(f'Data from {selected_schema}.{selected_table}')
-            AgGrid(df, 
-                   gridOptions=gridOptions, 
-                   height=500, 
-                   width='100%',
-                   theme='streamlit', 
-                   update_mode=GridUpdateMode.SELECTION_CHANGED,
-                   allow_unsafe_jscode=True)
-            
-            # Download button
-            csv = df.to_csv(index=False)
-            st.download_button(
-                label="Download data as CSV",
-                data=csv,
-                file_name=f'{selected_schema}_{selected_table}.csv',
-                mime='text/csv',
-            )
-        else:
-            st.warning("No columns found or accessible.")
-    else:
-        st.info("Please select a table to view data.")
-
-    # Display table metadata
-    metadata = get_metadata_fields()
-
-    if metadata:
-        metadata_df = pd.DataFrame(metadata, columns=['Table Name', 'Column', 'Data Element', 'Definition', 'Unit', 'Additional Info'])
-        filtered_metadata_df = metadata_df[metadata_df['Table Name'] == selected_table]
-        
-        if show_mandatory and selected_schema == 'public':
-            filtered_metadata_df = filtered_metadata_df[filtered_metadata_df['Additional Info'].str.contains('mandatory', case=False, na=False)]
-        
-        if not filtered_metadata_df.empty:
-            st.subheader(f'Metadata for {selected_table}')
-            gb = GridOptionsBuilder.from_dataframe(filtered_metadata_df)
-            gb.configure_default_column(resizable=True, wrapText=True, autoHeight=True)
-            gb.configure_grid_options(domLayout='normal')
-            gb.configure_side_bar()
-            gridOptions = gb.build()
-            
-            AgGrid(filtered_metadata_df, 
-                   gridOptions=gridOptions, 
-                   height=300, 
-                   width='100%',
-                   theme='streamlit',
-                   update_mode=GridUpdateMode.SELECTION_CHANGED,
-                   allow_unsafe_jscode=True)
-        else:
-            st.warning("No metadata found for this table.")
-    else:
-        st.warning("No metadata found.")
-
-# Footer
-st.markdown("---")
-st.markdown("© 2023 Optilog. All rights reserved.")
+if __name__ == "__main__":
+    main()
