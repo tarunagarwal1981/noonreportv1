@@ -2,10 +2,6 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime, timedelta
 import plotly.graph_objects as go
-import logging
-
-# Set up logging
-logging.basicConfig(level=logging.DEBUG)
 
 # Page configuration
 st.set_page_config(layout="wide", page_title="Maritime Reporting System")
@@ -30,14 +26,11 @@ st.markdown("""
         margin-bottom: 10px;
     }
     .report-guide {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
         background-color: white;
         border: 1px solid #d0d0d0;
         border-radius: 5px;
         padding: 10px;
-        z-index: 1000;
+        margin-top: 20px;
     }
     .start-report-btn {
         position: fixed;
@@ -48,9 +41,16 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# Function to render SVG
+def render_svg(svg):
+    """Renders the given svg string."""
+    b64 = base64.b64encode(svg.encode('utf-8')).decode("utf-8")
+    html = r'<img src="data:image/svg+xml;base64,%s" width="300" height="100"/>' % b64
+    return html
+
 # Compact infographic for report guide
 def compact_infographic():
-    return """
+    svg = """
     <svg width="300" height="100">
         <rect width="300" height="100" fill="#f0f8ff"/>
         <circle cx="50" cy="50" r="30" fill="#4a90e2"/>
@@ -63,6 +63,7 @@ def compact_infographic():
         <text x="245" y="65" font-family="Arial" font-size="8" fill="white" text-anchor="middle">SBE → COSP</text>
     </svg>
     """
+    return render_svg(svg)
 
 # Dummy data for completed voyages
 completed_voyages = [
@@ -97,45 +98,55 @@ def parse_date(date_str):
         return datetime.now().date()
 
 def create_voyage_progress():
-    logging.debug(f"Current voyage data: {current_voyage}")
     start = parse_date(current_voyage['start'])
     end = parse_date(current_voyage['expected_end'])
-    total_days = max((end - start).days, 1)  # Ensure at least 1 day
+    total_days = max((end - start).days, 1)
     today = datetime.now().date()
     
     fig = go.Figure(layout=go.Layout(height=100, margin=dict(t=0, b=0, l=0, r=0)))
     
-    for leg in current_voyage['legs']:
-        logging.debug(f"Processing leg: {leg}")
-        leg_start = parse_date(leg['start'])
-        leg_end = parse_date(leg['end']) if leg['end'] else today
-        leg_days = max((leg_end - leg_start).days, 0)  # Ensure non-negative
-        leg_color = 'rgb(55, 126, 184)' if leg['end'] else 'rgb(228, 26, 28)'
-        fig.add_trace(go.Bar(
-            x=[leg_days], 
-            y=[0], 
-            orientation='h',
-            marker=dict(color=leg_color),
-            hoverinfo='text',
-            hovertext=f"{leg['from']} to {leg['to']}: {leg_start} - {leg_end}"
-        ))
-    
-    remaining_days = max((end - today).days, 0)
+    # Create a single bar for the entire voyage
     fig.add_trace(go.Bar(
-        x=[remaining_days], 
-        y=[0], 
+        x=[total_days],
+        y=[0],
         orientation='h',
-        marker=dict(color='lightgrey'),
-        hoverinfo='text',
-        hovertext=f"Remaining: {remaining_days} days"
+        marker=dict(color='lightblue'),
+        hoverinfo='skip'
     ))
     
-    fig.update_layout(barmode='stack', showlegend=False, xaxis=dict(showticklabels=False), yaxis=dict(showticklabels=False))
-    fig.add_annotation(x=0, y=0, text=f"{current_voyage['from']}<br>{start}", showarrow=False, xanchor='right')
-    fig.add_annotation(x=1, y=0, text=f"{current_voyage['to']}<br>{end}", showarrow=False, xanchor='left')
+    # Add vessel position
+    vessel_position = min(max((today - start).days / total_days, 0), 1)
+    fig.add_shape(
+        type="line",
+        x0=vessel_position * total_days,
+        x1=vessel_position * total_days,
+        y0=0,
+        y1=1,
+        line=dict(color="red", width=3)
+    )
     
-    vessel_position = min(max((today - start).days / total_days, 0), 1)  # Ensure between 0 and 1
-    fig.add_shape(type="line", x0=vessel_position, x1=vessel_position, y0=0, y1=1, line=dict(color="red", width=3))
+    # Add start and end annotations
+    fig.add_annotation(
+        x=0, y=1,
+        text=f"{current_voyage['from']}<br>{start.strftime('%Y-%m-%d')}",
+        showarrow=False,
+        yanchor="bottom"
+    )
+    fig.add_annotation(
+        x=total_days, y=1,
+        text=f"{current_voyage['to']}<br>{end.strftime('%Y-%m-%d')}",
+        showarrow=False,
+        yanchor="bottom",
+        xanchor="right"
+    )
+    
+    fig.update_layout(
+        showlegend=False,
+        xaxis=dict(showticklabels=False, showgrid=False, zeroline=False),
+        yaxis=dict(showticklabels=False, showgrid=False, zeroline=False),
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)'
+    )
     
     st.plotly_chart(fig, use_container_width=True)
 
@@ -159,7 +170,6 @@ with col2:
     st.markdown('<p class="sub-header">Current Voyage: {}</p>'.format(current_voyage['id']), unsafe_allow_html=True)
     create_voyage_progress()
     
-    st.markdown('<p class="sub-header">Voyage Details</p>', unsafe_allow_html=True)
     col_a, col_b, col_c, col_d = st.columns(4)
     col_a.metric("Total Fuel Consumed (mt)", "1500")
     col_b.metric("Total CO2 Emissions (mt)", "4500")
@@ -176,20 +186,17 @@ with col2:
         </div>
         """, unsafe_allow_html=True)
 
-# Floating elements
-st.markdown(f"""
-<div class="report-guide">
-    <h4>Report Guide</h4>
-    {compact_infographic()}
-</div>
-""", unsafe_allow_html=True)
+# Report Guide in sidebar
+st.sidebar.markdown('<p class="sub-header">Report Guide</p>', unsafe_allow_html=True)
+st.sidebar.markdown(compact_infographic(), unsafe_allow_html=True)
 
+# Start New Report button
 st.markdown("""
 <div class="start-report-btn">
     <a href="?new_report=true" target="_self">
         <button style="font-size: 16px; padding: 10px 20px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer;">
-            Start New Report
-        </button>
+        Start New Report
+    </button>
     </a>
 </div>
 """, unsafe_allow_html=True)
@@ -206,3 +213,7 @@ if st.experimental_get_query_params().get("new_report"):
         if submit_button:
             st.success(f"New {report_type} report created for Voyage {voyage_id} on {report_date}")
             st.experimental_set_query_params()
+
+# Run the Streamlit app
+if __name__ == "__main__":
+    st.set_page_config(layout="wide", page_title="Maritime Reporting System")
