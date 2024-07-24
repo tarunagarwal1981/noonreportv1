@@ -97,9 +97,10 @@ def create_voyage_progress():
     for leg in current_voyage['legs']:
         leg_start = datetime.strptime(leg['start'], '%Y-%m-%d')
         leg_end = datetime.strptime(leg['end'], '%Y-%m-%d') if leg['end'] else today
+        leg_days = max((leg_end - leg_start).days, 0)  # Ensure non-negative
         leg_color = 'rgb(55, 126, 184)' if leg['end'] else 'rgb(228, 26, 28)'
         fig.add_trace(go.Bar(
-            x=[(leg_end - leg_start).days], 
+            x=[leg_days], 
             y=[0], 
             orientation='h',
             marker=dict(color=leg_color),
@@ -121,7 +122,7 @@ def create_voyage_progress():
     fig.add_annotation(x=0, y=0, text=f"{current_voyage['from']}<br>{start.strftime('%Y-%m-%d')}", showarrow=False, xanchor='right')
     fig.add_annotation(x=1, y=0, text=f"{current_voyage['to']}<br>{end.strftime('%Y-%m-%d')}", showarrow=False, xanchor='left')
     
-    vessel_position = (today - start).days / total_days
+    vessel_position = min(max((today - start).days / total_days, 0), 1)  # Ensure between 0 and 1
     fig.add_shape(type="line", x0=vessel_position, x1=vessel_position, y0=0, y1=1, line=dict(color="red", width=3))
     
     st.plotly_chart(fig, use_container_width=True)
