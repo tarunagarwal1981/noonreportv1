@@ -8,12 +8,12 @@ def main():
     st.title("Maritime Stand By Engine (SBE) Report")
 
     sbe_scenario = st.selectbox("SBE Scenario", [
-        "Preparing to Sail from Port",
-        "Preparing to Sail from Anchorage",
-        "Preparing to Move from Drifting",
-        "Preparing for Canal/River Transit",
-        "Preparing to Commence STS Operation",
-        "Preparing to Shift Berth"
+        "Departure Anchorage",
+        "Departure Port",
+        "Departure STS",
+        "Departure for River/Canal Transit",
+        "Departure from Drifting position",
+        "Preparing for Berth Shifting"
     ])
 
     tabs = st.tabs(["SBE Information", "Navigation", "Engine", "Cargo Operations", "Bunkers"])
