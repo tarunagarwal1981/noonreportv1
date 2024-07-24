@@ -2,7 +2,12 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime, timedelta
 import plotly.graph_objects as go
+import logging
 
+# Set up logging
+logging.basicConfig(level=logging.DEBUG)
+
+# Page configuration
 st.set_page_config(layout="wide", page_title="Maritime Reporting System")
 
 # Custom CSS for styling
@@ -82,21 +87,28 @@ current_voyage = {
     ]
 }
 
-# Main layout
-st.markdown('<p class="main-header">Maritime Reporting System</p>', unsafe_allow_html=True)
+def parse_date(date_str):
+    if date_str is None:
+        return datetime.now().date()
+    try:
+        return datetime.strptime(date_str, '%Y-%m-%d').date()
+    except ValueError:
+        st.warning(f"Invalid date format: {date_str}. Using current date instead.")
+        return datetime.now().date()
 
-# Voyage progress bar
 def create_voyage_progress():
-    start = datetime.strptime(current_voyage['start'], '%Y-%m-%d')
-    end = datetime.strptime(current_voyage['expected_end'], '%Y-%m-%d')
-    total_days = (end - start).days
+    logging.debug(f"Current voyage data: {current_voyage}")
+    start = parse_date(current_voyage['start'])
+    end = parse_date(current_voyage['expected_end'])
+    total_days = max((end - start).days, 1)  # Ensure at least 1 day
     today = datetime.now().date()
     
     fig = go.Figure(layout=go.Layout(height=100, margin=dict(t=0, b=0, l=0, r=0)))
     
     for leg in current_voyage['legs']:
-        leg_start = datetime.strptime(leg['start'], '%Y-%m-%d')
-        leg_end = datetime.strptime(leg['end'], '%Y-%m-%d') if leg['end'] else today
+        logging.debug(f"Processing leg: {leg}")
+        leg_start = parse_date(leg['start'])
+        leg_end = parse_date(leg['end']) if leg['end'] else today
         leg_days = max((leg_end - leg_start).days, 0)  # Ensure non-negative
         leg_color = 'rgb(55, 126, 184)' if leg['end'] else 'rgb(228, 26, 28)'
         fig.add_trace(go.Bar(
@@ -105,7 +117,7 @@ def create_voyage_progress():
             orientation='h',
             marker=dict(color=leg_color),
             hoverinfo='text',
-            hovertext=f"{leg['from']} to {leg['to']}: {leg_start.strftime('%Y-%m-%d')} - {leg_end.strftime('%Y-%m-%d')}"
+            hovertext=f"{leg['from']} to {leg['to']}: {leg_start} - {leg_end}"
         ))
     
     remaining_days = max((end - today).days, 0)
@@ -119,13 +131,16 @@ def create_voyage_progress():
     ))
     
     fig.update_layout(barmode='stack', showlegend=False, xaxis=dict(showticklabels=False), yaxis=dict(showticklabels=False))
-    fig.add_annotation(x=0, y=0, text=f"{current_voyage['from']}<br>{start.strftime('%Y-%m-%d')}", showarrow=False, xanchor='right')
-    fig.add_annotation(x=1, y=0, text=f"{current_voyage['to']}<br>{end.strftime('%Y-%m-%d')}", showarrow=False, xanchor='left')
+    fig.add_annotation(x=0, y=0, text=f"{current_voyage['from']}<br>{start}", showarrow=False, xanchor='right')
+    fig.add_annotation(x=1, y=0, text=f"{current_voyage['to']}<br>{end}", showarrow=False, xanchor='left')
     
     vessel_position = min(max((today - start).days / total_days, 0), 1)  # Ensure between 0 and 1
     fig.add_shape(type="line", x0=vessel_position, x1=vessel_position, y0=0, y1=1, line=dict(color="red", width=3))
     
     st.plotly_chart(fig, use_container_width=True)
+
+# Main layout
+st.markdown('<p class="main-header">Maritime Reporting System</p>', unsafe_allow_html=True)
 
 # Layout
 col1, col2 = st.columns([1, 3])
