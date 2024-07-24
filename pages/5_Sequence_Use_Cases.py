@@ -14,9 +14,13 @@ flowcharts = {
         E [label="EOSP", shape=diamond]
         F [label="FWE"]
         G [label="At Port"]
+        H [label="Noon at Port", shape=diamond]
         A -> B -> C -> D
         D -> D [label="Daily"]
         D -> E -> F -> G
+        G -> H
+        H -> H [label="Daily"]
+        H -> B
     }
     """,
     "Port to Anchorage and Back Voyage": """
@@ -28,8 +32,8 @@ flowcharts = {
         E [label="EOSP", shape=diamond]
         F [label="FWE: Anchored"]
         G [label="Noon at Anchor", shape=diamond]
-        H [label="SBE: Anchor Lifting", shape=diamond]
-        I [label="FWE: Berthing"]
+        H [label="Anchor Lifting", shape=diamond]
+        I [label="Berthing"]
         J [label="Noon at Port", shape=diamond]
         K [label="SBE", shape=diamond]
         L [label="Anchoring"]
@@ -41,61 +45,64 @@ flowcharts = {
         D -> E -> F -> G
         G -> G [label="Daily"]
         G -> H -> I -> J
+        J -> J [label="Daily"]
         J -> K -> L -> M
+        M -> M [label="Daily"]
         M -> N -> O
         O -> D
     }
     """,
-    "Port to Drifting Voyage": """
+    "Anchorage and Drifting Transitions": """
     digraph {
-        A [label="At Port"]
+        A [label="Noon at Anchor", shape=diamond]
         B [label="SBE", shape=diamond]
-        C [label="COSP"]
-        D [label="Noon at Sea", shape=diamond]
-        E [label="FWE: Drifting"]
-        F [label="Noon while Drifting", shape=diamond]
-        G [label="SBE", shape=diamond]
-        H [label="COSP"]
+        C [label="Start Drifting"]
+        D [label="Noon while Drifting", shape=diamond]
+        E [label="SBE", shape=diamond]
+        F [label="Anchoring"]
         A -> B -> C -> D
         D -> D [label="Daily"]
-        D -> E -> F
-        F -> F [label="Daily"]
-        F -> G -> H
-        H -> D
+        D -> E -> F -> A
+        A -> A [label="Daily"]
     }
     """,
-    "Port to Canal/River Voyage": """
+    "Drifting to Canal/River Voyage": """
     digraph {
-        A [label="At Port"]
+        A [label="Noon while Drifting", shape=diamond]
         B [label="SBE", shape=diamond]
         C [label="COSP"]
         D [label="Noon at Sea", shape=diamond]
         E [label="EOSP: Canal/River Entry", shape=diamond]
         F [label="Noon in Canal/River", shape=diamond]
         G [label="COSP: Canal/River Exit"]
-        H [label="Noon at Sea", shape=diamond]
-        I [label="EOSP for Anchor", shape=diamond]
-        J [label="Anchoring"]
-        K [label="Noon at Anchor", shape=diamond]
-        L [label="SBE for Canal/River Entry", shape=diamond]
-        M [label="Noon in Canal/River", shape=diamond]
-        N [label="COSP"]
-        O [label="Noon at Sea", shape=diamond]
+        H [label="FWE: Drifting"]
         A -> B -> C -> D
         D -> D [label="Daily"]
         D -> E -> F
         F -> F [label="Daily"]
-        F -> G -> H
-        H -> H [label="Daily"]
-        H -> I -> J -> K
-        K -> L -> M
-        M -> N -> O
-        O -> O [label="Daily"]
+        F -> G -> D
+        D -> H -> A
     }
     """,
-    "STS Operation Voyage": """
+    "Anchorage to Canal/River Voyage": """
     digraph {
-        A [label="At Port"]
+        A [label="Noon at Anchor", shape=diamond]
+        B [label="SBE", shape=diamond]
+        C [label="COSP"]
+        D [label="EOSP: Canal/River Entry", shape=diamond]
+        E [label="Noon in Canal/River", shape=diamond]
+        F [label="COSP: Canal/River Exit"]
+        G [label="EOSP", shape=diamond]
+        H [label="FWE: Anchored"]
+        A -> B -> C -> D -> E
+        E -> E [label="Daily"]
+        E -> F -> C
+        C -> G -> H -> A
+    }
+    """,
+    "STS Operation from Anchorage": """
+    digraph {
+        A [label="Noon at Anchor", shape=diamond]
         B [label="SBE", shape=diamond]
         C [label="COSP"]
         D [label="Noon at Sea", shape=diamond]
@@ -104,17 +111,14 @@ flowcharts = {
         G [label="Noon at STS", shape=diamond]
         H [label="SBE", shape=diamond]
         I [label="COSP"]
-        J [label="Noon at Sea", shape=diamond]
-        K [label="EOSP", shape=diamond]
-        L [label="FWE"]
-        M [label="At Port"]
+        J [label="EOSP", shape=diamond]
+        K [label="FWE: Anchored"]
         A -> B -> C -> D
         D -> D [label="Daily"]
         D -> E -> F -> G
         G -> G [label="Daily"]
-        G -> H -> I -> J
-        J -> J [label="Daily"]
-        J -> K -> L -> M
+        G -> H -> I -> D
+        D -> J -> K -> A
     }
     """,
     "Shifting Berth Voyage": """
@@ -124,7 +128,11 @@ flowcharts = {
         C [label="Noon at Canal/River", shape=diamond]
         D [label="FWE"]
         E [label="At New Berth"]
+        F [label="Noon at Port", shape=diamond]
         A -> B -> C -> D -> E
+        E -> F
+        F -> F [label="Daily"]
+        F -> B
     }
     """
 }
