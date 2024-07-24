@@ -11,3 +11,4 @@ pandasai[excel]
 nltk==3.8.1
 psycopg2-binary==2.9.6
 streamlit-aggrid
+streamlit_mermaid
