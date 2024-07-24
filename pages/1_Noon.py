@@ -7,9 +7,9 @@ st.set_page_config(layout="wide", page_title="Maritime Noon Report")
 def main():
     st.title("Maritime Noon Report")
 
-    # Add a selectbox for the vessel's current state
+    # Updated selectbox for the vessel's current state
     vessel_state = st.selectbox("Vessel's Current State", 
-                                ["At Sea", "In Port", "Anchored", "Drifting", "Canal/River Passage"])
+                                ["At Sea", "In Port", "At Anchor", "During Drifting", "At STS", "At Canal/River Passage"])
 
     tabs = st.tabs(["General Info", "Navigation", "Weather", "Speed and Consumption", "Engine", "Fuel and Consumables"])
 
@@ -34,6 +34,8 @@ def main():
     if st.button("Submit Noon Report", type="primary"):
         st.success("Noon Report submitted successfully!")
 
+# The rest of the functions remain unchanged
+
 def general_info_tab(vessel_state):
     st.header("General Information")
 
@@ -54,8 +56,8 @@ def general_info_tab(vessel_state):
         st.checkbox("IDL Crossing")
         st.selectbox("IDL Direction", ["--Select--", "East", "West"])
 
-    if vessel_state in ["In Port", "Anchored"]:
-        st.text_input("Berth / Anchorage Location")
+    if vessel_state in ["In Port", "At Anchor", "At STS"]:
+        st.text_input("Berth / Anchorage / STS Location")
     
     st.radio("Ballast/Laden", ["Ballast", "Laden"])
 
@@ -75,10 +77,10 @@ def navigation_tab(vessel_state):
 
     if vessel_state == "At Sea":
         st.number_input("Distance To Go (nm)", min_value=0.0, step=0.1)
-    elif vessel_state == "Drifting":
+    elif vessel_state == "During Drifting":
         st.number_input("Drifting Time (hrs)", min_value=0.0, step=0.1)
         st.number_input("Drifting Distance (nm)", min_value=0.0, step=0.1)
-    elif vessel_state == "Canal/River Passage":
+    elif vessel_state == "At Canal/River Passage":
         st.text_input("Canal/River Name")
         st.number_input("Distance Travelled in Canal/River (nm)", min_value=0.0, step=0.1)
 
