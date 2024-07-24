@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime, timedelta
 import plotly.graph_objects as go
+import base64  # Add this import
 
 # Page configuration
 st.set_page_config(layout="wide", page_title="Maritime Reporting System")
@@ -213,7 +214,3 @@ if st.experimental_get_query_params().get("new_report"):
         if submit_button:
             st.success(f"New {report_type} report created for Voyage {voyage_id} on {report_date}")
             st.experimental_set_query_params()
-
-# Run the Streamlit app
-if __name__ == "__main__":
-    st.set_page_config(layout="wide", page_title="Maritime Reporting System")
