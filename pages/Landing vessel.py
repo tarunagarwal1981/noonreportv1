@@ -1,195 +1,192 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime, timedelta
+import plotly.graph_objects as go
 
-# Function to generate the infographic
-def generate_infographic():
+st.set_page_config(layout="wide", page_title="Maritime Reporting System")
+
+# Custom CSS for styling
+st.markdown("""
+<style>
+    .main-header {font-size: 24px; font-weight: bold; margin-bottom: 20px;}
+    .sub-header {font-size: 18px; font-weight: bold; margin-top: 30px; margin-bottom: 10px;}
+    .voyage-card {
+        background-color: #f0f0f0;
+        border-radius: 5px;
+        padding: 10px;
+        margin-bottom: 10px;
+        transition: background-color 0.3s;
+    }
+    .voyage-card:hover {background-color: #e0e0e0;}
+    .info-card {
+        border: 1px solid #d0d0d0;
+        border-radius: 5px;
+        padding: 10px;
+        margin-bottom: 10px;
+    }
+    .report-guide {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background-color: white;
+        border: 1px solid #d0d0d0;
+        border-radius: 5px;
+        padding: 10px;
+        z-index: 1000;
+    }
+    .start-report-btn {
+        position: fixed;
+        top: 70px;
+        right: 20px;
+        z-index: 1000;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# Compact infographic for report guide
+def compact_infographic():
     return """
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 100" style="width:100%; height:auto;">
-        <rect x="0" y="0" width="800" height="100" fill="#f0f8ff"/>
-        
-        <circle cx="100" cy="50" r="40" fill="#4a90e2"/>
-        <text x="100" y="55" font-family="Arial, sans-serif" font-size="14" fill="white" text-anchor="middle">Noon</text>
-        <text x="100" y="90" font-family="Arial, sans-serif" font-size="12" fill="#333" text-anchor="middle">Daily</text>
-
-        <rect x="200" y="10" width="250" height="80" fill="#82ca9d" rx="10" ry="10"/>
-        <text x="325" y="30" font-family="Arial, sans-serif" font-size="14" fill="white" text-anchor="middle">Arrival</text>
-        <text x="325" y="45" font-family="Arial, sans-serif" font-size="10" fill="white" text-anchor="middle">(Anchor, Port, Drifting, STS, etc.)</text>
-        <rect x="210" y="55" width="110" height="30" fill="white" rx="5" ry="5"/>
-        <text x="265" y="75" font-family="Arial, sans-serif" font-size="12" fill="#333" text-anchor="middle">1. EOSP</text>
-        <rect x="330" y="55" width="110" height="30" fill="white" rx="5" ry="5"/>
-        <text x="385" y="75" font-family="Arial, sans-serif" font-size="12" fill="#333" text-anchor="middle">2. FWE</text>
-
-        <rect x="500" y="10" width="250" height="80" fill="#f4a261" rx="10" ry="10"/>
-        <text x="625" y="30" font-family="Arial, sans-serif" font-size="14" fill="white" text-anchor="middle">Departure</text>
-        <text x="625" y="45" font-family="Arial, sans-serif" font-size="10" fill="white" text-anchor="middle">(Anchor, Port, Drifting, STS, etc.)</text>
-        <rect x="510" y="55" width="110" height="30" fill="white" rx="5" ry="5"/>
-        <text x="565" y="75" font-family="Arial, sans-serif" font-size="12" fill="#333" text-anchor="middle">1. SBE</text>
-        <rect x="630" y="55" width="110" height="30" fill="white" rx="5" ry="5"/>
-        <text x="685" y="75" font-family="Arial, sans-serif" font-size="12" fill="#333" text-anchor="middle">2. COSP</text>
+    <svg width="300" height="100">
+        <rect width="300" height="100" fill="#f0f8ff"/>
+        <circle cx="50" cy="50" r="30" fill="#4a90e2"/>
+        <text x="50" y="55" font-family="Arial" font-size="12" fill="white" text-anchor="middle">Noon</text>
+        <rect x="100" y="20" width="90" height="60" fill="#82ca9d" rx="5" ry="5"/>
+        <text x="145" y="50" font-family="Arial" font-size="10" fill="white" text-anchor="middle">Arrival</text>
+        <text x="145" y="65" font-family="Arial" font-size="8" fill="white" text-anchor="middle">EOSP → FWE</text>
+        <rect x="200" y="20" width="90" height="60" fill="#f4a261" rx="5" ry="5"/>
+        <text x="245" y="50" font-family="Arial" font-size="10" fill="white" text-anchor="middle">Departure</text>
+        <text x="245" y="65" font-family="Arial" font-size="8" fill="white" text-anchor="middle">SBE → COSP</text>
     </svg>
     """
 
-# Function to create dummy voyage data
-def create_dummy_voyages():
-    return [
-        {"id": "V001", "from": "Singapore", "to": "Rotterdam", "type": "Laden", "start_date": "2023-01-01", "end_date": "2023-02-15"},
-        {"id": "V002", "from": "Rotterdam", "to": "New York", "type": "Ballast", "start_date": "2023-02-20", "end_date": "2023-03-10"},
-        {"id": "V003", "from": "New York", "to": "Houston", "type": "Laden", "start_date": "2023-03-15", "end_date": "2023-03-25"},
-        {"id": "V004", "from": "Houston", "to": "Santos", "type": "Laden", "start_date": "2023-04-01", "end_date": "2023-04-20"},
-        {"id": "V005", "from": "Santos", "to": "Cape Town", "type": "Ballast", "start_date": "2023-04-25", "end_date": "2023-05-20"},
-        {"id": "V006", "from": "Cape Town", "to": "Dubai", "type": "Laden", "start_date": "2023-05-25", "end_date": "2023-06-15"}
+# Dummy data for completed voyages
+completed_voyages = [
+    {"id": "V001", "from": "Singapore", "to": "Rotterdam", "start": "2023-01-01", "end": "2023-02-15"},
+    {"id": "V002", "from": "Rotterdam", "to": "New York", "start": "2023-02-20", "end": "2023-03-10"},
+    {"id": "V003", "from": "New York", "to": "Houston", "start": "2023-03-15", "end": "2023-03-25"},
+    {"id": "V004", "from": "Houston", "to": "Santos", "start": "2023-04-01", "end": "2023-04-20"},
+    {"id": "V005", "from": "Santos", "to": "Cape Town", "start": "2023-04-25", "end": "2023-05-20"},
+]
+
+# Current voyage data
+current_voyage = {
+    "id": "V006",
+    "from": "Cape Town",
+    "to": "Dubai",
+    "start": "2023-05-25",
+    "expected_end": "2023-06-15",
+    "legs": [
+        {"from": "Cape Town", "to": "Mauritius", "start": "2023-05-25", "end": "2023-06-01"},
+        {"from": "Mauritius", "to": "Maldives", "start": "2023-06-02", "end": "2023-06-08"},
+        {"from": "Maldives", "to": "Dubai", "start": "2023-06-09", "end": None}
     ]
+}
 
-# Function to create dummy voyage legs
-def create_dummy_legs(voyage_id):
-    legs = {
-        "V001": [
-            {"from": "Singapore", "to": "Colombo (Anchor)", "type": "COSP to EOSP"},
-            {"from": "Colombo", "to": "Suez Canal", "type": "COSP to EOSP"},
-            {"from": "Suez Canal", "to": "Rotterdam", "type": "COSP to EOSP"},
-        ],
-        "V002": [
-            {"from": "Rotterdam", "to": "English Channel", "type": "COSP to EOSP"},
-            {"from": "English Channel", "to": "New York", "type": "COSP to EOSP"},
-        ],
-        "V003": [
-            {"from": "New York", "to": "Florida Coast", "type": "COSP to EOSP"},
-            {"from": "Florida Coast", "to": "Houston", "type": "COSP to EOSP"},
-        ],
-        "V004": [
-            {"from": "Houston", "to": "Caribbean Sea", "type": "COSP to EOSP"},
-            {"from": "Caribbean Sea", "to": "Santos", "type": "COSP to EOSP"},
-        ],
-        "V005": [
-            {"from": "Santos", "to": "Rio de Janeiro", "type": "COSP to EOSP"},
-            {"from": "Rio de Janeiro", "to": "Cape Town", "type": "COSP to EOSP"},
-        ],
-        "V006": [
-            {"from": "Cape Town", "to": "Mauritius", "type": "COSP to EOSP"},
-            {"from": "Mauritius", "to": "Dubai", "type": "COSP to EOSP"},
-        ]
-    }
-    return legs.get(voyage_id, [])
+# Main layout
+st.markdown('<p class="main-header">Maritime Reporting System</p>', unsafe_allow_html=True)
 
-# Function to create dummy KPI data
-def create_dummy_kpis(voyage_id):
-    return {
-        "total_fuel": round(1000 + 500 * int(voyage_id[-1]), 2),
-        "total_co2": round(3000 + 1500 * int(voyage_id[-1]), 2),
-        "total_distance": round(5000 + 2000 * int(voyage_id[-1]), 2),
-        "avg_speed": round(12 + 0.5 * int(voyage_id[-1]), 2),
-    }
+# Voyage progress bar
+def create_voyage_progress():
+    start = datetime.strptime(current_voyage['start'], '%Y-%m-%d')
+    end = datetime.strptime(current_voyage['expected_end'], '%Y-%m-%d')
+    total_days = (end - start).days
+    today = datetime.now().date()
+    
+    fig = go.Figure(layout=go.Layout(height=100, margin=dict(t=0, b=0, l=0, r=0)))
+    
+    for leg in current_voyage['legs']:
+        leg_start = datetime.strptime(leg['start'], '%Y-%m-%d')
+        leg_end = datetime.strptime(leg['end'], '%Y-%m-%d') if leg['end'] else today
+        leg_color = 'rgb(55, 126, 184)' if leg['end'] else 'rgb(228, 26, 28)'
+        fig.add_trace(go.Bar(
+            x=[(leg_end - leg_start).days], 
+            y=[0], 
+            orientation='h',
+            marker=dict(color=leg_color),
+            hoverinfo='text',
+            hovertext=f"{leg['from']} to {leg['to']}: {leg_start.strftime('%Y-%m-%d')} - {leg_end.strftime('%Y-%m-%d')}"
+        ))
+    
+    remaining_days = max((end - today).days, 0)
+    fig.add_trace(go.Bar(
+        x=[remaining_days], 
+        y=[0], 
+        orientation='h',
+        marker=dict(color='lightgrey'),
+        hoverinfo='text',
+        hovertext=f"Remaining: {remaining_days} days"
+    ))
+    
+    fig.update_layout(barmode='stack', showlegend=False, xaxis=dict(showticklabels=False), yaxis=dict(showticklabels=False))
+    fig.add_annotation(x=0, y=0, text=f"{current_voyage['from']}<br>{start.strftime('%Y-%m-%d')}", showarrow=False, xanchor='right')
+    fig.add_annotation(x=1, y=0, text=f"{current_voyage['to']}<br>{end.strftime('%Y-%m-%d')}", showarrow=False, xanchor='left')
+    
+    vessel_position = (today - start).days / total_days
+    fig.add_shape(type="line", x0=vessel_position, x1=vessel_position, y0=0, y1=1, line=dict(color="red", width=3))
+    
+    st.plotly_chart(fig, use_container_width=True)
 
-# Main app
-def main():
-    st.set_page_config(layout="wide", page_title="Maritime Reporting System")
+# Layout
+col1, col2 = st.columns([1, 3])
 
-    # Add custom CSS
-    st.markdown("""
-        <style>
-        .stickytop {
-            position: sticky;
-            top: 0;
-            z-index: 999;
-            background-color: white;
-            padding: 10px 0;
-        }
-        .reportbutton {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 999;
-        }
-        .voyage-item {
-            background-color: #f0f0f0;
-            border-radius: 5px;
-            padding: 10px;
-            margin-bottom: 10px;
-        }
-        .voyage-item:hover {
-            background-color: #e0e0e0;
-        }
-        </style>
+with col1:
+    st.markdown('<p class="sub-header">Completed Voyages</p>', unsafe_allow_html=True)
+    for voyage in completed_voyages:
+        st.markdown(f"""
+        <div class="voyage-card">
+            <b>{voyage['id']}</b>: {voyage['from']} to {voyage['to']}<br>
+            {voyage['start']} - {voyage['end']}
+        </div>
         """, unsafe_allow_html=True)
 
-    # Display the infographic at the top
-    st.markdown('<div class="stickytop">', unsafe_allow_html=True)
-    st.components.v1.html(generate_infographic(), height=120)
-    st.markdown('</div>', unsafe_allow_html=True)
-
-    # Create two columns for the main content
-    left_column, right_column = st.columns([1, 3])
-
-    # Left column: Historical Voyages
-    with left_column:
-        st.subheader("Historical Voyages")
-        voyages = create_dummy_voyages()
-        for voyage in voyages:
-            voyage_html = f"""
-            <div class="voyage-item">
-                <h4>{voyage['id']}: {voyage['from']} to {voyage['to']}</h4>
-                <p>Type: {voyage['type']}</p>
-                <p>Date: {voyage['start_date']} to {voyage['end_date']}</p>
-            </div>
-            """
-            if st.markdown(voyage_html, unsafe_allow_html=True):
-                selected_voyage_id = voyage['id']
-                break
-
-    # Right column: Voyage Details and KPIs
-    with right_column:
-        st.subheader(f"Voyage Details: {selected_voyage_id}")
-        
-        # KPI Metrics
-        kpis = create_dummy_kpis(selected_voyage_id)
-        col1, col2, col3, col4 = st.columns(4)
-        col1.metric("Total Fuel Consumed (mt)", kpis['total_fuel'])
-        col2.metric("Total CO2 Emissions (mt)", kpis['total_co2'])
-        col3.metric("Total Distance (nm)", kpis['total_distance'])
-        col4.metric("Average Speed (kts)", kpis['avg_speed'])
-
-        # KPI Bar Chart
-        st.subheader("KPI Comparison")
-        chart_data = pd.DataFrame({
-            'KPI': ['Fuel', 'CO2', 'Distance', 'Speed'],
-            'Value': [kpis['total_fuel'], kpis['total_co2'], kpis['total_distance'], kpis['avg_speed']]
-        })
-        st.bar_chart(chart_data.set_index('KPI'))
-
-        # Voyage Legs
-        st.subheader("Voyage Legs")
-        legs = create_dummy_legs(selected_voyage_id)
-        leg_df = pd.DataFrame(legs)
-        st.table(leg_df)
-
-    # Floating button to start a new report
-    st.markdown(
-        f'''
-        <div class="reportbutton">
-            <button onclick="parent.postMessage('new_report', '*')" style="font-size: 16px; padding: 10px 20px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer;">
-                Start New Report
-            </button>
+with col2:
+    st.markdown('<p class="sub-header">Current Voyage: {}</p>'.format(current_voyage['id']), unsafe_allow_html=True)
+    create_voyage_progress()
+    
+    st.markdown('<p class="sub-header">Voyage Details</p>', unsafe_allow_html=True)
+    col_a, col_b, col_c, col_d = st.columns(4)
+    col_a.metric("Total Fuel Consumed (mt)", "1500")
+    col_b.metric("Total CO2 Emissions (mt)", "4500")
+    col_c.metric("Total Distance (nm)", "7000")
+    col_d.metric("Average Speed (kts)", "12.5")
+    
+    st.markdown('<p class="sub-header">Voyage Legs</p>', unsafe_allow_html=True)
+    for leg in current_voyage['legs']:
+        st.markdown(f"""
+        <div class="info-card">
+            <b>{leg['from']} to {leg['to']}</b><br>
+            Start: {leg['start']}<br>
+            End: {leg['end'] if leg['end'] else 'Ongoing'}
         </div>
-        ''',
-        unsafe_allow_html=True
-    )
+        """, unsafe_allow_html=True)
 
-    # Check if new report button was clicked
-    if st.session_state.get('show_new_report_modal', False):
-        show_new_report_modal()
+# Floating elements
+st.markdown(f"""
+<div class="report-guide">
+    <h4>Report Guide</h4>
+    {compact_infographic()}
+</div>
+""", unsafe_allow_html=True)
 
-def show_new_report_modal():
+st.markdown("""
+<div class="start-report-btn">
+    <a href="?new_report=true" target="_self">
+        <button style="font-size: 16px; padding: 10px 20px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            Start New Report
+        </button>
+    </a>
+</div>
+""", unsafe_allow_html=True)
+
+# Check if new report button was clicked
+if st.experimental_get_query_params().get("new_report"):
     with st.form("new_report_form"):
         st.subheader("Start New Report")
         report_type = st.selectbox("Select Report Type", ["Noon", "EOSP", "FWE", "SBE", "COSP"])
         voyage_id = st.text_input("Voyage ID")
         report_date = st.date_input("Report Date")
         submit_button = st.form_submit_button("Create Report")
-
+        
         if submit_button:
             st.success(f"New {report_type} report created for Voyage {voyage_id} on {report_date}")
-            st.session_state.show_new_report_modal = False
-
-if __name__ == "__main__":
-    main()
+            st.experimental_set_query_params()
