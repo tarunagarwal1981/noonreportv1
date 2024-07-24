@@ -2,9 +2,9 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime, timedelta
 
-# Function to generate the infographic (as previously defined)
+# Function to generate the infographic
 def generate_infographic():
-    svg_code = f"""
+    return """
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 100" style="width:100%; height:auto;">
         <rect x="0" y="0" width="800" height="100" fill="#f0f8ff"/>
         
@@ -29,34 +29,48 @@ def generate_infographic():
         <text x="685" y="75" font-family="Arial, sans-serif" font-size="12" fill="#333" text-anchor="middle">2. COSP</text>
     </svg>
     """
-    return svg_code
 
 # Function to create dummy voyage data
 def create_dummy_voyages():
     return [
-        {"id": "V001", "from": "Singapore", "to": "Rotterdam", "type": "Laden"},
-        {"id": "V002", "from": "Rotterdam", "to": "New York", "type": "Ballast"},
-        {"id": "V003", "from": "New York", "to": "Houston", "type": "Laden"},
+        {"id": "V001", "from": "Singapore", "to": "Rotterdam", "type": "Laden", "start_date": "2023-01-01", "end_date": "2023-02-15"},
+        {"id": "V002", "from": "Rotterdam", "to": "New York", "type": "Ballast", "start_date": "2023-02-20", "end_date": "2023-03-10"},
+        {"id": "V003", "from": "New York", "to": "Houston", "type": "Laden", "start_date": "2023-03-15", "end_date": "2023-03-25"},
+        {"id": "V004", "from": "Houston", "to": "Santos", "type": "Laden", "start_date": "2023-04-01", "end_date": "2023-04-20"},
+        {"id": "V005", "from": "Santos", "to": "Cape Town", "type": "Ballast", "start_date": "2023-04-25", "end_date": "2023-05-20"},
+        {"id": "V006", "from": "Cape Town", "to": "Dubai", "type": "Laden", "start_date": "2023-05-25", "end_date": "2023-06-15"}
     ]
 
 # Function to create dummy voyage legs
 def create_dummy_legs(voyage_id):
-    if voyage_id == "V001":
-        return [
+    legs = {
+        "V001": [
             {"from": "Singapore", "to": "Colombo (Anchor)", "type": "COSP to EOSP"},
             {"from": "Colombo", "to": "Suez Canal", "type": "COSP to EOSP"},
             {"from": "Suez Canal", "to": "Rotterdam", "type": "COSP to EOSP"},
-        ]
-    elif voyage_id == "V002":
-        return [
+        ],
+        "V002": [
             {"from": "Rotterdam", "to": "English Channel", "type": "COSP to EOSP"},
             {"from": "English Channel", "to": "New York", "type": "COSP to EOSP"},
-        ]
-    else:
-        return [
+        ],
+        "V003": [
             {"from": "New York", "to": "Florida Coast", "type": "COSP to EOSP"},
             {"from": "Florida Coast", "to": "Houston", "type": "COSP to EOSP"},
+        ],
+        "V004": [
+            {"from": "Houston", "to": "Caribbean Sea", "type": "COSP to EOSP"},
+            {"from": "Caribbean Sea", "to": "Santos", "type": "COSP to EOSP"},
+        ],
+        "V005": [
+            {"from": "Santos", "to": "Rio de Janeiro", "type": "COSP to EOSP"},
+            {"from": "Rio de Janeiro", "to": "Cape Town", "type": "COSP to EOSP"},
+        ],
+        "V006": [
+            {"from": "Cape Town", "to": "Mauritius", "type": "COSP to EOSP"},
+            {"from": "Mauritius", "to": "Dubai", "type": "COSP to EOSP"},
         ]
+    }
+    return legs.get(voyage_id, [])
 
 # Function to create dummy KPI data
 def create_dummy_kpis(voyage_id):
@@ -71,7 +85,7 @@ def create_dummy_kpis(voyage_id):
 def main():
     st.set_page_config(layout="wide", page_title="Maritime Reporting System")
 
-    # Add custom CSS to make the infographic sticky
+    # Add custom CSS
     st.markdown("""
         <style>
         .stickytop {
@@ -87,12 +101,21 @@ def main():
             right: 20px;
             z-index: 999;
         }
+        .voyage-item {
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .voyage-item:hover {
+            background-color: #e0e0e0;
+        }
         </style>
         """, unsafe_allow_html=True)
 
     # Display the infographic at the top
     st.markdown('<div class="stickytop">', unsafe_allow_html=True)
-    st.markdown(generate_infographic(), unsafe_allow_html=True)
+    st.components.v1.html(generate_infographic(), height=120)
     st.markdown('</div>', unsafe_allow_html=True)
 
     # Create two columns for the main content
@@ -102,13 +125,21 @@ def main():
     with left_column:
         st.subheader("Historical Voyages")
         voyages = create_dummy_voyages()
-        selected_voyage = st.selectbox("Select a Voyage", 
-                                       [f"{v['id']}: {v['from']} to {v['to']} ({v['type']})" for v in voyages])
-        selected_voyage_id = selected_voyage.split(":")[0]
+        for voyage in voyages:
+            voyage_html = f"""
+            <div class="voyage-item">
+                <h4>{voyage['id']}: {voyage['from']} to {voyage['to']}</h4>
+                <p>Type: {voyage['type']}</p>
+                <p>Date: {voyage['start_date']} to {voyage['end_date']}</p>
+            </div>
+            """
+            if st.markdown(voyage_html, unsafe_allow_html=True):
+                selected_voyage_id = voyage['id']
+                break
 
     # Right column: Voyage Details and KPIs
     with right_column:
-        st.subheader(f"Voyage Details: {selected_voyage}")
+        st.subheader(f"Voyage Details: {selected_voyage_id}")
         
         # KPI Metrics
         kpis = create_dummy_kpis(selected_voyage_id)
@@ -136,18 +167,16 @@ def main():
     st.markdown(
         f'''
         <div class="reportbutton">
-            <a href="?new_report=true" target="_self">
-                <button style="font-size: 16px; padding: 10px 20px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer;">
-                    Start New Report
-                </button>
-            </a>
+            <button onclick="parent.postMessage('new_report', '*')" style="font-size: 16px; padding: 10px 20px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                Start New Report
+            </button>
         </div>
         ''',
         unsafe_allow_html=True
     )
 
     # Check if new report button was clicked
-    if st.experimental_get_query_params().get("new_report"):
+    if st.session_state.get('show_new_report_modal', False):
         show_new_report_modal()
 
 def show_new_report_modal():
@@ -160,8 +189,7 @@ def show_new_report_modal():
 
         if submit_button:
             st.success(f"New {report_type} report created for Voyage {voyage_id} on {report_date}")
-            # Here you would typically save the new report and redirect to the report page
-            st.experimental_set_query_params()  # Clear the query parameter
+            st.session_state.show_new_report_modal = False
 
 if __name__ == "__main__":
     main()
