@@ -3,7 +3,7 @@ import streamlit.components.v1 as components
 
 # Ensure you have streamlit-mermaid installed
 # pip install streamlit-mermaid
-from streamlit_mermaid import mermaid
+import mermaid
 
 st.set_page_config(layout="wide", page_title="Maritime Voyage Flowcharts")
 
