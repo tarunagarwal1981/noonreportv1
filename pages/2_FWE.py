@@ -8,10 +8,10 @@ def main():
     st.title("Maritime Finished With Engine (FWE) Report")
 
     fwe_scenario = st.selectbox("FWE Scenario", [
-        "Departure Port", 
-        "Departure Anchoring",
-        "End Drifting",
-        "Departure STS"
+        "Arrival Port", 
+        "Arrival Anchoring",
+        "Arrival Drifting position",
+        "Arrival STS"
     ])
 
     tabs = st.tabs(["FWE Information", "Navigation", "Engine", "Consumption"])
