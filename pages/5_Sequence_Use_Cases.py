@@ -1,9 +1,4 @@
 import streamlit as st
-import streamlit.components.v1 as components
-
-# Ensure you have streamlit-mermaid installed
-# pip install streamlit-mermaid
-import mermaid
 
 st.set_page_config(layout="wide", page_title="Maritime Voyage Flowcharts")
 
@@ -11,112 +6,133 @@ st.title("Maritime Voyage Flowcharts")
 
 flowcharts = {
     "Port to Port Voyage": """
-    graph TD
-        A[At Port] --> B{SBE}
-        B --> C[COSP]
-        C --> D{Noon at Sea}
-        D --> D
-        D --> E{EOSP}
-        E --> F[FWE]
-        F --> G[At Port]
+    digraph {
+        A [label="At Port"]
+        B [label="SBE", shape=diamond]
+        C [label="COSP"]
+        D [label="Noon at Sea", shape=diamond]
+        E [label="EOSP", shape=diamond]
+        F [label="FWE"]
+        G [label="At Port"]
+        A -> B -> C -> D
+        D -> D [label="Daily"]
+        D -> E -> F -> G
+    }
     """,
-    "Port to Anchorage Voyage": """
-    graph TD
-        A[At Port] --> B{SBE}
-        B --> C[COSP]
-        C --> D{Noon at Sea}
-        D --> D
-        D --> E{EOSP}
-        E --> F[FWE: Anchored]
-        F --> G{Noon at Anchor}
-        G --> G
-    """,
-    "Anchorage to Port Voyage": """
-    graph TD
-        A{Noon at Anchor} --> B{SBE}
-        B --> C[COSP]
-        C --> D{Noon at Sea}
-        D --> D
-        D --> E{EOSP}
-        E --> F[FWE]
-        F --> G[At Port]
+    "Port to Anchorage and Back Voyage": """
+    digraph {
+        A [label="At Port"]
+        B [label="SBE", shape=diamond]
+        C [label="COSP"]
+        D [label="Noon at Sea", shape=diamond]
+        E [label="EOSP", shape=diamond]
+        F [label="FWE: Anchored"]
+        G [label="Noon at Anchor", shape=diamond]
+        H [label="Anchor Lifting", shape=diamond]
+        I [label="Berthing"]
+        J [label="Noon at Port", shape=diamond]
+        K [label="SBE", shape=diamond]
+        L [label="Anchoring"]
+        M [label="Noon at Anchor", shape=diamond]
+        N [label="Anchor Lift", shape=diamond]
+        O [label="COSP"]
+        A -> B -> C -> D
+        D -> D [label="Daily"]
+        D -> E -> F -> G
+        G -> G [label="Daily"]
+        G -> H -> I -> J
+        J -> K -> L -> M
+        M -> N -> O
+        O -> D
+    }
     """,
     "Port to Drifting Voyage": """
-    graph TD
-        A[At Port] --> B{SBE}
-        B --> C[COSP]
-        C --> D{Noon at Sea}
-        D --> D
-        D --> E[FWE: Drifting]
-        E --> F{Noon while Drifting}
-        F --> F
-    """,
-    "Drifting to Port Voyage": """
-    graph TD
-        A{Noon while Drifting} --> B{SBE}
-        B --> C[COSP]
-        C --> D{Noon at Sea}
-        D --> D
-        D --> E{EOSP}
-        E --> F[FWE]
-        F --> G[At Port]
+    digraph {
+        A [label="At Port"]
+        B [label="SBE", shape=diamond]
+        C [label="COSP"]
+        D [label="Noon at Sea", shape=diamond]
+        E [label="FWE: Drifting"]
+        F [label="Noon while Drifting", shape=diamond]
+        G [label="SBE", shape=diamond]
+        H [label="COSP"]
+        A -> B -> C -> D
+        D -> D [label="Daily"]
+        D -> E -> F
+        F -> F [label="Daily"]
+        F -> G -> H
+        H -> D
+    }
     """,
     "Port to Canal/River Voyage": """
-    graph TD
-        A[At Port] --> B{SBE}
-        B --> C[COSP]
-        C --> D{Noon at Sea}
-        D --> D
-        D --> E{EOSP: Canal/River Entry}
-        E --> F{Noon in Canal/River}
-        F --> F
-        F --> G[COSP: Canal/River Exit]
-        G --> H{Noon at Sea}
-        H --> H
+    digraph {
+        A [label="At Port"]
+        B [label="SBE", shape=diamond]
+        C [label="COSP"]
+        D [label="Noon at Sea", shape=diamond]
+        E [label="EOSP: Canal/River Entry", shape=diamond]
+        F [label="Noon in Canal/River", shape=diamond]
+        G [label="COSP: Canal/River Exit"]
+        H [label="Noon at Sea", shape=diamond]
+        I [label="EOSP for Anchor", shape=diamond]
+        J [label="Anchoring"]
+        K [label="Noon at Anchor", shape=diamond]
+        L [label="SBE for Canal/River Entry", shape=diamond]
+        M [label="Noon in Canal/River", shape=diamond]
+        N [label="COSP"]
+        O [label="Noon at Sea", shape=diamond]
+        A -> B -> C -> D
+        D -> D [label="Daily"]
+        D -> E -> F
+        F -> F [label="Daily"]
+        F -> G -> H
+        H -> H [label="Daily"]
+        H -> I -> J -> K
+        K -> L -> M
+        M -> N -> O
+        O -> O [label="Daily"]
+    }
     """,
-    "Canal/River to Port Voyage": """
-    graph TD
-        A{Noon in Canal/River} --> B[COSP: Canal/River Exit]
-        B --> C{Noon at Sea}
-        C --> C
-        C --> D{EOSP}
-        D --> E[FWE]
-        E --> F[At Port]
-    """,
-    "Port to STS Operation Voyage": """
-    graph TD
-        A[At Port] --> B{SBE}
-        B --> C[COSP]
-        C --> D{Noon at Sea}
-        D --> D
-        D --> E{EOSP}
-        E --> F[FWE: STS]
-        F --> G{Noon at STS}
-        G --> G
-    """,
-    "STS Operation to Port Voyage": """
-    graph TD
-        A{Noon at STS} --> B{SBE}
-        B --> C[COSP]
-        C --> D{Noon at Sea}
-        D --> D
-        D --> E{EOSP}
-        E --> F[FWE]
-        F --> G[At Port]
+    "STS Operation Voyage": """
+    digraph {
+        A [label="At Port"]
+        B [label="SBE", shape=diamond]
+        C [label="COSP"]
+        D [label="Noon at Sea", shape=diamond]
+        E [label="EOSP", shape=diamond]
+        F [label="FWE: STS"]
+        G [label="Noon at STS", shape=diamond]
+        H [label="SBE", shape=diamond]
+        I [label="COSP"]
+        J [label="Noon at Sea", shape=diamond]
+        K [label="EOSP", shape=diamond]
+        L [label="FWE"]
+        M [label="At Port"]
+        A -> B -> C -> D
+        D -> D [label="Daily"]
+        D -> E -> F -> G
+        G -> G [label="Daily"]
+        G -> H -> I -> J
+        J -> J [label="Daily"]
+        J -> K -> L -> M
+    }
     """,
     "Shifting Berth Voyage": """
-    graph TD
-        A[At Berth] --> B{SBE}
-        B --> C[Maneuvering]
-        C --> D[FWE]
-        D --> E[At New Berth]
+    digraph {
+        A [label="At Berth"]
+        B [label="SBE", shape=diamond]
+        C [label="Noon at Canal/River", shape=diamond]
+        D [label="FWE"]
+        E [label="At New Berth"]
+        A -> B -> C -> D -> E
+    }
     """
 }
 
 selected_flowchart = st.selectbox("Select a Voyage Scenario", list(flowcharts.keys()))
 
 st.subheader(selected_flowchart)
-mermaid(flowcharts[selected_flowchart])
+st.graphviz_chart(flowcharts[selected_flowchart])
 
 st.markdown("""
 ### Flowchart Legend:
@@ -127,8 +143,8 @@ st.markdown("""
 - STS: Ship-to-Ship
 
 ### Notes:
-- Noon reports are represented by diamond shapes and occur daily.
-- Other reports (SBE, COSP, EOSP, FWE) are represented by rectangles and occur at specific events.
+- Noon reports and key decision points are represented by diamond shapes.
+- Other reports (COSP, FWE) and states are represented by rectangles.
 - Looping arrows (e.g., on Noon reports) indicate that these reports continue daily until the next event.
 """)
 
