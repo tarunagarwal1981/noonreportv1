@@ -7,7 +7,7 @@ st.set_page_config(layout="wide", page_title="Maritime EOSP Report")
 def main():
     st.title("Maritime EOSP (End of Sea Passage) Report")
 
-    eosp_type = st.selectbox("EOSP Type", ["Arriving at Port", "Anchoring", "Entering Canal/River", "Ending Drift", "Commencing STS"])
+    eosp_type = st.selectbox("EOSP Type", ["Arriving at Port", "Arrival Anchoring", "Entering Canal/River", "Arrival for STS"])
 
     tabs = st.tabs(["EOSP Information", "Navigation", "Weather", "Engine", "Consumption"])
 
@@ -53,7 +53,7 @@ def eosp_info_tab(eosp_type):
         st.number_input("Maneuvering (hrs)", min_value=0.0, step=0.01, key="maneuvering_hrs_eosp")
         st.number_input("Maneuvering Distance (nm)", min_value=0.0, step=0.01, key="maneuvering_distance_eosp")
     
-    elif eosp_type == "Anchoring":
+    elif eosp_type == "Arrival Anchoring":
         st.text_input("Anchorage Name", key="anchorage_name")
         st.number_input("Water Depth at Anchorage (m)", min_value=0.0, step=0.1, key="water_depth_anchorage")
         st.number_input("Chain Length (shackles)", min_value=0, step=1, key="chain_length")
@@ -63,14 +63,11 @@ def eosp_info_tab(eosp_type):
         st.text_input("Pilot Station", key="pilot_station")
         st.number_input("Canal/River Speed Limit (kts)", min_value=0.0, step=0.1, key="canal_speed_limit")
     
-    elif eosp_type == "Ending Drift":
-        st.number_input("Total Drift Time (hrs)", min_value=0.0, step=0.1, key="total_drift_time")
-        st.number_input("Total Drift Distance (nm)", min_value=0.0, step=0.1, key="total_drift_distance")
-    
-    elif eosp_type == "Commencing STS":
+    elif eosp_type == "Arrival for STS":
         st.text_input("STS Location", key="sts_location")
         st.text_input("Name of Other Vessel", key="other_vessel_name")
         st.text_input("Type of STS Operation", key="sts_operation_type")
+
 
 def navigation_tab(eosp_type):
     st.header("Navigation Details")
