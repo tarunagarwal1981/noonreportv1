@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import plotly.graph_objects as go
 from datetime import datetime, timedelta
 
 # Function to generate the infographic (as previously defined)
@@ -31,7 +30,7 @@ def generate_infographic():
     </svg>
     """
     return svg_code
-  
+
 # Function to create dummy voyage data
 def create_dummy_voyages():
     return [
@@ -67,68 +66,6 @@ def create_dummy_kpis(voyage_id):
         "total_distance": round(5000 + 2000 * int(voyage_id[-1]), 2),
         "avg_speed": round(12 + 0.5 * int(voyage_id[-1]), 2),
     }
-
-# Function to create KPI charts
-def create_kpi_charts(kpis):
-    fig = go.Figure()
-    fig.add_trace(go.Indicator(
-        mode = "number+gauge+delta",
-        value = kpis['total_fuel'],
-        domain = {'x': [0, 0.5], 'y': [0, 0.5]},
-        title = {'text': "Total Fuel Consumed (mt)"},
-        delta = {'reference': 2000},
-        gauge = {
-            'axis': {'range': [None, 5000]},
-            'bar': {'color': "darkblue"},
-            'steps' : [
-                {'range': [0, 1500], 'color': "lightgray"},
-                {'range': [1500, 3000], 'color': "gray"}],
-            'threshold' : {'line': {'color': "red", 'width': 4}, 'thickness': 0.75, 'value': 3000}}))
-
-    fig.add_trace(go.Indicator(
-        mode = "number+gauge+delta",
-        value = kpis['total_co2'],
-        domain = {'x': [0.5, 1], 'y': [0, 0.5]},
-        title = {'text': "Total CO2 Emissions (mt)"},
-        delta = {'reference': 6000},
-        gauge = {
-            'axis': {'range': [None, 15000]},
-            'bar': {'color': "darkgreen"},
-            'steps' : [
-                {'range': [0, 5000], 'color': "lightgray"},
-                {'range': [5000, 10000], 'color': "gray"}],
-            'threshold' : {'line': {'color': "red", 'width': 4}, 'thickness': 0.75, 'value': 9000}}))
-
-    fig.add_trace(go.Indicator(
-        mode = "number+gauge+delta",
-        value = kpis['total_distance'],
-        domain = {'x': [0, 0.5], 'y': [0.5, 1]},
-        title = {'text': "Total Distance (nm)"},
-        delta = {'reference': 8000},
-        gauge = {
-            'axis': {'range': [None, 20000]},
-            'bar': {'color': "darkorange"},
-            'steps' : [
-                {'range': [0, 5000], 'color': "lightgray"},
-                {'range': [5000, 10000], 'color': "gray"}],
-            'threshold' : {'line': {'color': "red", 'width': 4}, 'thickness': 0.75, 'value': 12000}}))
-
-    fig.add_trace(go.Indicator(
-        mode = "number+gauge+delta",
-        value = kpis['avg_speed'],
-        domain = {'x': [0.5, 1], 'y': [0.5, 1]},
-        title = {'text': "Average Speed (kts)"},
-        delta = {'reference': 13},
-        gauge = {
-            'axis': {'range': [None, 20]},
-            'bar': {'color': "darkred"},
-            'steps' : [
-                {'range': [0, 10], 'color': "lightgray"},
-                {'range': [10, 15], 'color': "gray"}],
-            'threshold' : {'line': {'color': "red", 'width': 4}, 'thickness': 0.75, 'value': 15}}))
-
-    fig.update_layout(height=500)
-    return fig
 
 # Main app
 def main():
@@ -173,9 +110,21 @@ def main():
     with right_column:
         st.subheader(f"Voyage Details: {selected_voyage}")
         
-        # KPI Charts
+        # KPI Metrics
         kpis = create_dummy_kpis(selected_voyage_id)
-        st.plotly_chart(create_kpi_charts(kpis), use_container_width=True)
+        col1, col2, col3, col4 = st.columns(4)
+        col1.metric("Total Fuel Consumed (mt)", kpis['total_fuel'])
+        col2.metric("Total CO2 Emissions (mt)", kpis['total_co2'])
+        col3.metric("Total Distance (nm)", kpis['total_distance'])
+        col4.metric("Average Speed (kts)", kpis['avg_speed'])
+
+        # KPI Bar Chart
+        st.subheader("KPI Comparison")
+        chart_data = pd.DataFrame({
+            'KPI': ['Fuel', 'CO2', 'Distance', 'Speed'],
+            'Value': [kpis['total_fuel'], kpis['total_co2'], kpis['total_distance'], kpis['avg_speed']]
+        })
+        st.bar_chart(chart_data.set_index('KPI'))
 
         # Voyage Legs
         st.subheader("Voyage Legs")
