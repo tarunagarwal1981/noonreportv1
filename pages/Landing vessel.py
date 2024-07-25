@@ -211,7 +211,7 @@ with col2:
 
 # Report Guide in sidebar
 st.sidebar.markdown("## New Report Guide")
-st.sidebar.markdown("### Infographic")
+#st.sidebar.markdown("### Infographic")
 with st.sidebar:
     compact_infographic()
 
