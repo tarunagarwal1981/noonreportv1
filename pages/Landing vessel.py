@@ -151,8 +151,8 @@ def create_voyage_progress():
     )
 
     # Add start and end annotations
-    fig.add_annotation(x=0, y=1, text=f"{current_voyage['from']}<br>{start.strftime('%Y-%m-%d')}", showarrow=False, yanchor="bottom")
-    fig.add_annotation(x=total_days, y=1, text=f"{current_voyage['to']}<br>{end.strftime('%Y-%m-%d')}", showarrow=False, yanchor="bottom", xanchor="right")
+    fig.add_annotation(x=0, y=1, text=f"{current_voyage['from']}<br>{start.strftime('%Y-%m-%d %H:%M')}", showarrow=False, yanchor="bottom")
+    fig.add_annotation(x=total_days, y=1, text=f"{current_voyage['to']}<br>{end.strftime('%Y-%m-%d %H:%M')}", showarrow=False, yanchor="bottom", xanchor="right")
 
     fig.update_layout(
         barmode='stack',
@@ -208,7 +208,7 @@ with col2:
         """, unsafe_allow_html=True)
 
 # Report Guide in sidebar
-st.sidebar.markdown("## Report Guide")
+st.sidebar.markdown("## New Report Guide")
 compact_infographic()
 
 # Start New Report button
