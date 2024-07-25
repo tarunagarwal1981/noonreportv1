@@ -103,11 +103,12 @@ def create_voyage_progress():
 
     fig = go.Figure(layout=go.Layout(height=150, margin=dict(t=20, b=20, l=0, r=0)))
 
-    completed_legs = current_voyage['legs'][:2]  # First two legs
-    ongoing_leg = current_voyage['legs'][2]  # Third leg (ongoing)
+    completed_legs = [leg for leg in current_voyage['legs'] if leg['end']]
+    ongoing_leg = next((leg for leg in current_voyage['legs'] if not leg['end']), None)
 
-    # Add completed legs
-    colors = ['rgb(55, 126, 184)', 'rgb(77, 175, 74)']  # Different colors for each completed leg
+    colors = ['rgb(55, 126, 184)', 'rgb(77, 175, 74)', 'rgb(152, 78, 163)']
+    
+    cumulative_days = 0
     for i, leg in enumerate(completed_legs):
         leg_start = parse_date(leg['start'])
         leg_end = parse_date(leg['end'])
@@ -115,37 +116,49 @@ def create_voyage_progress():
         fig.add_trace(go.Bar(
             x=[leg_days], y=[0],
             orientation='h',
-            marker=dict(color=colors[i]),
+            marker=dict(color=colors[i % len(colors)]),
             hoverinfo='text',
-            hovertext=f"{leg['from']} to {leg['to']}: {leg_start.strftime('%Y-%m-%d %H:%M')} - {leg_end.strftime('%Y-%m-%d %H:%M')}"
+            hovertext=f"{leg['from']} to {leg['to']}: {leg_start.strftime('%Y-%m-%d %H:%M')} - {leg_end.strftime('%Y-%m-%d %H:%M')}",
+            base=cumulative_days
         ))
+        cumulative_days += leg_days
 
-    # Add ongoing leg (shaded)
-    ongoing_start = parse_date(ongoing_leg['start'])
-    ongoing_days = (end - ongoing_start).days
+    if ongoing_leg:
+        ongoing_start = parse_date(ongoing_leg['start'])
+        ongoing_days = (today - ongoing_start).days
+        fig.add_trace(go.Bar(
+            x=[ongoing_days], y=[0],
+            orientation='h',
+            marker=dict(color='rgb(228, 26, 28)', opacity=0.5),
+            hoverinfo='text',
+            hovertext=f"{ongoing_leg['from']} to {ongoing_leg['to']}: {ongoing_start.strftime('%Y-%m-%d %H:%M')} - Ongoing",
+            base=cumulative_days
+        ))
+        cumulative_days += ongoing_days
+
+    remaining_days = max(total_days - cumulative_days, 0)
     fig.add_trace(go.Bar(
-        x=[ongoing_days], y=[0],
+        x=[remaining_days], y=[0],
         orientation='h',
-        marker=dict(color='rgb(228, 26, 28)', opacity=0.5),
+        marker=dict(color='lightgrey', opacity=0.5),
         hoverinfo='text',
-        hovertext=f"{ongoing_leg['from']} to {ongoing_leg['to']}: {ongoing_start.strftime('%Y-%m-%d %H:%M')} - Ongoing"
+        hovertext=f"Remaining: {remaining_days} days",
+        base=cumulative_days
     ))
 
-    # Add vessel position
     vessel_position = (today - start).days
     fig.add_shape(
         type="line", x0=vessel_position, x1=vessel_position, y0=-0.4, y1=0.4,
         line=dict(color="red", width=3)
     )
 
-    # Add start and end annotations
     fig.add_annotation(x=0, y=1, text=f"{current_voyage['from']}<br>{start.strftime('%Y-%m-%d %H:%M')}", showarrow=False, yanchor="bottom")
     fig.add_annotation(x=total_days, y=1, text=f"{current_voyage['to']}<br>{end.strftime('%Y-%m-%d %H:%M')}", showarrow=False, yanchor="bottom", xanchor="right")
 
     fig.update_layout(
         barmode='stack',
         showlegend=False,
-        xaxis=dict(showticklabels=False, showgrid=False, zeroline=False),
+        xaxis=dict(range=[0, total_days], showticklabels=False, showgrid=False, zeroline=False),
         yaxis=dict(showticklabels=False, showgrid=False, zeroline=False),
         plot_bgcolor='rgba(0,0,0,0)',
         paper_bgcolor='rgba(0,0,0,0)'
@@ -153,14 +166,13 @@ def create_voyage_progress():
 
     st.plotly_chart(fig, use_container_width=True)
 
-    # Add past history heading and leg names
     st.markdown("---")
     st.markdown("### Past History")
-    for leg in completed_legs + [ongoing_leg]:
+    for leg in current_voyage['legs']:
         st.markdown(f"**{leg['from']} to {leg['to']}**")
         st.markdown(f"Start: {leg['start']}")
         st.markdown(f"End: {leg['end'] if leg['end'] else 'Ongoing'}")
-
+        
 # Main layout
 st.markdown('<p class="main-header">Maritime Reporting System</p>', unsafe_allow_html=True)
 
@@ -200,7 +212,8 @@ with col2:
 # Report Guide in sidebar
 st.sidebar.markdown("## New Report Guide")
 st.sidebar.markdown("### Infographic")
-compact_infographic()
+with st.sidebar:
+    compact_infographic()
 
 # Start New Report button
 st.markdown("""
