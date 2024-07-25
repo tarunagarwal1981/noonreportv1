@@ -101,7 +101,7 @@ def create_voyage_progress():
     total_days = max((end - start).days, 1)
     today = datetime.now()
 
-    fig = go.Figure(layout=go.Layout(height=150, margin=dict(t=20, b=20, l=0, r=0)))
+    fig = go.Figure(layout=go.Layout(height=150, margin=dict(t=30, b=20, l=0, r=0)))
 
     completed_legs = [leg for leg in current_voyage['legs'] if leg['end']]
     ongoing_leg = next((leg for leg in current_voyage['legs'] if not leg['end']), None)
@@ -123,6 +123,8 @@ def create_voyage_progress():
         ))
         cumulative_days += leg_days
 
+    vessel_position = cumulative_days
+
     if ongoing_leg:
         ongoing_start = parse_date(ongoing_leg['start'])
         ongoing_days = (today - ongoing_start).days
@@ -140,16 +142,35 @@ def create_voyage_progress():
     fig.add_trace(go.Bar(
         x=[remaining_days], y=[0],
         orientation='h',
-        marker=dict(color='lightgrey', opacity=0.5),
+        marker=dict(color='lightgrey', opacity=0.3),  # Reduced opacity here
         hoverinfo='text',
         hovertext=f"Remaining: {remaining_days} days",
         base=cumulative_days
     ))
 
-    vessel_position = (today - start).days
-    fig.add_shape(
-        type="line", x0=vessel_position, x1=vessel_position, y0=-0.4, y1=0.4,
-        line=dict(color="red", width=3)
+    # Add vessel icon (triangle)
+    fig.add_trace(go.Scatter(
+        x=[vessel_position],
+        y=[0],
+        mode='markers',
+        marker=dict(
+            symbol='triangle-up',
+            size=20,
+            color='red',
+        ),
+        hoverinfo='text',
+        hovertext='Vessel Position',
+        showlegend=False
+    ))
+
+    # Add vessel name
+    fig.add_annotation(
+        x=vessel_position,
+        y=0.5,
+        text="MV Explorer",  # Replace with actual vessel name or make it dynamic
+        showarrow=False,
+        yshift=25,
+        font=dict(size=10)
     )
 
     fig.add_annotation(x=0, y=1, text=f"{current_voyage['from']}<br>{start.strftime('%Y-%m-%d %H:%M')}", showarrow=False, yanchor="bottom")
