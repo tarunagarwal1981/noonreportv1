@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime, timedelta
 import plotly.graph_objects as go
-import base64  # Add this import
+import base64
 
 # Page configuration
 st.set_page_config(layout="wide", page_title="Maritime Reporting System")
@@ -42,17 +42,14 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Function to render SVG
 def render_svg(svg):
-    """Renders the given svg string."""
     b64 = base64.b64encode(svg.encode('utf-8')).decode("utf-8")
-    html = r'<img src="data:image/svg+xml;base64,%s" width="300" height="100"/>' % b64
-    return html
+    html = f'<img src="data:image/svg+xml;base64,{b64}" width="300" height="100"/>'
+    st.markdown(html, unsafe_allow_html=True)
 
-# Compact infographic for report guide
 def compact_infographic():
     svg = """
-    <svg width="300" height="100">
+    <svg width="300" height="100" xmlns="http://www.w3.org/2000/svg">
         <rect width="300" height="100" fill="#f0f8ff"/>
         <circle cx="50" cy="50" r="30" fill="#4a90e2"/>
         <text x="50" y="55" font-family="Arial" font-size="12" fill="white" text-anchor="middle">Noon</text>
@@ -64,7 +61,7 @@ def compact_infographic():
         <text x="245" y="65" font-family="Arial" font-size="8" fill="white" text-anchor="middle">SBE → COSP</text>
     </svg>
     """
-    return render_svg(svg)
+    render_svg(svg)
 
 # Dummy data for completed voyages
 completed_voyages = [
@@ -104,44 +101,61 @@ def create_voyage_progress():
     total_days = max((end - start).days, 1)
     today = datetime.now().date()
     
-    fig = go.Figure(layout=go.Layout(height=100, margin=dict(t=0, b=0, l=0, r=0)))
+    fig = go.Figure(layout=go.Layout(height=150, margin=dict(t=20, b=20, l=0, r=0)))
     
-    # Create a single bar for the entire voyage
+    completed_legs = [leg for leg in current_voyage['legs'] if leg['end']]
+    ongoing_leg = next((leg for leg in current_voyage['legs'] if not leg['end']), None)
+    
+    completed_days = sum((parse_date(leg['end']) - parse_date(leg['start'])).days for leg in completed_legs)
+    
+    # Add completed legs
+    for i, leg in enumerate(completed_legs):
+        leg_start = parse_date(leg['start'])
+        leg_end = parse_date(leg['end'])
+        leg_days = (leg_end - leg_start).days
+        fig.add_trace(go.Bar(
+            x=[leg_days], y=[0],
+            orientation='h',
+            marker=dict(color=f'rgb({50+i*30}, {100+i*30}, {150+i*30})'),
+            hoverinfo='text',
+            hovertext=f"{leg['from']} to {leg['to']}: {leg_start} - {leg_end}"
+        ))
+    
+    # Add ongoing leg
+    if ongoing_leg:
+        ongoing_start = parse_date(ongoing_leg['start'])
+        ongoing_days = (today - ongoing_start).days
+        fig.add_trace(go.Bar(
+            x=[ongoing_days], y=[0],
+            orientation='h',
+            marker=dict(color='rgb(228, 26, 28)'),
+            hoverinfo='text',
+            hovertext=f"{ongoing_leg['from']} to {ongoing_leg['to']}: {ongoing_start} - Ongoing"
+        ))
+    
+    # Add remaining days
+    remaining_days = max(total_days - completed_days - (ongoing_days if ongoing_leg else 0), 0)
     fig.add_trace(go.Bar(
-        x=[total_days],
-        y=[0],
+        x=[remaining_days], y=[0],
         orientation='h',
-        marker=dict(color='lightblue'),
-        hoverinfo='skip'
+        marker=dict(color='lightgrey', opacity=0.5),
+        hoverinfo='text',
+        hovertext=f"Remaining: {remaining_days} days"
     ))
     
     # Add vessel position
-    vessel_position = min(max((today - start).days / total_days, 0), 1)
+    vessel_position = min(completed_days + (ongoing_days if ongoing_leg else 0), total_days)
     fig.add_shape(
-        type="line",
-        x0=vessel_position * total_days,
-        x1=vessel_position * total_days,
-        y0=0,
-        y1=1,
+        type="line", x0=vessel_position, x1=vessel_position, y0=-0.4, y1=0.4,
         line=dict(color="red", width=3)
     )
     
     # Add start and end annotations
-    fig.add_annotation(
-        x=0, y=1,
-        text=f"{current_voyage['from']}<br>{start.strftime('%Y-%m-%d')}",
-        showarrow=False,
-        yanchor="bottom"
-    )
-    fig.add_annotation(
-        x=total_days, y=1,
-        text=f"{current_voyage['to']}<br>{end.strftime('%Y-%m-%d')}",
-        showarrow=False,
-        yanchor="bottom",
-        xanchor="right"
-    )
+    fig.add_annotation(x=0, y=1, text=f"{current_voyage['from']}<br>{start.strftime('%Y-%m-%d')}", showarrow=False, yanchor="bottom")
+    fig.add_annotation(x=total_days, y=1, text=f"{current_voyage['to']}<br>{end.strftime('%Y-%m-%d')}", showarrow=False, yanchor="bottom", xanchor="right")
     
     fig.update_layout(
+        barmode='stack',
         showlegend=False,
         xaxis=dict(showticklabels=False, showgrid=False, zeroline=False),
         yaxis=dict(showticklabels=False, showgrid=False, zeroline=False),
@@ -150,6 +164,12 @@ def create_voyage_progress():
     )
     
     st.plotly_chart(fig, use_container_width=True)
+    
+    # Add past history heading and leg names
+    st.markdown("---")
+    st.markdown("### Past History")
+    for leg in completed_legs + ([ongoing_leg] if ongoing_leg else []):
+        st.markdown(f"**{leg['from']} to {leg['to']}**")
 
 # Main layout
 st.markdown('<p class="main-header">Maritime Reporting System</p>', unsafe_allow_html=True)
@@ -188,8 +208,8 @@ with col2:
         """, unsafe_allow_html=True)
 
 # Report Guide in sidebar
-st.sidebar.markdown('<p class="sub-header">Report Guide</p>', unsafe_allow_html=True)
-st.sidebar.markdown(compact_infographic(), unsafe_allow_html=True)
+st.sidebar.markdown("## Report Guide")
+compact_infographic()
 
 # Start New Report button
 st.markdown("""
@@ -214,3 +234,6 @@ if st.experimental_get_query_params().get("new_report"):
         if submit_button:
             st.success(f"New {report_type} report created for Voyage {voyage_id} on {report_date}")
             st.experimental_set_query_params()
+
+if __name__ == "__main__":
+    st.set_page_config(layout="wide", page_title="Maritime Reporting System")
