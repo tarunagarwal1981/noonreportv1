@@ -51,13 +51,14 @@ def compact_infographic():
     svg = """
     <svg width="300" height="100" xmlns="http://www.w3.org/2000/svg">
         <rect width="300" height="100" fill="#f0f8ff"/>
-        <rect x="0" y="0" width="120" height="100" fill="#82ca9d"/>
-        <rect x="120" y="0" width="120" height="100" fill="#f4a261"/>
-        <rect x="240" y="0" width="60" height="100" fill="lightgrey" opacity="0.5"/>
-        <text x="60" y="50" font-family="Arial" font-size="12" fill="white" text-anchor="middle">Leg 1</text>
-        <text x="180" y="50" font-family="Arial" font-size="12" fill="white" text-anchor="middle">Leg 2</text>
-        <text x="270" y="50" font-family="Arial" font-size="12" fill="black" text-anchor="middle">Remaining</text>
-        <line x1="120" y1="0" x2="120" y2="100" style="stroke:red;stroke-width:2" />
+        <circle cx="50" cy="50" r="30" fill="#4a90e2"/>
+        <text x="50" y="55" font-family="Arial" font-size="12" fill="white" text-anchor="middle">Noon</text>
+        <rect x="100" y="20" width="90" height="60" fill="#82ca9d" rx="5" ry="5"/>
+        <text x="145" y="50" font-family="Arial" font-size="10" fill="white" text-anchor="middle">Arrival</text>
+        <text x="145" y="65" font-family="Arial" font-size="8" fill="white" text-anchor="middle">EOSP → FWE</text>
+        <rect x="200" y="20" width="90" height="60" fill="#f4a261" rx="5" ry="5"/>
+        <text x="245" y="50" font-family="Arial" font-size="10" fill="white" text-anchor="middle">Departure</text>
+        <text x="245" y="65" font-family="Arial" font-size="8" fill="white" text-anchor="middle">SBE → COSP</text>
     </svg>
     """
     render_svg(svg)
@@ -76,38 +77,37 @@ current_voyage = {
     "id": "V006",
     "from": "Cape Town",
     "to": "Dubai",
-    "start": "2023-05-25",
-    "expected_end": "2023-06-15",
+    "start": "2023-05-25 08:00",
+    "expected_end": "2023-06-15 14:00",
     "legs": [
-        {"from": "Cape Town", "to": "Mauritius", "start": "2023-05-25", "end": "2023-06-01"},
-        {"from": "Mauritius", "to": "Maldives", "start": "2023-06-02", "end": "2023-06-08"},
-        {"from": "Maldives", "to": "Dubai", "start": "2023-06-09", "end": None}
+        {"from": "Cape Town", "to": "Mauritius", "start": "2023-05-25 08:00", "end": "2023-06-01 12:00"},
+        {"from": "Mauritius", "to": "Maldives", "start": "2023-06-02 09:00", "end": "2023-06-08 18:00"},
+        {"from": "Maldives", "to": "Dubai", "start": "2023-06-09 10:00", "end": None}
     ]
 }
 
 def parse_date(date_str):
     if date_str is None:
-        return datetime.now().date()
+        return datetime.now()
     try:
-        return datetime.strptime(date_str, '%Y-%m-%d').date()
+        return datetime.strptime(date_str, '%Y-%m-%d %H:%M')
     except ValueError:
         st.warning(f"Invalid date format: {date_str}. Using current date instead.")
-        return datetime.now().date()
+        return datetime.now()
 
 def create_voyage_progress():
     start = parse_date(current_voyage['start'])
     end = parse_date(current_voyage['expected_end'])
     total_days = max((end - start).days, 1)
-    today = datetime.now().date()
+    today = datetime.now()
 
     fig = go.Figure(layout=go.Layout(height=150, margin=dict(t=20, b=20, l=0, r=0)))
 
-    completed_legs = [leg for leg in current_voyage['legs'] if leg['end']]
-    ongoing_leg = next((leg for leg in current_voyage['legs'] if not leg['end']), None)
-
-    completed_days = sum((parse_date(leg['end']) - parse_date(leg['start'])).days for leg in completed_legs)
+    completed_legs = current_voyage['legs'][:2]  # First two legs
+    ongoing_leg = current_voyage['legs'][2]  # Third leg (ongoing)
 
     # Add completed legs
+    colors = ['rgb(55, 126, 184)', 'rgb(77, 175, 74)']  # Different colors for each completed leg
     for i, leg in enumerate(completed_legs):
         leg_start = parse_date(leg['start'])
         leg_end = parse_date(leg['end'])
@@ -115,35 +115,24 @@ def create_voyage_progress():
         fig.add_trace(go.Bar(
             x=[leg_days], y=[0],
             orientation='h',
-            marker=dict(color=f'rgb({50+i*30}, {100+i*30}, {150+i*30})'),
+            marker=dict(color=colors[i]),
             hoverinfo='text',
-            hovertext=f"{leg['from']} to {leg['to']}: {leg_start} - {leg_end}"
+            hovertext=f"{leg['from']} to {leg['to']}: {leg_start.strftime('%Y-%m-%d %H:%M')} - {leg_end.strftime('%Y-%m-%d %H:%M')}"
         ))
 
-    # Add ongoing leg
-    if ongoing_leg:
-        ongoing_start = parse_date(ongoing_leg['start'])
-        ongoing_days = (today - ongoing_start).days
-        fig.add_trace(go.Bar(
-            x=[ongoing_days], y=[0],
-            orientation='h',
-            marker=dict(color='rgb(228, 26, 28)'),
-            hoverinfo='text',
-            hovertext=f"{ongoing_leg['from']} to {ongoing_leg['to']}: {ongoing_start} - Ongoing"
-        ))
-
-    # Add remaining days
-    remaining_days = max(total_days - completed_days - (ongoing_days if ongoing_leg else 0), 0)
+    # Add ongoing leg (shaded)
+    ongoing_start = parse_date(ongoing_leg['start'])
+    ongoing_days = (end - ongoing_start).days
     fig.add_trace(go.Bar(
-        x=[remaining_days], y=[0],
+        x=[ongoing_days], y=[0],
         orientation='h',
-        marker=dict(color='lightgrey', opacity=0.5),
+        marker=dict(color='rgb(228, 26, 28)', opacity=0.5),
         hoverinfo='text',
-        hovertext=f"Remaining: {remaining_days} days"
+        hovertext=f"{ongoing_leg['from']} to {ongoing_leg['to']}: {ongoing_start.strftime('%Y-%m-%d %H:%M')} - Ongoing"
     ))
 
     # Add vessel position
-    vessel_position = min(completed_days + (ongoing_days if ongoing_leg else 0), total_days)
+    vessel_position = (today - start).days
     fig.add_shape(
         type="line", x0=vessel_position, x1=vessel_position, y0=-0.4, y1=0.4,
         line=dict(color="red", width=3)
@@ -167,8 +156,10 @@ def create_voyage_progress():
     # Add past history heading and leg names
     st.markdown("---")
     st.markdown("### Past History")
-    for leg in completed_legs + ([ongoing_leg] if ongoing_leg else []):
+    for leg in completed_legs + [ongoing_leg]:
         st.markdown(f"**{leg['from']} to {leg['to']}**")
+        st.markdown(f"Start: {leg['start']}")
+        st.markdown(f"End: {leg['end'] if leg['end'] else 'Ongoing'}")
 
 # Main layout
 st.markdown('<p class="main-header">Maritime Reporting System</p>', unsafe_allow_html=True)
@@ -208,6 +199,7 @@ with col2:
 
 # Report Guide in sidebar
 st.sidebar.markdown("## New Report Guide")
+st.sidebar.markdown("### Infographic")
 compact_infographic()
 
 # Start New Report button
