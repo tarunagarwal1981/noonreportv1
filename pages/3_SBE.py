@@ -5,9 +5,9 @@ from datetime import datetime, time
 st.set_page_config(layout="wide", page_title="Maritime SBE Report")
 
 def main():
-    st.title("Maritime Stand By Engine (SBE) Report")
+    st.title("Maritime Departure (SBE) Report")
 
-    sbe_scenario = st.selectbox("SBE Scenario", [
+    sbe_scenario = st.selectbox("Departure Scenario", [
         "Departure Anchorage",
         "Departure Port",
         "Departure STS",
