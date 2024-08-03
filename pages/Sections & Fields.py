@@ -1,9 +1,3 @@
-import streamlit as st
-import pandas as pd
-from datetime import datetime, time
-
-st.set_page_config(layout="wide", page_title="Noon Reporting Portal")
-
 def main():
     st.title("Noon Reporting Portal")
 
@@ -31,7 +25,7 @@ def main():
     if st.button("Submit Report", type="primary"):
         st.success("Report submitted successfully!")
 
-def display_Vessel_Information():
+def display_general_information():
     col1, col2, col3 = st.columns(3)
     with col1:
         st.text_input("IMO Number")
@@ -45,7 +39,6 @@ def display_Vessel_Information():
        
     with col3:
         st.text_input("Vessel Type")
-          
         
 def display_voyage_details():
     col1, col2 = st.columns(2)
