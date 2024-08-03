@@ -35,7 +35,7 @@ def display_general_information():
     col1, col2, col3 = st.columns(3)
     with col1:
         st.text_input("IMO Number")
-         st.date_input("Date (Local)", value=datetime.now())
+        st.date_input("Date (Local)", value=datetime.now())
         st.time_input("Time (Local)", value=datetime.now().time())
     with col2:
         st.text_input("Event")
