@@ -35,17 +35,17 @@ def display_general_information():
     col1, col2, col3 = st.columns(3)
     with col1:
         st.text_input("IMO Number")
+         st.date_input("Date (Local)", value=datetime.now())
+        st.time_input("Time (Local)", value=datetime.now().time())
+    with col2:
+        st.text_input("Event")
         st.date_input("Date (UTC)", value=datetime.now())
         st.time_input("Time (UTC)", value=datetime.now().time())
-    with col2:
-        st.date_input("Date (Local)", value=datetime.now())
-        st.time_input("Time (Local)", value=datetime.now().time())
-        st.text_input("Event")
+        
     with col3:
-        st.text_input("Event ID")
-        st.number_input("Sort Number", min_value=0, step=1)
-        st.text_input("Vessel")
-        st.text_input("Voyage Number")
+        st.text_input("Voyage ID")
+        st.text_input("Segment ID")
+        
 
 def display_voyage_details():
     col1, col2 = st.columns(2)
