@@ -1,3 +1,9 @@
+import streamlit as st
+import pandas as pd
+from datetime import datetime, time
+
+st.set_page_config(layout="wide", page_title="Noon Reporting Portal")
+
 def main():
     st.title("Noon Reporting Portal")
 
