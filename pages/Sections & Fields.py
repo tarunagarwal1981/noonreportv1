@@ -31,29 +31,29 @@ def main():
     if st.button("Submit Report", type="primary"):
         st.success("Report submitted successfully!")
 
-def display_general_information():
+def display_Vessel_Information():
     col1, col2, col3 = st.columns(3)
     with col1:
         st.text_input("IMO Number")
         st.date_input("Date (Local)", value=datetime.now())
         st.time_input("Time (Local)", value=datetime.now().time())
+        
     with col2:
-        st.text_input("Event")
+        st.text_input("Vessel Name")
         st.date_input("Date (UTC)", value=datetime.now())
         st.time_input("Time (UTC)", value=datetime.now().time())
-        
+       
     with col3:
-        st.text_input("Voyage ID")
-        st.text_input("Segment ID")
+        st.text_input("Vessel Type")
+          
         
-
 def display_voyage_details():
     col1, col2 = st.columns(2)
     with col1:
         st.text_input("Voyage From")
         st.text_input("Voyage To")
-        st.text_input("Other Destination From")
-        st.text_input("Other Destination To")
+        st.text_input("Voyage ID")
+        st.text_input("Segment ID")
         st.selectbox("Voyage Type", ["", "One-way", "Round trip", "STS"])
         st.selectbox("Voyage Stage", ["", "East", "West", "Ballast", "Laden"])
     with col2:
