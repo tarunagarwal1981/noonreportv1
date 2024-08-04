@@ -218,9 +218,35 @@ def display_cargo_operations():
         st.number_input("Reefer 40ft Frozen", min_value=0, step=1, key="reefer_40ft_frozen")
 
 def display_fuel_consumption():
-    st.subheader("Fuel Consumption (mt)")
+    st.markdown("""
+    <style>
+    .fuel-table {
+        font-size: 12px;
+    }
+    .fuel-table input {
+        font-size: 12px;
+        padding: 2px 5px;
+        height: 25px;
+        min-height: 25px;
+    }
+    .fuel-table th {
+        font-weight: bold;
+        text-align: center;
+        padding: 2px;
+    }
+    .fuel-table td {
+        padding: 2px;
+    }
+    .stButton > button {
+        font-size: 10px;
+        padding: 2px 5px;
+        height: auto;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    st.markdown("<h3 style='font-size: 18px;'>Fuel Consumption (mt)</h3>", unsafe_allow_html=True)
     
-    # Define fuel types
     fuel_types = [
         "Heavy Fuel Oil RME-RMK >80cSt",
         "Heavy Fuel Oil RMA-RMD <80cSt",
@@ -238,33 +264,39 @@ def display_fuel_consumption():
         "LNG (Bunkered)"
     ]
 
-    # Define columns
     columns = ["Oil Type", "Previous ROB", "AT SEA M/E", "AT SEA A/E", "AT SEA BLR", "AT SEA IGG", "AT SEA GE/NG", "AT SEA OTH",
                "IN PORT M/E", "IN PORT A/E", "IN PORT BLR", "IN PORT IGG", "IN PORT GE/NG", "IN PORT OTH",
                "Bunker Qty", "Sulphur %", "Total", "ROB at Noon", "Action"]
 
     # Create the header row
-    header = st.columns(len(columns))
-    for i, col in enumerate(columns):
-        header[i].write(col)
+    header_html = "<tr>"
+    for col in columns:
+        header_html += f"<th>{col}</th>"
+    header_html += "</tr>"
 
-    # Create rows for each fuel type
+    rows_html = ""
     for fuel in fuel_types:
-        row = st.columns(len(columns))
-        row[0].write(fuel)
-        
+        rows_html += "<tr>"
+        rows_html += f"<td>{fuel}</td>"
         for i in range(1, len(columns) - 1):  # Skip the last column (Action)
             if columns[i] == "Sulphur %":
-                row[i].number_input("", min_value=0.0, max_value=100.0, step=0.01, key=f"{fuel}_{columns[i]}".replace(" ", "_"), label_visibility="collapsed")
+                rows_html += f"<td><input type='number' step='0.01' min='0' max='100' style='width: 100%;'></td>"
             else:
-                row[i].number_input("", min_value=0.0, step=0.1, key=f"{fuel}_{columns[i]}".replace(" ", "_"), label_visibility="collapsed")
+                rows_html += f"<td><input type='number' step='0.1' min='0' style='width: 100%;'></td>"
+        rows_html += "<td><button>Edit</button> <button>Delete</button></td>"
+        rows_html += "</tr>"
 
-        # Add action buttons (you can customize these as needed)
-        with row[-1]:
-            st.button("Edit", key=f"edit_{fuel}".replace(" ", "_"))
-            st.button("Delete", key=f"delete_{fuel}".replace(" ", "_"))
+    table_html = f"""
+    <div class="fuel-table">
+        <table style="width: 100%;">
+            {header_html}
+            {rows_html}
+        </table>
+    </div>
+    """
 
-    # Add a button to add new fuel types if needed
+    st.markdown(table_html, unsafe_allow_html=True)
+
     if st.button("Add New Fuel Type"):
         st.text_input("New Fuel Type Name")
 
