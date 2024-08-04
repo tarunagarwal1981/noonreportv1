@@ -35,7 +35,7 @@ def main():
 
     if st.button("Submit Report", type="primary"):
         st.success("Report submitted successfully!")
-
+        
 def display_general_information():
     col1, col2, col3 = st.columns(3)
     with col1:
@@ -332,7 +332,6 @@ def display_fuel_consumption():
 def display_fuel_allocation():
     st.markdown("<h3 style='font-size: 18px;'>Fuel Allocation</h3>", unsafe_allow_html=True)
     
-    # Define fuel types (same as in fuel consumption)
     fuel_types = [
         "Heavy Fuel Oil RME-RMK >80cSt",
         "Heavy Fuel Oil RMA-RMD <80cSt",
@@ -350,23 +349,17 @@ def display_fuel_allocation():
         "LNG (Bunkered)"
     ]
 
-    # Define new columns for Fuel Allocation
     columns = ["Oil Type", "Cargo cooling", "Cargo heating", "Cargo discharging", "DPP Cargo pump consumption", "Action"]
 
-    # Create the header row
-    header_html = "<tr>"
-    for col in columns:
-        header_html += f"<th>{col}</th>"
-    header_html += "</tr>"
+    header_html = "<tr>" + "".join(f"<th>{col}</th>" for col in columns) + "</tr>"
 
     rows_html = ""
     for fuel in fuel_types:
-        rows_html += "<tr>"
-        rows_html += f"<td>{fuel}</td>"
-        for i in range(1, len(columns) - 1):  # Skip the last column (Action)
-            rows_html += f"<td><input type='number' step='0.1' min='0' style='width: 100%;'></td>"
-        rows_html += "<td><button>Edit</button> <button>Delete</button></td>"
-        rows_html += "</tr>"
+        row_id = uuid.uuid4()
+        rows_html += f"<tr><td>{fuel}</td>"
+        for i in range(1, len(columns) - 1):
+            rows_html += f"<td><input type='number' step='0.1' min='0' style='width: 100%;' id='{row_id}_{i}'></td>"
+        rows_html += f"<td><button onclick='edit({row_id})'>Edit</button> <button onclick='delete({row_id})'>Delete</button></td></tr>"
 
     table_html = f"""
     <div class="fuel-table">
@@ -379,41 +372,38 @@ def display_fuel_allocation():
 
     st.markdown(table_html, unsafe_allow_html=True)
 
-    # Additional data fields
     st.subheader("Additional Allocation Details")
     
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
         st.subheader("Reefer container")
-        st.number_input("Work", key="reefer_work", step=0.1)
-        st.number_input("SFOC", key="reefer_sfoc", step=0.1)
-        st.text_input("Fuel type", key="reefer_fuel_type")
-        st.text_input("Fuel BDN", key="reefer_fuel_bdn")
+        st.number_input("Work", key=f"reefer_work_{uuid.uuid4()}", step=0.1)
+        st.number_input("SFOC", key=f"reefer_sfoc_{uuid.uuid4()}", step=0.1)
+        st.text_input("Fuel type", key=f"reefer_fuel_type_{uuid.uuid4()}")
+        st.text_input("Fuel BDN", key=f"reefer_fuel_bdn_{uuid.uuid4()}")
 
     with col2:
         st.subheader("Cargo cooling")
-        st.number_input("Work", key="cargo_cooling_work", step=0.1)
-        st.number_input("SFOC", key="cargo_cooling_sfoc", step=0.1)
-        st.text_input("Fuel type", key="cargo_cooling_fuel_type")
-        st.text_input("Fuel BDN", key="cargo_cooling_fuel_bdn")
+        st.number_input("Work", key=f"cargo_cooling_work_{uuid.uuid4()}", step=0.1)
+        st.number_input("SFOC", key=f"cargo_cooling_sfoc_{uuid.uuid4()}", step=0.1)
+        st.text_input("Fuel type", key=f"cargo_cooling_fuel_type_{uuid.uuid4()}")
+        st.text_input("Fuel BDN", key=f"cargo_cooling_fuel_bdn_{uuid.uuid4()}")
 
     with col3:
         st.subheader("Heating/Discharge pump")
-        st.number_input("Work", key="heating_discharge_work", step=0.1)
-        st.number_input("SFOC", key="heating_discharge_sfoc", step=0.1)
-        st.text_input("Fuel type", key="heating_discharge_fuel_type")
-        st.text_input("Fuel BDN", key="heating_discharge_fuel_bdn")
+        st.number_input("Work", key=f"heating_discharge_work_{uuid.uuid4()}", step=0.1)
+        st.number_input("SFOC", key=f"heating_discharge_sfoc_{uuid.uuid4()}", step=0.1)
+        st.text_input("Fuel type", key=f"heating_discharge_fuel_type_{uuid.uuid4()}")
+        st.text_input("Fuel BDN", key=f"heating_discharge_fuel_bdn_{uuid.uuid4()}")
 
     with col4:
         st.subheader("Shore-Side Electricity")
-        st.number_input("Work", key="shore_side_work", step=0.1)
+        st.number_input("Work", key=f"shore_side_work_{uuid.uuid4()}", step=0.1)
 
-    if st.button("Add New Fuel Type", key="add_fuel_type_allocation"):
-        st.text_input("New Fuel Type Name", key="new_fuel_type_name_allocation")
+    if st.button("Add New Fuel Type", key=f"add_fuel_type_allocation_{uuid.uuid4()}"):
+        st.text_input("New Fuel Type Name", key=f"new_fuel_type_name_allocation_{uuid.uuid4()}")
 
-if __name__ == "__main__":
-    display_fuel_allocation()
 
 def display_machinery():
     st.header("Machinery")
