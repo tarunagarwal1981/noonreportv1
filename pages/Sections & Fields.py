@@ -26,7 +26,7 @@ def main():
 
     for section in sections:
         with st.expander(section, expanded=False):
-            function_name = f"display_{section.lower().replace(' ', '_')}"
+            function_name = f"display_{section.lower().replace(' ', '_').replace(',', '')}"
             if function_name in globals():
                 globals()[function_name]()
             else:
