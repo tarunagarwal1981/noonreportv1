@@ -218,14 +218,55 @@ def display_cargo_operations():
         st.number_input("Reefer 40ft Frozen", min_value=0, step=1, key="reefer_40ft_frozen")
 
 def display_fuel_consumption():
-    fuel_types = ["HFO", "LFO", "MGO", "MDO", "LPGP", "LPGB", "LNG", "Methanol", "Ethanol", "Other"]
-    consumers = ["ME", "AE", "Boiler", "Inert Gas"]
+    st.subheader("Fuel Consumption (mt)")
     
-    for consumer in consumers:
-        st.subheader(f"{consumer} Consumption")
-        cols = st.columns(5)
-        for i, fuel in enumerate(fuel_types):
-            cols[i % 5].number_input(f"{consumer} {fuel} (MT)", min_value=0.0, step=0.1, key=f"{consumer}_{fuel.lower()}")
+    # Define fuel types
+    fuel_types = [
+        "Heavy Fuel Oil RME-RMK >80cSt",
+        "Heavy Fuel Oil RMA-RMD <80cSt",
+        "VLSFO RME-RMK Visc >80cSt 0.5%S Max",
+        "VLSFO RMA-RMD Visc <80cSt 0.5%S Max",
+        "ULSFO RME-RMK <80cSt 0.1%S Max",
+        "ULSFO RMA-RMD <80cSt 0.1%S Max",
+        "VLSMGO 0.5%S Max",
+        "ULSMGO 0.1%S Max",
+        "Biofuel - 30",
+        "Biofuel Distillate FO",
+        "LPG - Propane",
+        "LPG - Butane",
+        "LNG Boil Off",
+        "LNG (Bunkered)"
+    ]
+
+    # Define columns
+    columns = ["Oil Type", "Previous ROB", "AT SEA M/E", "AT SEA A/E", "AT SEA BLR", "AT SEA IGG", "AT SEA GE/NG", "AT SEA OTH",
+               "IN PORT M/E", "IN PORT A/E", "IN PORT BLR", "IN PORT IGG", "IN PORT GE/NG", "IN PORT OTH",
+               "Bunker Qty", "Sulphur %", "Total", "ROB at Noon", "Action"]
+
+    # Create the header row
+    header = st.columns(len(columns))
+    for i, col in enumerate(columns):
+        header[i].write(col)
+
+    # Create rows for each fuel type
+    for fuel in fuel_types:
+        row = st.columns(len(columns))
+        row[0].write(fuel)
+        
+        for i in range(1, len(columns) - 1):  # Skip the last column (Action)
+            if columns[i] == "Sulphur %":
+                row[i].number_input("", min_value=0.0, max_value=100.0, step=0.01, key=f"{fuel}_{columns[i]}".replace(" ", "_"), label_visibility="collapsed")
+            else:
+                row[i].number_input("", min_value=0.0, step=0.1, key=f"{fuel}_{columns[i]}".replace(" ", "_"), label_visibility="collapsed")
+
+        # Add action buttons (you can customize these as needed)
+        with row[-1]:
+            st.button("Edit", key=f"edit_{fuel}".replace(" ", "_"))
+            st.button("Delete", key=f"delete_{fuel}".replace(" ", "_"))
+
+    # Add a button to add new fuel types if needed
+    if st.button("Add New Fuel Type"):
+        st.text_input("New Fuel Type Name")
 
 def display_engine_performance():
     st.subheader("Main Engine")
@@ -270,15 +311,12 @@ def display_auxiliary_systems():
 def display_environmental_compliance():
     col1, col2 = st.columns(2)
     with col1:
-        st.number_input("Total Fuel ROB (MT)", min_value=0.0, step=0.1, key="total_fuel_rob")
-        st.number_input("HFO ROB (MT)", min_value=0.0, step=0.1, key="hfo_rob")
-        st.number_input("LFO ROB (MT)", min_value=0.0, step=0.1, key="lfo_rob")
-        st.number_input("MGO ROB (MT)", min_value=0.0, step=0.1, key="mgo_rob")
-    with col2:
-        st.number_input("MDO ROB (MT)", min_value=0.0, step=0.1, key="mdo_rob")
-        st.number_input("LNG ROB (MT)", min_value=0.0, step=0.1, key="lng_rob")
         st.number_input("Sludge ROB (MT)", min_value=0.0, step=0.1, key="sludge_rob")
+        
+       with col2:
         st.number_input("Shore Side Electricity Reception (kWh)", min_value=0, step=1, key="shore_side_electricity")
+        
+        
 
 def display_fresh_water():
     col1, col2 = st.columns(2)
