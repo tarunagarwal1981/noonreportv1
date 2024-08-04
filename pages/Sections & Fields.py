@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime, time
+import uuid
 
 st.set_page_config(layout="wide", page_title="Noon Reporting Portal")
 
@@ -217,36 +218,9 @@ def display_cargo_operations():
         st.number_input("Reefer 20ft Frozen", min_value=0, step=1, key="reefer_20ft_frozen")
         st.number_input("Reefer 40ft Frozen", min_value=0, step=1, key="reefer_40ft_frozen")
 
-import streamlit as st
+
 
 def display_fuel_consumption():
-    st.markdown("""
-    <style>
-    .fuel-table {
-        font-size: 12px;
-    }
-    .fuel-table input, .fuel-table select {
-        font-size: 12px;
-        padding: 2px 5px;
-        height: 25px;
-        min-height: 25px;
-    }
-    .fuel-table th {
-        font-weight: bold;
-        text-align: center;
-        padding: 2px;
-    }
-    .fuel-table td {
-        padding: 2px;
-    }
-    .stButton > button {
-        font-size: 10px;
-        padding: 2px 5px;
-        height: auto;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
     st.markdown("<h3 style='font-size: 18px;'>Fuel Consumption (mt)</h3>", unsafe_allow_html=True)
     
     fuel_types = [
@@ -266,45 +240,26 @@ def display_fuel_consumption():
         "LNG (Bunkered)"
     ]
 
-    columns = ["Oil Type", "Previous ROB", "AT SEA M/E", "AT SEA A/E", "AT SEA BLR", "AT SEA IGG", "AT SEA GE/NG", "AT SEA OTH",
+    columns = ["Previous ROB", "AT SEA M/E", "AT SEA A/E", "AT SEA BLR", "AT SEA IGG", "AT SEA GE/NG", "AT SEA OTH",
                "IN PORT M/E", "IN PORT A/E", "IN PORT BLR", "IN PORT IGG", "IN PORT GE/NG", "IN PORT OTH",
-               "Bunker Qty", "Sulphur %", "Total", "ROB at Noon", "Action"]
+               "Bunker Qty", "Sulphur %", "Total", "ROB at Noon"]
 
-    # Create the header row
-    header_html = "<tr>"
-    for col in columns:
-        header_html += f"<th>{col}</th>"
-    header_html += "</tr>"
-
-    rows_html = ""
     for fuel in fuel_types:
-        rows_html += "<tr>"
-        rows_html += f"<td>{fuel}</td>"
-        for i in range(1, len(columns) - 1):  # Skip the last column (Action)
-            if columns[i] == "Sulphur %":
-                rows_html += f"<td><input type='number' step='0.01' min='0' max='100' style='width: 100%;'></td>"
-            else:
-                rows_html += f"<td><input type='number' step='0.1' min='0' style='width: 100%;'></td>"
-        rows_html += "<td><button>Edit</button> <button>Delete</button></td>"
-        rows_html += "</tr>"
+        st.markdown(f"<b>{fuel}</b>", unsafe_allow_html=True)
+        cols = st.columns(len(columns))
+        for i, col in enumerate(columns):
+            with cols[i]:
+                if col == "Sulphur %":
+                    st.number_input(col, min_value=0.0, max_value=100.0, step=0.01, key=f"{fuel}_{col}_{uuid.uuid4()}")
+                else:
+                    st.number_input(col, min_value=0.0, step=0.1, key=f"{fuel}_{col}_{uuid.uuid4()}")
 
-    table_html = f"""
-    <div class="fuel-table">
-        <table style="width: 100%;">
-            {header_html}
-            {rows_html}
-        </table>
-    </div>
-    """
-
-    st.markdown(table_html, unsafe_allow_html=True)
-
-    if st.button("Add New Fuel Type"):
-        st.text_input("New Fuel Type Name")
+    if st.button("Add New Fuel Type", key="add_new_fuel_type"):
+        st.text_input("New Fuel Type Name", key="new_fuel_type_name")
 
     # Bunkering Section
     st.markdown("<h4 style='font-size: 16px;'>Bunkering Details</h4>", unsafe_allow_html=True)
-    bunkering_happened = st.checkbox("Bunkering Happened")
+    bunkering_happened = st.checkbox("Bunkering Happened", key="bunkering_happened")
 
     if bunkering_happened:
         if 'bunkering_entries' not in st.session_state:
@@ -316,38 +271,39 @@ def display_fuel_consumption():
                 with col1:
                     entry['grade'] = st.selectbox("Grade of Fuel Bunkered", 
                                                   ["VLSFO", "HFO", "MGO", "LSMGO", "LNG"], 
-                                                  key=f"grade_{i}")
-                    entry['grade_bdn'] = st.text_input("Grade as per BDN", key=f"grade_bdn_{i}")
+                                                  key=f"grade_{i}_{uuid.uuid4()}")
+                    entry['grade_bdn'] = st.text_input("Grade as per BDN", key=f"grade_bdn_{i}_{uuid.uuid4()}")
                     entry['quantity'] = st.number_input("Quantity as per BDN (mt)", 
-                                                        min_value=0.0, step=0.1, key=f"quantity_{i}")
+                                                        min_value=0.0, step=0.1, key=f"quantity_{i}_{uuid.uuid4()}")
                 with col2:
                     entry['density'] = st.number_input("Density (kg/m³)", 
-                                                       min_value=0.0, step=0.1, key=f"density_{i}")
+                                                       min_value=0.0, step=0.1, key=f"density_{i}_{uuid.uuid4()}")
                     entry['viscosity'] = st.number_input("Viscosity (cSt)", 
-                                                         min_value=0.0, step=0.1, key=f"viscosity_{i}")
+                                                         min_value=0.0, step=0.1, key=f"viscosity_{i}_{uuid.uuid4()}")
                     entry['lcv'] = st.number_input("LCV (MJ/kg)", 
-                                                   min_value=0.0, step=0.1, key=f"lcv_{i}")
+                                                   min_value=0.0, step=0.1, key=f"lcv_{i}_{uuid.uuid4()}")
                 
                 entry['bdn_file'] = st.file_uploader("Upload BDN", type=['pdf', 'jpg', 'png'], 
-                                                     key=f"bdn_file_{i}")
+                                                     key=f"bdn_file_{i}_{uuid.uuid4()}")
 
-        if st.button("Add Another Bunkering Entry"):
+        if st.button("Add Another Bunkering Entry", key="add_bunkering_entry"):
             st.session_state.bunkering_entries.append({})
             st.experimental_rerun()
 
         # Save button for all entries
-        if st.button("Save Bunkering Details"):
+        if st.button("Save Bunkering Details", key="save_bunkering_details"):
             st.success("Bunkering details saved successfully!")
             # Here you would typically save the data to a database or file
 
     # Option to clear all bunkering entries
-    if bunkering_happened and st.button("Clear All Bunkering Entries"):
+    if bunkering_happened and st.button("Clear All Bunkering Entries", key="clear_bunkering_entries"):
         st.session_state.bunkering_entries = [{}]
         st.success("All bunkering entries cleared.")
         st.experimental_rerun()
 
 if __name__ == "__main__":
     display_fuel_consumption()
+    
 def display_engine_performance():
     st.subheader("Main Engine")
     col1, col2, col3 = st.columns(3)
