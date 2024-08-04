@@ -10,8 +10,7 @@ def main():
     sections = [
         "General Information",
         "Voyage Details",
-        "Speed and Consumption",
-        "Position and Navigation",
+        "Speed, Position and Navigation",
         "Weather and Sea Conditions",
         "Time Elapsed",
         "Cargo Operations",
@@ -132,8 +131,8 @@ def display_voyage_details():
     if idl_crossing:
         st.selectbox("IDL Direction", ["East", "West"])
 
-def display_speed_and_consumption():
-    st.subheader("Speed and Consumption")
+def display_speed_position_and_navigation():
+    st.subheader("Speed, Position and Navigation")
     
     col1, col2, col3, col4 = st.columns(4)
     
@@ -143,15 +142,23 @@ def display_speed_and_consumption():
         st.number_input("Stopped (hrs)", min_value=0.0, step=0.1)
         st.number_input("Distance Observed (nm)", min_value=0.0, step=0.1, value=0.00)
         st.number_input("Distance Through Water (nm)", min_value=0.0, step=0.1)
-        
+        st.number_input("Obs Speed (SOG) (kts)", min_value=0.0, step=0.1)
+        st.number_input("EM Log Speed (LOG) (kts)", min_value=0.0, step=0.1)
+        st.number_input("Latitude Degree", min_value=-90, max_value=90, step=1)
+        st.number_input("Latitude Minutes", min_value=0.0, max_value=59.99, step=0.01, format="%.2f")
+        st.selectbox("Latitude N/S", ["N", "S"])
     
     with col2:
         st.number_input("Full Speed (nm)", min_value=0.0, step=0.1)
         st.number_input("Reduced Speed/Slow Steaming (nm)", min_value=0.0, step=0.1)
-        st.number_input("Obs Speed (SOG) (kts)", min_value=0.0, step=0.1)
-        st.number_input("EM Log Speed (LOG) (kts)", min_value=0.0, step=0.1)
         st.number_input("Voyage Average Speed (kts)", min_value=0.0, step=0.1)
-        
+        st.number_input("Distance To Go (nm)", min_value=0.0, step=0.1)
+        st.number_input("Distance since COSP (nm)", min_value=0.0, step=0.1)
+        st.number_input("Average Speed GPS (knots)", min_value=0.0, step=0.1)
+        st.number_input("Average Speed Through Water (knots)", min_value=0.0, step=0.1)
+        st.number_input("Longitude Degree", min_value=-180, max_value=180, step=1)
+        st.number_input("Longitude Minutes", min_value=0.0, max_value=59.99, step=0.01, format="%.2f")
+        st.selectbox("Longitude E/W", ["E", "W"])
     
     with col3:
         st.number_input("Voyage Order Speed (kts)", min_value=0.0, step=0.1)
@@ -159,34 +166,15 @@ def display_speed_and_consumption():
         st.number_input("Voyage Order ME DO Cons (mt)", min_value=0.0, step=0.1)
         st.number_input("Course (°)", min_value=0, max_value=359, step=1)
         st.number_input("Heading (°)", min_value=0, max_value=359, step=1)
+        st.number_input("True Heading (°)", min_value=0, max_value=359, step=1)
+        st.number_input("Water Depth (m)", min_value=0.0, step=0.1)
     
     with col4:
-        st.number_input("Distance To Go (nm)", min_value=0.0, step=0.1)
-        st.number_input("Distance since COSP (nm)", min_value=0.0, step=0.1)
         st.number_input("Draft F (m)", min_value=0.0, step=0.01, value=10.36)
         st.number_input("Draft A (m)", min_value=0.0, step=0.01, value=11.50)
         st.number_input("Displacement (mt)", min_value=0.0, step=0.1, value=70498.00)
 
-
-
-def display_position_and_navigation():
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.number_input("Latitude Degree", min_value=-90, max_value=90)
-        st.number_input("Latitude Minutes", min_value=0.0, max_value=59.99, format="%.2f")
-        st.selectbox("Latitude N/S", ["N", "S"])
-        st.number_input("Distance (NM)", min_value=0.0, step=0.1)
-    with col2:
-        st.number_input("Longitude Degree", min_value=-180, max_value=180)
-        st.number_input("Longitude Minutes", min_value=0.0, max_value=59.99, format="%.2f")
-        st.selectbox("Longitude E/W", ["E", "W"])
-        st.number_input("Distance Through Water (NM)", min_value=0.0, step=0.1)
-    with col3:
-        st.number_input("Course (°)", min_value=0, max_value=359)
-        st.number_input("True Heading (°)", min_value=0, max_value=359)
-        st.number_input("Average Speed GPS (knots)", min_value=0.0, step=0.1)
-        st.number_input("Average Speed Through Water (knots)", min_value=0.0, step=0.1)
-        
+       
 def display_weather_and_sea_conditions():
     col1, col2 = st.columns(2)
     with col1:
