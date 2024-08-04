@@ -13,7 +13,7 @@ def main():
         "Voyage Details",
         "Speed, Position and Navigation",
         "Weather and Sea Conditions",
-        "Cargo Operations",
+        "Cargo and Stability",
         "Fuel Consumption",
         "Fuel Allocation",
         "Machinery",
