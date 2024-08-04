@@ -197,13 +197,75 @@ def display_cargo_operations():
         st.number_input("Reefer 40ft Frozen", min_value=0, step=1, key=f"reefer_40ft_frozen_{uuid.uuid4()}")
 
 def display_fuel_consumption():
-    st.subheader("Fuel Consumption (mt)")
+    st.markdown("""
+    <style>
+    .fuel-table {
+        font-size: 12px;
+    }
+    .fuel-table input, .fuel-table select {
+        font-size: 12px;
+        padding: 2px 5px;
+        height: 25px;
+        min-height: 25px;
+    }
+    .fuel-table th {
+        font-weight: bold;
+        text-align: center;
+        padding: 2px;
+    }
+    .fuel-table td {
+        padding: 2px;
+    }
+    .stButton > button {
+        font-size: 10px;
+        padding: 2px 5px;
+        height: auto;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    st.markdown("<h3 style='font-size: 18px;'>Fuel Consumption (mt)</h3>", unsafe_allow_html=True)
     
-    bunkering_happened = st.checkbox("Bunkering Happened", key=f"bunkering_happened_{uuid.uuid4()}")
+    # Bunkering checkbox
+    bunkering_happened = st.checkbox("Bunkering Happened")
 
     if bunkering_happened:
-        display_bunkering_details()
+        st.markdown("<h4 style='font-size: 16px;'>Bunkering Details</h4>", unsafe_allow_html=True)
+        
+        # Initialize bunkering entries in session state if not present
+        if 'bunkering_entries' not in st.session_state:
+            st.session_state.bunkering_entries = [{}]
 
+        # Display each bunkering entry
+        for i, entry in enumerate(st.session_state.bunkering_entries):
+            with st.expander(f"Bunkering Entry {i+1}", expanded=True):
+                col1, col2, col3, col4 = st.columns(4)
+                with col1:
+                    entry['grade'] = st.selectbox("Grade of Fuel Bunkered", 
+                                                  ["VLSFO", "HFO", "MGO", "LSMGO", "LNG"], 
+                                                  key=f"grade_{i}")
+                    entry['grade_bdn'] = st.text_input("Grade as per BDN", key=f"grade_bdn_{i}")
+                with col2:
+                    entry['qty_bdn'] = st.number_input("Quantity as per BDN (mt)", 
+                                                       min_value=0.0, step=0.1, key=f"qty_bdn_{i}")
+                    entry['density'] = st.number_input("Density (kg/m³)", 
+                                                       min_value=0.0, step=0.1, key=f"density_{i}")
+                with col3:
+                    entry['viscosity'] = st.number_input("Viscosity (cSt)", 
+                                                         min_value=0.0, step=0.1, key=f"viscosity_{i}")
+                    entry['lcv'] = st.number_input("LCV (MJ/kg)", 
+                                                   min_value=0.0, step=0.1, key=f"lcv_{i}")
+                with col4:
+                    entry['bdn_file'] = st.file_uploader("Upload BDN", 
+                                                         type=['pdf', 'jpg', 'png'], 
+                                                         key=f"bdn_file_{i}")
+
+        # Button to add new bunkering entry
+        if st.button("➕ Add Bunkering Entry"):
+            st.session_state.bunkering_entries.append({})
+            st.experimental_rerun()
+
+    # Rest of the fuel consumption table code
     fuel_types = [
         "Heavy Fuel Oil RME-RMK >80cSt",
         "Heavy Fuel Oil RMA-RMD <80cSt",
@@ -223,14 +285,39 @@ def display_fuel_consumption():
 
     columns = ["Oil Type", "Previous ROB", "AT SEA M/E", "AT SEA A/E", "AT SEA BLR", "AT SEA IGG", "AT SEA GE/NG", "AT SEA OTH",
                "IN PORT M/E", "IN PORT A/E", "IN PORT BLR", "IN PORT IGG", "IN PORT GE/NG", "IN PORT OTH",
-               "Bunker Qty", "Sulphur %", "Total", "ROB at Noon"]
+               "Bunker Qty", "Sulphur %", "Total", "ROB at Noon", "Action"]
 
-    df = pd.DataFrame(columns=columns)
-    df['Oil Type'] = fuel_types
-    edited_df = st.data_editor(df, num_rows="dynamic", key=f"fuel_consumption_table_{uuid.uuid4()}")
+    # Create the header row
+    header_html = "<tr>"
+    for col in columns:
+        header_html += f"<th>{col}</th>"
+    header_html += "</tr>"
 
-    if st.button("Add New Fuel Type", key=f"add_fuel_type_{uuid.uuid4()}"):
-        st.text_input("New Fuel Type Name", key=f"new_fuel_type_name_{uuid.uuid4()}")
+    rows_html = ""
+    for fuel in fuel_types:
+        rows_html += "<tr>"
+        rows_html += f"<td>{fuel}</td>"
+        for i in range(1, len(columns) - 1):  # Skip the last column (Action)
+            if columns[i] == "Sulphur %":
+                rows_html += f"<td><input type='number' step='0.01' min='0' max='100' style='width: 100%;'></td>"
+            else:
+                rows_html += f"<td><input type='number' step='0.1' min='0' style='width: 100%;'></td>"
+        rows_html += "<td><button>Edit</button> <button>Delete</button></td>"
+        rows_html += "</tr>"
+
+    table_html = f"""
+    <div class="fuel-table">
+        <table style="width: 100%;">
+            {header_html}
+            {rows_html}
+        </table>
+    </div>
+    """
+
+    st.markdown(table_html, unsafe_allow_html=True)
+
+    if st.button("Add New Fuel Type"):
+        st.text_input("New Fuel Type Name")
 
 def display_bunkering_details():
     st.subheader("Bunkering Details")
