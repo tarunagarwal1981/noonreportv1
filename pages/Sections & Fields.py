@@ -17,7 +17,6 @@ def main():
         "Fuel Consumption",
         "Fuel Allocation",
         "Machinery",
-        "Auxiliary Systems",
         "Environmental Compliance",
         "Fresh Water",
         "Lubricating Oil",
@@ -432,20 +431,6 @@ def display_machinery():
         st.number_input("Boiler 1 running hrs", min_value=0.0, step=0.1, key=f"boiler_1_hours_{uuid.uuid4()}")
     with col2:
         st.number_input("Boiler 2 running hrs", min_value=0.0, step=0.1, key=f"boiler_2_hours_{uuid.uuid4()}")
-
-def display_auxiliary_systems():
-    st.subheader("Auxiliary Systems")
-    col1, col2 = st.columns(2)
-    with col1:
-        st.checkbox("Boiler 1 Operation Mode", key=f"boiler1_operation_mode_{uuid.uuid4()}")
-        st.number_input("Boiler 1 Feed Water Flow (m³/min)", min_value=0.0, step=0.1, key=f"boiler1_feed_water_flow_{uuid.uuid4()}")
-        st.number_input("Boiler 1 Steam Pressure (bar)", min_value=0.0, step=0.1, key=f"boiler1_steam_pressure_{uuid.uuid4()}")
-        st.number_input("Boiler 1 Running Hours", min_value=0.0, step=0.1, key=f"boiler1_running_hours_{uuid.uuid4()}")
-    with col2:
-        st.number_input("Air Compressor 1 Running Time (hours)", min_value=0.0, step=0.1, key=f"air_comp1_running_time_{uuid.uuid4()}")
-        st.number_input("Air Compressor 2 Running Time (hours)", min_value=0.0, step=0.1, key=f"air_comp2_running_time_{uuid.uuid4()}")
-        st.number_input("Thruster 1 Running Time (hours)", min_value=0.0, step=0.1, key=f"thruster1_running_time_{uuid.uuid4()}")
-        st.number_input("Thruster 2 Running Time (hours)", min_value=0.0, step=0.1, key=f"thruster2_running_time_{uuid.uuid4()}")
 
 def display_environmental_compliance():
     st.subheader("Environmental Compliance")
