@@ -15,7 +15,7 @@ def main():
         "Weather and Sea Conditions",
         "Cargo Operations",
         "Fuel Consumption",
-        "Fuel Allocation"
+        "Fuel Allocation",
         "Machinery",
         "Auxiliary Systems",
         "Environmental Compliance",
