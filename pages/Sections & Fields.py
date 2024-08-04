@@ -217,13 +217,15 @@ def display_cargo_operations():
         st.number_input("Reefer 20ft Frozen", min_value=0, step=1, key="reefer_20ft_frozen")
         st.number_input("Reefer 40ft Frozen", min_value=0, step=1, key="reefer_40ft_frozen")
 
+import streamlit as st
+
 def display_fuel_consumption():
     st.markdown("""
     <style>
     .fuel-table {
         font-size: 12px;
     }
-    .fuel-table input {
+    .fuel-table input, .fuel-table select {
         font-size: 12px;
         padding: 2px 5px;
         height: 25px;
@@ -300,6 +302,52 @@ def display_fuel_consumption():
     if st.button("Add New Fuel Type"):
         st.text_input("New Fuel Type Name")
 
+    # Bunkering Section
+    st.markdown("<h4 style='font-size: 16px;'>Bunkering Details</h4>", unsafe_allow_html=True)
+    bunkering_happened = st.checkbox("Bunkering Happened")
+
+    if bunkering_happened:
+        if 'bunkering_entries' not in st.session_state:
+            st.session_state.bunkering_entries = [{}]
+
+        for i, entry in enumerate(st.session_state.bunkering_entries):
+            with st.expander(f"Bunkering Entry {i+1}", expanded=True):
+                col1, col2 = st.columns(2)
+                with col1:
+                    entry['grade'] = st.selectbox("Grade of Fuel Bunkered", 
+                                                  ["VLSFO", "HFO", "MGO", "LSMGO", "LNG"], 
+                                                  key=f"grade_{i}")
+                    entry['grade_bdn'] = st.text_input("Grade as per BDN", key=f"grade_bdn_{i}")
+                    entry['quantity'] = st.number_input("Quantity as per BDN (mt)", 
+                                                        min_value=0.0, step=0.1, key=f"quantity_{i}")
+                with col2:
+                    entry['density'] = st.number_input("Density (kg/m³)", 
+                                                       min_value=0.0, step=0.1, key=f"density_{i}")
+                    entry['viscosity'] = st.number_input("Viscosity (cSt)", 
+                                                         min_value=0.0, step=0.1, key=f"viscosity_{i}")
+                    entry['lcv'] = st.number_input("LCV (MJ/kg)", 
+                                                   min_value=0.0, step=0.1, key=f"lcv_{i}")
+                
+                entry['bdn_file'] = st.file_uploader("Upload BDN", type=['pdf', 'jpg', 'png'], 
+                                                     key=f"bdn_file_{i}")
+
+        if st.button("Add Another Bunkering Entry"):
+            st.session_state.bunkering_entries.append({})
+            st.experimental_rerun()
+
+        # Save button for all entries
+        if st.button("Save Bunkering Details"):
+            st.success("Bunkering details saved successfully!")
+            # Here you would typically save the data to a database or file
+
+    # Option to clear all bunkering entries
+    if bunkering_happened and st.button("Clear All Bunkering Entries"):
+        st.session_state.bunkering_entries = [{}]
+        st.success("All bunkering entries cleared.")
+        st.experimental_rerun()
+
+if __name__ == "__main__":
+    display_fuel_consumption()
 def display_engine_performance():
     st.subheader("Main Engine")
     col1, col2, col3 = st.columns(3)
