@@ -313,7 +313,7 @@ def display_environmental_compliance():
     with col1:
         st.number_input("Sludge ROB (MT)", min_value=0.0, step=0.1, key="sludge_rob")
         
-       with col2:
+    with col2:
         st.number_input("Shore Side Electricity Reception (kWh)", min_value=0, step=1, key="shore_side_electricity")
         
         
