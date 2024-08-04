@@ -12,7 +12,6 @@ def main():
         "Voyage Details",
         "Speed, Position and Navigation",
         "Weather and Sea Conditions",
-        "Time Elapsed",
         "Cargo Operations",
         "Fuel Consumption",
         "Engine Performance",
@@ -75,6 +74,7 @@ def display_voyage_details():
         eca_transit = st.checkbox("ECA Transit", key="eca_transit")
         fuel_changeover = st.checkbox("Fuel Changeover", key="fuel_changeover")
         idl_crossing = st.checkbox("IDL Crossing", key="idl_crossing")
+        ice_navigation = st.checkbox("Ice Navigation", key="ice_navigation")
         
     if offhire:
         st.subheader("Off-hire Details")
@@ -130,6 +130,9 @@ def display_voyage_details():
     
     if idl_crossing:
         st.selectbox("IDL Direction", ["East", "West"], key="idl_direction")
+    
+    if ice_navigation:
+        st.number_input("Ice Navigation Hours", min_value=0.0, step=0.1, key="ice_navigation_hours")
 
 def display_speed_position_and_navigation():
     st.subheader("Speed, Position and Navigation")
@@ -199,19 +202,6 @@ def display_weather_and_sea_conditions():
         st.number_input("Current Direction (°)", min_value=0, max_value=359, step=1, key="current_direction")
         st.number_input("Sea Water Temp (°C)", min_value=-2.0, max_value=35.0, step=0.1, key="sea_water_temp")
         st.number_input("Air Temp (°C)", min_value=-50.0, max_value=50.0, step=0.1, key="air_temp")
-
-def display_time_elapsed():
-    col1, col2 = st.columns(2)
-    with col1:
-        st.number_input("Time Since Previous Report (hours)", min_value=0.0, step=0.1, key="time_since_prev_report")
-        st.number_input("Time Elapsed Sailing (hours)", min_value=0.0, step=0.1, key="time_elapsed_sailing")
-        st.number_input("Time Elapsed Anchoring (hours)", min_value=0.0, step=0.1, key="time_elapsed_anchoring")
-        st.number_input("Time Elapsed DP (hours)", min_value=0.0, step=0.1, key="time_elapsed_dp")
-    with col2:
-        st.number_input("Time Elapsed Ice (hours)", min_value=0.0, step=0.1, key="time_elapsed_ice")
-        st.number_input("Time Elapsed Maneuvering (hours)", min_value=0.0, step=0.1, key="time_elapsed_maneuvering")
-        st.number_input("Time Elapsed Waiting (hours)", min_value=0.0, step=0.1, key="time_elapsed_waiting")
-        st.number_input("Time Elapsed Loading/Unloading (hours)", min_value=0.0, step=0.1, key="time_elapsed_loading_unloading")
 
 def display_cargo_operations():
     col1, col2 = st.columns(2)
