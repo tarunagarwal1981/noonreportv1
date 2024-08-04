@@ -267,7 +267,10 @@ def display_fuel_consumption():
             lcv = st.number_input("LCV (MJ/kg)", min_value=0.0, step=0.1)
         with col4:
             bdn_file = st.file_uploader("Upload BDN", type=['pdf', 'jpg', 'png'])
-
+    # Button to add new bunkering entry
+    if st.button("➕ Add Bunkering Entry"):
+        st.session_state.bunkering_entries.append({})
+        st.experimental_rerun()
     fuel_types = [
         "Heavy Fuel Oil RME-RMK >80cSt",
         "Heavy Fuel Oil RMA-RMD <80cSt",
