@@ -236,29 +236,29 @@ def display_fuel_consumption():
         if 'bunkering_entries' not in st.session_state:
             st.session_state.bunkering_entries = [{}]
 
-        # Display each bunkering entry
+        # Display each bunkering entry without using expander
         for i, entry in enumerate(st.session_state.bunkering_entries):
-            with st.expander(f"Bunkering Entry {i+1}", expanded=True):
-                col1, col2, col3, col4 = st.columns(4)
-                with col1:
-                    entry['grade'] = st.selectbox("Grade of Fuel Bunkered", 
-                                                  ["VLSFO", "HFO", "MGO", "LSMGO", "LNG"], 
-                                                  key=f"grade_{i}")
-                    entry['grade_bdn'] = st.text_input("Grade as per BDN", key=f"grade_bdn_{i}")
-                with col2:
-                    entry['qty_bdn'] = st.number_input("Quantity as per BDN (mt)", 
-                                                       min_value=0.0, step=0.1, key=f"qty_bdn_{i}")
-                    entry['density'] = st.number_input("Density (kg/m³)", 
-                                                       min_value=0.0, step=0.1, key=f"density_{i}")
-                with col3:
-                    entry['viscosity'] = st.number_input("Viscosity (cSt)", 
-                                                         min_value=0.0, step=0.1, key=f"viscosity_{i}")
-                    entry['lcv'] = st.number_input("LCV (MJ/kg)", 
-                                                   min_value=0.0, step=0.1, key=f"lcv_{i}")
-                with col4:
-                    entry['bdn_file'] = st.file_uploader("Upload BDN", 
-                                                         type=['pdf', 'jpg', 'png'], 
-                                                         key=f"bdn_file_{i}")
+            st.markdown(f"**Bunkering Entry {i+1}**")
+            col1, col2, col3, col4 = st.columns(4)
+            with col1:
+                entry['grade'] = st.selectbox("Grade of Fuel Bunkered", 
+                                              ["VLSFO", "HFO", "MGO", "LSMGO", "LNG"], 
+                                              key=f"grade_{i}")
+                entry['grade_bdn'] = st.text_input("Grade as per BDN", key=f"grade_bdn_{i}")
+            with col2:
+                entry['qty_bdn'] = st.number_input("Quantity as per BDN (mt)", 
+                                                   min_value=0.0, step=0.1, key=f"qty_bdn_{i}")
+                entry['density'] = st.number_input("Density (kg/m³)", 
+                                                   min_value=0.0, step=0.1, key=f"density_{i}")
+            with col3:
+                entry['viscosity'] = st.number_input("Viscosity (cSt)", 
+                                                     min_value=0.0, step=0.1, key=f"viscosity_{i}")
+                entry['lcv'] = st.number_input("LCV (MJ/kg)", 
+                                               min_value=0.0, step=0.1, key=f"lcv_{i}")
+            with col4:
+                entry['bdn_file'] = st.file_uploader("Upload BDN", 
+                                                     type=['pdf', 'jpg', 'png'], 
+                                                     key=f"bdn_file_{i}")
 
         # Button to add new bunkering entry
         if st.button("➕ Add Bunkering Entry"):
@@ -318,24 +318,6 @@ def display_fuel_consumption():
 
     if st.button("Add New Fuel Type"):
         st.text_input("New Fuel Type Name")
-
-def display_bunkering_details():
-    st.subheader("Bunkering Details")
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        st.selectbox("Grade of Fuel Bunkered", ["VLSFO", "HFO", "MGO", "LSMGO", "LNG"], key=f"bunkering_grade_{uuid.uuid4()}")
-        st.text_input("Grade as per BDN", key=f"bunkering_grade_bdn_{uuid.uuid4()}")
-    with col2:
-        st.number_input("Quantity as per BDN (mt)", min_value=0.0, step=0.1, key=f"bunkering_quantity_{uuid.uuid4()}")
-        st.number_input("Density (kg/m³)", min_value=0.0, step=0.1, key=f"bunkering_density_{uuid.uuid4()}")
-    with col3:
-        st.number_input("Viscosity (cSt)", min_value=0.0, step=0.1, key=f"bunkering_viscosity_{uuid.uuid4()}")
-        st.number_input("LCV (MJ/kg)", min_value=0.0, step=0.1, key=f"bunkering_lcv_{uuid.uuid4()}")
-    with col4:
-        st.file_uploader("Upload BDN", type=['pdf', 'jpg', 'png'], key=f"bunkering_bdn_upload_{uuid.uuid4()}")
-
-    if st.button("➕ Add Bunkering Entry", key=f"add_bunkering_entry_{uuid.uuid4()}"):
-        st.info("New bunkering entry added.")
 
 def display_fuel_allocation():
     st.subheader("Fuel Allocation")
