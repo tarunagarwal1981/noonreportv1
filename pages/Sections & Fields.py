@@ -219,7 +219,6 @@ def display_cargo_operations():
         st.number_input("Reefer 40ft Frozen", min_value=0, step=1, key="reefer_40ft_frozen")
 
 
-import streamlit as st
 
 def display_fuel_consumption():
     st.markdown("""
@@ -322,8 +321,8 @@ def display_fuel_consumption():
     if st.button("Add New Fuel Type"):
         st.text_input("New Fuel Type Name")
 
-if __name__ == "__main__":
-    display_fuel_consumption()
+#if __name__ == "__main__":
+ #   display_fuel_consumption()
     
 def display_engine_performance():
     st.subheader("Main Engine")
