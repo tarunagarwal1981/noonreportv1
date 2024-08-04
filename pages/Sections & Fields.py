@@ -175,18 +175,30 @@ def display_speed_position_and_navigation():
         st.number_input("Displacement (mt)", min_value=0.0, step=0.1, value=70498.00, key="displacement")
 
 def display_weather_and_sea_conditions():
-    col1, col2 = st.columns(2)
+    st.subheader("Weather and Sea Conditions")
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
     with col1:
-        st.number_input("Wind Direction (°)", min_value=0, max_value=359, key="wind_direction")
-        st.number_input("Wind Force (knots)", min_value=0.0, step=0.1, key="wind_force")
-        st.number_input("Sea State Direction (°)", min_value=0, max_value=359, key="sea_state_direction")
-        st.selectbox("Sea State (Douglas Scale)", [""] + [str(i) for i in range(10)], key="sea_state")
-        st.number_input("Swell Height (m)", min_value=0.0, step=0.1, key="swell_height")
+        st.number_input("True Wind Speed (kts)", min_value=0.0, step=0.1, key="true_wind_speed")
+        st.selectbox("BF Scale", range(13), key="bf_scale")  # Beaufort scale goes from 0 to 12
+        st.number_input("True Wind Direction (°)", min_value=0, max_value=359, step=1, key="true_wind_direction")
+    
     with col2:
-        st.number_input("Current Direction (°)", min_value=0, max_value=359, key="current_direction")
-        st.number_input("Current Speed (knots)", min_value=0.0, step=0.1, key="current_speed")
-        st.number_input("Air Temperature (°C)", min_value=-50.0, max_value=50.0, step=0.1, key="air_temp")
-        st.number_input("Sea Temperature (°C)", min_value=-2.0, max_value=35.0, step=0.1, key="sea_temp")
+        st.number_input("Significant Wave Height (m)", min_value=0.0, step=0.1, key="sig_wave_height")
+        st.selectbox("Sea State (Douglas)", range(10), key="douglas_sea_state")  # Douglas scale goes from 0 to 9
+        st.number_input("Sea Height (m)", min_value=0.0, step=0.1, key="sea_height")
+    
+    with col3:
+        st.number_input("Sea Direction (°)", min_value=0, max_value=359, step=1, key="sea_direction")
+        st.number_input("Swell Direction (°)", min_value=0, max_value=359, step=1, key="swell_direction")
+        st.number_input("Swell Height (m) (DSS)", min_value=0.0, step=0.1, key="swell_height")
+    
+    with col4:
+        st.number_input("Current Strength (kts)", min_value=0.0, step=0.1, key="current_strength")
+        st.number_input("Current Direction (°)", min_value=0, max_value=359, step=1, key="current_direction")
+        st.number_input("Sea Water Temp (°C)", min_value=-2.0, max_value=35.0, step=0.1, key="sea_water_temp")
+        st.number_input("Air Temp (°C)", min_value=-50.0, max_value=50.0, step=0.1, key="air_temp")
 
 def display_time_elapsed():
     col1, col2 = st.columns(2)
