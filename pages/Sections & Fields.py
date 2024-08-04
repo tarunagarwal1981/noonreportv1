@@ -20,8 +20,6 @@ def main():
         "Environmental Compliance",
         "Fresh Water",
         "Lubricating Oil",
-        "Vessel Performance",
-        "Special Events and Remarks"
     ]
 
     for section in sections:
@@ -318,6 +316,40 @@ def display_fuel_consumption():
     if st.button("Add New Fuel Type"):
         st.text_input("New Fuel Type Name")
 
+    st.markdown("<h3 style='font-size: 18px;'>Tank Distribution</h3>", unsafe_allow_html=True)
+
+    tank_names = ["Tank1", "Tank2", "Tank3", "Tank4", "Tank5", "Tank6", 
+                  "FO Serv Tank 1", "FO Serv Tank 2", "DO Serv Tank", 
+                  "FO Overflow Tank", "FO Drain Tank"]
+    
+    columns = ["Tank Name", "Grade of Fuel", "ROB (m³)"]
+
+    # Create the header row
+    header_html = "<tr>"
+    for col in columns:
+        header_html += f"<th>{col}</th>"
+    header_html += "</tr>"
+
+    rows_html = ""
+    for tank in tank_names:
+        rows_html += "<tr>"
+        rows_html += f"<td>{tank}</td>"
+        rows_html += f"<td><select><option value=''></option><option value='VLSFO'>VLSFO</option><option value='HFO'>HFO</option><option value='MGO'>MGO</option><option value='LSMGO'>LSMGO</option><option value='LNG'>LNG</option></select></td>"
+        rows_html += f"<td><input type='number' step='0.1' min='0' style='width: 100%;'></td>"
+        rows_html += "</tr>"
+
+    table_html = f"""
+    <div class="fuel-table">
+        <table style="width: 100%;">
+            {header_html}
+            {rows_html}
+        </table>
+    </div>
+    """
+
+    st.markdown(table_html, unsafe_allow_html=True)
+
+
 def display_fuel_allocation():
     st.subheader("Fuel Allocation")
     
@@ -489,34 +521,6 @@ def display_lubricating_oil():
         st.number_input("ME System Oil Consumption (liters)", min_value=0, step=1, key=f"me_system_oil_consumption_{uuid.uuid4()}")
         st.number_input("AE System Oil Consumption (liters)", min_value=0, step=1, key=f"ae_system_oil_consumption_{uuid.uuid4()}")
 
-
-def display_vessel_performance():
-    st.subheader("Vessel Performance")
-    col1, col2 = st.columns(2)
-    with col1:
-        st.number_input("Draft Actual Fore (m)", min_value=0.0, step=0.01, key=f"draft_actual_fore_{uuid.uuid4()}")
-        st.number_input("Draft Actual Aft (m)", min_value=0.0, step=0.01, key=f"draft_actual_aft_{uuid.uuid4()}")
-        st.number_input("Draft Recommended Fore (m)", min_value=0.0, step=0.01, key=f"draft_recommended_fore_{uuid.uuid4()}")
-        st.number_input("Draft Recommended Aft (m)", min_value=0.0, step=0.01, key=f"draft_recommended_aft_{uuid.uuid4()}")
-    with col2:
-        st.number_input("Propeller Pitch (m)", min_value=0.0, step=0.01, key=f"propeller_pitch_{uuid.uuid4()}")
-        st.number_input("Propeller Pitch Ratio", min_value=0.0, step=0.01, key=f"propeller_pitch_ratio_{uuid.uuid4()}")
-        st.number_input("Average Propeller Speed (RPM)", min_value=0, step=1, key=f"avg_propeller_speed_{uuid.uuid4()}")
-        st.number_input("Slip (%)", min_value=0.0, max_value=100.0, step=0.1, key=f"slip_percentage_{uuid.uuid4()}")
-        st.number_input("ME Projected Consumption (MT/day)", min_value=0.0, step=0.1, key=f"me_projected_consumption_{uuid.uuid4()}")
-        st.number_input("AE Projected Consumption (MT/day)", min_value=0.0, step=0.1, key=f"ae_projected_consumption_{uuid.uuid4()}")
-
-def display_special_events_and_remarks():
-    st.subheader("Special Events and Remarks")
-    st.selectbox("Operation Mode", ["", "At Sea", "In Port", "Maneuvering", "Anchoring", "Drifting"], key=f"operation_mode_{uuid.uuid4()}")
-    st.selectbox("Cleaning Event", ["", "Propeller Cleaning", "Hull Cleaning", "Tank Cleaning"], key=f"cleaning_event_{uuid.uuid4()}")
-    st.number_input("Number of Tugs", min_value=0, step=1, key=f"number_of_tugs_{uuid.uuid4()}")
-    st.text_input("Reason for Schedule Deviation", key=f"schedule_deviation_reason_{uuid.uuid4()}")
-    st.text_area("Remarks", key=f"remarks_{uuid.uuid4()}")
-    st.text_input("Entry Made By (Deck)", key=f"entry_by_deck_{uuid.uuid4()}")
-    st.text_input("Entry Made By (Engine)", key=f"entry_by_engine_{uuid.uuid4()}")
-    st.text_input("Contact Email", key=f"contact_email_{uuid.uuid4()}")
-    st.date_input("Reporting Date", value=datetime.now(), key=f"reporting_date_{uuid.uuid4()}")
 
 if __name__ == "__main__":
     main()
