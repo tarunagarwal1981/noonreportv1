@@ -142,6 +142,7 @@ def display_speed_and_consumption():
         st.number_input("Reduced Speed/Slow Steaming (hrs)", min_value=0.0, step=0.1)
         st.number_input("Stopped (hrs)", min_value=0.0, step=0.1)
         st.number_input("Distance Observed (nm)", min_value=0.0, step=0.1, value=0.00)
+        st.number_input("Distance Through Water (nm)", min_value=0.0, step=0.1)
         st.number_input("Obs Speed (SOG) (kts)", min_value=0.0, step=0.1)
     
     with col2:
@@ -150,18 +151,20 @@ def display_speed_and_consumption():
         st.number_input("EM Log Speed (LOG) (kts)", min_value=0.0, step=0.1)
         st.number_input("Voyage Average Speed (kts)", min_value=0.0, step=0.1)
         st.number_input("Distance To Go (nm)", min_value=0.0, step=0.1)
+        st.number_input("Distance since COSP (nm)", min_value=0.0, step=0.1)
     
     with col3:
-        st.number_input("Distance since COSP (nm)", min_value=0.0, step=0.1)
         st.number_input("Voyage Order Speed (kts)", min_value=0.0, step=0.1)
         st.number_input("Voyage Order ME FO Cons (mt)", min_value=0.0, step=0.1)
         st.number_input("Voyage Order ME DO Cons (mt)", min_value=0.0, step=0.1)
         st.number_input("Course (°)", min_value=0, max_value=359, step=1)
+        st.number_input("Heading (°)", min_value=0, max_value=359, step=1)
     
     with col4:
         st.number_input("Draft F (m)", min_value=0.0, step=0.01, value=10.36)
         st.number_input("Draft A (m)", min_value=0.0, step=0.01, value=11.50)
         st.number_input("Displacement (mt)", min_value=0.0, step=0.1, value=70498.00)
+
 
 
 def display_position_and_navigation():
