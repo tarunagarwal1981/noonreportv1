@@ -26,7 +26,11 @@ def main():
 
     for section in sections:
         with st.expander(section, expanded=False):
-            globals()[f"display_{section.lower().replace(' ', '_')}"]()
+            function_name = f"display_{section.lower().replace(' ', '_')}"
+            if function_name in globals():
+                globals()[function_name]()
+            else:
+                st.write(f"Function {function_name} not found.")
 
     if st.button("Submit Report", type="primary"):
         st.success("Report submitted successfully!")
