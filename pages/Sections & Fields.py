@@ -434,11 +434,19 @@ def display_machinery():
 
 def display_environmental_compliance():
     st.subheader("Environmental Compliance")
-    col1, col2 = st.columns(2)
+    col1, col2, col3, col4 = st.columns(4)
+    
     with col1:
         st.number_input("Sludge ROB (MT)", min_value=0.0, step=0.1, key=f"sludge_rob_{uuid.uuid4()}")
+        st.number_input("Sludge Burnt in Incinerator (MT)", min_value=0.0, step=0.1, key=f"sludge_burnt_{uuid.uuid4()}")
+    
     with col2:
-        st.number_input("Shore Side Electricity Reception (kWh)", min_value=0, step=1, key=f"shore_side_electricity_{uuid.uuid4()}")
+        st.number_input("Sludge Landed Ashore (MT)", min_value=0.0, step=0.1, key=f"sludge_landed_{uuid.uuid4()}")
+        st.number_input("Bilge Water Quantity (m³)", min_value=0.0, step=0.1, key=f"bilge_water_qty_{uuid.uuid4()}")
+    
+    with col3:
+        st.number_input("Bilge Water Pumped Out through 15ppm Equipment (m³)", min_value=0.0, step=0.1, key=f"bilge_pumped_out_{uuid.uuid4()}")
+        st.number_input("Bilge Water Landed Ashore (m³)", min_value=0.0, step=0.1, key=f"bilge_landed_{uuid.uuid4()}")
 
 def display_fresh_water():
     st.subheader("Fresh Water")
