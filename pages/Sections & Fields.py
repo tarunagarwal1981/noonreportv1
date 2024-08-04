@@ -15,7 +15,7 @@ def main():
         "Weather and Sea Conditions",
         "Cargo Operations",
         "Fuel Consumption",
-        "Engine Performance",
+        "Machinery",
         "Auxiliary Systems",
         "Environmental Compliance",
         "Fresh Water",
@@ -327,33 +327,65 @@ def display_fuel_consumption():
 #if __name__ == "__main__":
  #   display_fuel_consumption()
     
-def display_engine_performance():
+def display_machinery():
+    st.header("Machinery")
+
+    # Main Engine
     st.subheader("Main Engine")
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.number_input("ME Load (kW)", min_value=0, step=1, key="me_load")
-        st.number_input("ME Load Percentage (%)", min_value=0.0, max_value=100.0, step=0.1, key="me_load_percentage")
-        st.number_input("ME Speed (RPM)", min_value=0, step=1, key="me_speed")
+        st.number_input("ME RPM", min_value=0.0, step=0.1, key="me_rpm")
+        st.number_input("Exhaust Max. Temp.(C)", min_value=0.0, step=0.1, key="exhaust_max_temp")
+        st.number_input("M/E rev counter", min_value=0, step=1, key="me_rev_counter")
     with col2:
-        st.number_input("ME SFOC (g/kWh)", min_value=0.0, step=0.1, key="me_sfoc")
-        st.number_input("ME SFOC ISO Corrected (g/kWh)", min_value=0.0, step=0.1, key="me_sfoc_iso")
-        st.number_input("ME Running Hours", min_value=0.0, step=0.1, key="me_running_hours")
+        st.number_input("ME TC1 RPM", min_value=0.0, step=0.1, key="me_tc1_rpm")
+        st.number_input("Exhaust Min. Temp.(C)", min_value=0.0, step=0.1, key="exhaust_min_temp")
+        st.number_input("Scavenge pressure(BAR)", min_value=0.0, step=0.01, key="scavenge_pressure")
     with col3:
-        st.number_input("ME Work (kWh)", min_value=0, step=1, key="me_work")
-        st.number_input("ME Average Load (kW)", min_value=0, step=1, key="me_avg_load")
-        st.number_input("ME Average Load Percentage (%)", min_value=0.0, max_value=100.0, step=0.1, key="me_avg_load_percentage")
+        st.number_input("ME TC2 RPM", min_value=0.0, step=0.1, key="me_tc2_rpm")
+        st.number_input("MCR", min_value=0.0, max_value=100.0, step=0.1, key="mcr")
+        st.number_input("Avg KW", min_value=0.0, step=0.1, key="avg_kw")
+    with col4:
+        st.number_input("Slip", min_value=0.0, max_value=100.0, step=0.1, key="slip")
+        st.number_input("SFOC", min_value=0.0, step=0.1, key="sfoc")
+        st.number_input("Propeller pitch", min_value=0.0, step=0.1, key="propeller_pitch")
 
-    st.subheader("Auxiliary Engine")
-    col1, col2, col3 = st.columns(3)
+    # Auxiliary Engines
+    st.subheader("Auxiliary Engines")
+    col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.number_input("AE Load (kW)", min_value=0, step=1, key="ae_load")
-        st.number_input("AE SFOC (g/kWh)", min_value=0.0, step=0.1, key="ae_sfoc")
-        st.number_input("AE SFOC ISO Corrected (g/kWh)", min_value=0.0, step=0.1, key="ae_sfoc_iso")
+        st.number_input("Avg A/E power 1", min_value=0.0, step=0.1, key="avg_ae_power_1")
     with col2:
-        st.number_input("AE Running Hours", min_value=0.0, step=0.1, key="ae_running_hours")
-        st.number_input("AE Average Load (kW)", min_value=0, step=1, key="ae_avg_load")
-        st.number_input("AE Work (kWh)", min_value=0, step=1, key="ae_work")
+        st.number_input("Avg A/E power 2", min_value=0.0, step=0.1, key="avg_ae_power_2")
+    with col3:
+        st.number_input("Avg A/E power 3", min_value=0.0, step=0.1, key="avg_ae_power_3")
+    with col4:
+        st.number_input("Avg A/E power 4", min_value=0.0, step=0.1, key="avg_ae_power_4")
 
+    # Running Hours
+    st.subheader("Running Hours")
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.number_input("Main engine", min_value=0.0, step=0.1, key="main_engine_hours")
+        st.number_input("AE-1", min_value=0.0, step=0.1, key="ae_1_hours")
+    with col2:
+        st.number_input("A/E 2", min_value=0.0, step=0.1, key="ae_2_hours")
+        st.number_input("A/E 3", min_value=0.0, step=0.1, key="ae_3_hours")
+    with col3:
+        st.number_input("A/E 4", min_value=0.0, step=0.1, key="ae_4_hours")
+        st.number_input("Boilers", min_value=0.0, step=0.1, key="boilers_hours")
+    with col4:
+        st.number_input("Scrubbers", min_value=0.0, step=0.1, key="scrubbers_hours")
+        st.number_input("Shaft gen", min_value=0.0, step=0.1, key="shaft_gen_hours")
+
+    # Boilers
+    st.subheader("Boilers")
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.number_input("Boiler 1 running hrs", min_value=0.0, step=0.1, key="boiler_1_hours")
+    with col2:
+        st.number_input("Boiler 2 running hrs", min_value=0.0, step=0.1, key="boiler_2_hours")
+    # col3 and col4 are left empty for potential future additions
 def display_auxiliary_systems():
     col1, col2 = st.columns(2)
     with col1:
