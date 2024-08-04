@@ -15,6 +15,7 @@ def main():
         "Weather and Sea Conditions",
         "Cargo Operations",
         "Fuel Consumption",
+        "Fuel Allocation"
         "Machinery",
         "Auxiliary Systems",
         "Environmental Compliance",
@@ -326,7 +327,94 @@ def display_fuel_consumption():
 
 #if __name__ == "__main__":
  #   display_fuel_consumption()
+
+
+def display_fuel_allocation():
+    st.markdown("<h3 style='font-size: 18px;'>Fuel Allocation</h3>", unsafe_allow_html=True)
     
+    # Define fuel types (same as in fuel consumption)
+    fuel_types = [
+        "Heavy Fuel Oil RME-RMK >80cSt",
+        "Heavy Fuel Oil RMA-RMD <80cSt",
+        "VLSFO RME-RMK Visc >80cSt 0.5%S Max",
+        "VLSFO RMA-RMD Visc <80cSt 0.5%S Max",
+        "ULSFO RME-RMK <80cSt 0.1%S Max",
+        "ULSFO RMA-RMD <80cSt 0.1%S Max",
+        "VLSMGO 0.5%S Max",
+        "ULSMGO 0.1%S Max",
+        "Biofuel - 30",
+        "Biofuel Distillate FO",
+        "LPG - Propane",
+        "LPG - Butane",
+        "LNG Boil Off",
+        "LNG (Bunkered)"
+    ]
+
+    # Define new columns for Fuel Allocation
+    columns = ["Oil Type", "Cargo cooling", "Cargo heating", "Cargo discharging", "DPP Cargo pump consumption", "Action"]
+
+    # Create the header row
+    header_html = "<tr>"
+    for col in columns:
+        header_html += f"<th>{col}</th>"
+    header_html += "</tr>"
+
+    rows_html = ""
+    for fuel in fuel_types:
+        rows_html += "<tr>"
+        rows_html += f"<td>{fuel}</td>"
+        for i in range(1, len(columns) - 1):  # Skip the last column (Action)
+            rows_html += f"<td><input type='number' step='0.1' min='0' style='width: 100%;'></td>"
+        rows_html += "<td><button>Edit</button> <button>Delete</button></td>"
+        rows_html += "</tr>"
+
+    table_html = f"""
+    <div class="fuel-table">
+        <table style="width: 100%;">
+            {header_html}
+            {rows_html}
+        </table>
+    </div>
+    """
+
+    st.markdown(table_html, unsafe_allow_html=True)
+
+    # Additional data fields
+    st.subheader("Additional Allocation Details")
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.subheader("Reefer container")
+        st.number_input("Work", key="reefer_work", step=0.1)
+        st.number_input("SFOC", key="reefer_sfoc", step=0.1)
+        st.text_input("Fuel type", key="reefer_fuel_type")
+        st.text_input("Fuel BDN", key="reefer_fuel_bdn")
+
+    with col2:
+        st.subheader("Cargo cooling")
+        st.number_input("Work", key="cargo_cooling_work", step=0.1)
+        st.number_input("SFOC", key="cargo_cooling_sfoc", step=0.1)
+        st.text_input("Fuel type", key="cargo_cooling_fuel_type")
+        st.text_input("Fuel BDN", key="cargo_cooling_fuel_bdn")
+
+    with col3:
+        st.subheader("Heating/Discharge pump")
+        st.number_input("Work", key="heating_discharge_work", step=0.1)
+        st.number_input("SFOC", key="heating_discharge_sfoc", step=0.1)
+        st.text_input("Fuel type", key="heating_discharge_fuel_type")
+        st.text_input("Fuel BDN", key="heating_discharge_fuel_bdn")
+
+    with col4:
+        st.subheader("Shore-Side Electricity")
+        st.number_input("Work", key="shore_side_work", step=0.1)
+
+    if st.button("Add New Fuel Type", key="add_fuel_type_allocation"):
+        st.text_input("New Fuel Type Name", key="new_fuel_type_name_allocation")
+
+if __name__ == "__main__":
+    display_fuel_allocation()
+
 def display_machinery():
     st.header("Machinery")
 
