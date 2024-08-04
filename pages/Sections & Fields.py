@@ -47,41 +47,85 @@ def display_general_information():
         st.text_input("Vessel Type")
         
 def display_voyage_details():
-    col1, col2 = st.columns(2)
+    col1, col2, col3, col4 = st.columns(4)
     with col1:
         st.text_input("Voyage From")
         st.text_input("Voyage To")
         st.text_input("Voyage ID")
         st.text_input("Segment ID")
+    
+    with col2:
         st.selectbox("Voyage Type", ["", "One-way", "Round trip", "STS"])
         st.selectbox("Voyage Stage", ["", "East", "West", "Ballast", "Laden"])
-    with col2:
-        st.text_input("Voyage Leg")
-        st.text_input("Voyage Leg Type")
-        st.text_input("Port to Port ID")
         st.date_input("ETA", value=datetime.now())
-        st.date_input("RTA", value=datetime.now())
         st.text_input("Speed Order")
-        st.text_input("Charter Type")
-        st.text_area("Off-hire Reasons")
-
-def display_position_and_navigation():
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.number_input("Latitude Degree", min_value=-90, max_value=90)
-        st.number_input("Latitude Minutes", min_value=0.0, max_value=59.99, format="%.2f")
-        st.selectbox("Latitude N/S", ["N", "S"])
-        st.number_input("Distance (NM)", min_value=0.0, step=0.1)
-    with col2:
-        st.number_input("Longitude Degree", min_value=-180, max_value=180)
-        st.number_input("Longitude Minutes", min_value=0.0, max_value=59.99, format="%.2f")
-        st.selectbox("Longitude E/W", ["E", "W"])
-        st.number_input("Distance Through Water (NM)", min_value=0.0, step=0.1)
+    
     with col3:
-        st.number_input("Course (°)", min_value=0, max_value=359)
-        st.number_input("True Heading (°)", min_value=0, max_value=359)
-        st.number_input("Average Speed GPS (knots)", min_value=0.0, step=0.1)
-        st.number_input("Average Speed Through Water (knots)", min_value=0.0, step=0.1)
+        st.text_input("Charter Type")
+        st.number_input("Time Since Last Report (hours)", min_value=0.0, step=0.1)
+        st.selectbox("Clocks Advanced/Retarded", ["", "Advanced", "Retarded"])
+        st.number_input("Clocks Changed By (minutes)", min_value=0, step=1)
+    
+    with col4:
+        offhire = st.checkbox("Off-hire")
+        eca_transit = st.checkbox("ECA Transit")
+        fuel_changeover = st.checkbox("Fuel Changeover")
+        idl_crossing = st.checkbox("IDL Crossing")
+        
+    if offhire:
+        st.subheader("Off-hire Details")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.date_input("Off-hire Start Date")
+            st.time_input("Off-hire Start Time")
+        with col2:
+            st.date_input("Off-hire End Date")
+            st.time_input("Off-hire End Time")
+        st.text_area("Off-hire Reason")
+    
+    if eca_transit:
+        st.subheader("ECA Transit Details")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.date_input("ECA Entry Date")
+            st.time_input("ECA Entry Time")
+            st.text_input("ECA Entry Latitude")
+            st.text_input("ECA Entry Longitude")
+        with col2:
+            st.date_input("ECA Exit Date")
+            st.time_input("ECA Exit Time")
+            st.text_input("ECA Exit Latitude")
+            st.text_input("ECA Exit Longitude")
+        st.text_input("ECA Name")
+    
+    if fuel_changeover:
+        st.subheader("Fuel Changeover Details")
+        st.subheader("Start of Changeover")
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.date_input("Changeover Start Date")
+            st.time_input("Changeover Start Time")
+        with col2:
+            st.text_input("Changeover Start Latitude")
+            st.text_input("Changeover Start Longitude")
+        with col3:
+            st.number_input("VLSFO ROB at Start (MT)", min_value=0.0, step=0.1)
+            st.number_input("LSMGO ROB at Start (MT)", min_value=0.0, step=0.1)
+        
+        st.subheader("End of Changeover")
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.date_input("Changeover End Date")
+            st.time_input("Changeover End Time")
+        with col2:
+            st.text_input("Changeover End Latitude")
+            st.text_input("Changeover End Longitude")
+        with col3:
+            st.number_input("VLSFO ROB at End (MT)", min_value=0.0, step=0.1)
+            st.number_input("LSMGO ROB at End (MT)", min_value=0.0, step=0.1)
+    
+    if idl_crossing:
+        st.selectbox("IDL Direction", ["East", "West"])
 
 def display_weather_and_sea_conditions():
     col1, col2 = st.columns(2)
