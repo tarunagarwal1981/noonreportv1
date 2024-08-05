@@ -72,34 +72,38 @@ def display_voyage_details():
         
     if offhire:
         st.subheader("Off-hire Details")
-        col1, col2 = st.columns(2)
+        col1, col2, col3, col4 = st.columns(4)
         with col1:
             st.date_input("Off-hire Start Date (LT)", key="offhire_start_date_lt")
             st.time_input("Off-hire Start Time (LT)", key="offhire_start_time_lt")
             st.date_input("Off-hire Start Date (UTC)", key="offhire_start_date_utc")
             st.time_input("Off-hire Start Time (UTC)", key="offhire_start_time_utc")
+        with col2:
             st.text_input("Start Off-hire Position Latitude", key="start_offhire_lat")
             st.text_input("Start Off-hire Position Longitude", key="start_offhire_lon")
-        with col2:
             st.date_input("Off-hire End Date (LT)", key="offhire_end_date_lt")
             st.time_input("Off-hire End Time (LT)", key="offhire_end_time_lt")
+        with col3:
             st.date_input("Off-hire End Date (UTC)", key="offhire_end_date_utc")
             st.time_input("Off-hire End Time (UTC)", key="offhire_end_time_utc")
             st.text_input("End Off-hire Position Latitude", key="end_offhire_lat")
             st.text_input("End Off-hire Position Longitude", key="end_offhire_lon")
-        st.text_area("Off-hire Reason", key="offhire_reason")
+        with col4:
+            st.text_area("Off-hire Reason", key="offhire_reason")
     
     if eca_transit:
         st.subheader("ECA Transit Details")
-        col1, col2 = st.columns(2)
+        col1, col2, col3, col4 = st.columns(4)
         with col1:
             st.date_input("ECA Entry Date", key="eca_entry_date")
             st.time_input("ECA Entry Time", key="eca_entry_time")
+        with col2:
             st.text_input("ECA Entry Latitude", key="eca_entry_lat")
             st.text_input("ECA Entry Longitude", key="eca_entry_lon")
-        with col2:
+        with col3:
             st.date_input("ECA Exit Date", key="eca_exit_date")
             st.time_input("ECA Exit Time", key="eca_exit_time")
+        with col4:
             st.text_input("ECA Exit Latitude", key="eca_exit_lat")
             st.text_input("ECA Exit Longitude", key="eca_exit_lon")
         st.text_input("ECA Name", key="eca_name")
@@ -107,7 +111,7 @@ def display_voyage_details():
     if fuel_changeover:
         st.subheader("Fuel Changeover Details")
         st.subheader("Start of Changeover")
-        col1, col2, col3 = st.columns(3)
+        col1, col2, col3, col4 = st.columns(4)
         with col1:
             st.date_input("Changeover Start Date", key="changeover_start_date")
             st.time_input("Changeover Start Time", key="changeover_start_time")
@@ -119,7 +123,6 @@ def display_voyage_details():
             st.number_input("LSMGO ROB at Start (MT)", min_value=0.0, step=0.1, key="lsmgo_rob_start")
         
         st.subheader("End of Changeover")
-        col1, col2, col3 = st.columns(3)
         with col1:
             st.date_input("Changeover End Date", key="changeover_end_date")
             st.time_input("Changeover End Time", key="changeover_end_time")
