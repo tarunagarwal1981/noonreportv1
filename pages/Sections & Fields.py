@@ -37,12 +37,11 @@ def display_general_information():
     col1, col2, col3 = st.columns(3)
     with col1:
         st.text_input("IMO Number", key=f"imo_number_{uuid.uuid4()}")
-        st.date_input("Date (Local)", value=datetime.now(), key=f"local_date_{uuid.uuid4()}")
-        st.time_input("Time (Local)", value=datetime.now().time(), key=f"local_time_{uuid.uuid4()}")
+        st.text_input("Voyage ID", key=f"voyage_id_{uuid.uuid4()}")
+        
     with col2:
         st.text_input("Vessel Name", key=f"vessel_name_{uuid.uuid4()}")
-        st.date_input("Date (UTC)", value=datetime.now(), key=f"utc_date_{uuid.uuid4()}")
-        st.time_input("Time (UTC)", value=datetime.now().time(), key=f"utc_time_{uuid.uuid4()}")
+        st.text_input("Segment ID", key=f"segment_id_{uuid.uuid4()}")
     with col3:
         st.text_input("Vessel Type", key=f"vessel_type_{uuid.uuid4()}")
 
@@ -75,11 +74,19 @@ def display_voyage_details():
         st.subheader("Off-hire Details")
         col1, col2 = st.columns(2)
         with col1:
-            st.date_input("Off-hire Start Date", key="offhire_start_date")
-            st.time_input("Off-hire Start Time", key="offhire_start_time")
+            st.date_input("Off-hire Start Date (LT)", key="offhire_start_date_lt")
+            st.time_input("Off-hire Start Time (LT)", key="offhire_start_time_lt")
+            st.date_input("Off-hire Start Date (UTC)", key="offhire_start_date_utc")
+            st.time_input("Off-hire Start Time (UTC)", key="offhire_start_time_utc")
+            st.text_input("Start Off-hire Position Latitude", key="start_offhire_lat")
+            st.text_input("Start Off-hire Position Longitude", key="start_offhire_lon")
         with col2:
-            st.date_input("Off-hire End Date", key="offhire_end_date")
-            st.time_input("Off-hire End Time", key="offhire_end_time")
+            st.date_input("Off-hire End Date (LT)", key="offhire_end_date_lt")
+            st.time_input("Off-hire End Time (LT)", key="offhire_end_time_lt")
+            st.date_input("Off-hire End Date (UTC)", key="offhire_end_date_utc")
+            st.time_input("Off-hire End Time (UTC)", key="offhire_end_time_utc")
+            st.text_input("End Off-hire Position Latitude", key="end_offhire_lat")
+            st.text_input("End Off-hire Position Longitude", key="end_offhire_lon")
         st.text_area("Off-hire Reason", key="offhire_reason")
     
     if eca_transit:
