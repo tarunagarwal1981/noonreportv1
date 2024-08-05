@@ -318,7 +318,7 @@ def display_custom_speed_position_and_navigation_noon_at_port():
     with col3:
         st.number_input("Latitude Minutes", min_value=0.0, max_value=59.99, step=0.01, format="%.2f", key=f"lat_minutes_{uuid.uuid4()}")
         st.selectbox("Latitude N/S", ["N", "S"], key=f"lat_ns_{uuid.uuid4()}")
-                st.number_input("Longitude Degree", min_value=-180, max_value=180, step=1, key=f"lon_degree_{uuid.uuid4()}")
+        st.number_input("Longitude Degree", min_value=-180, max_value=180, step=1, key=f"lon_degree_{uuid.uuid4()}")
         st.number_input("Longitude Minutes", min_value=0.0, max_value=59.99, step=0.01, format="%.2f", key=f"lon_minutes_{uuid.uuid4()}")
         st.date_input("Date (UTC)", value=datetime.now(), key=f"utc_date_{uuid.uuid4()}")
         
