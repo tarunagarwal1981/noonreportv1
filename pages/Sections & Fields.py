@@ -51,12 +51,12 @@ def display_voyage_details():
     with col1:
         st.text_input("Voyage From", key=f"voyage_from_{uuid.uuid4()}")
         st.text_input("Voyage To", key=f"voyage_to_{uuid.uuid4()}")
-       
+        st.text_input("Speed Order", key=f"speed_order_{uuid.uuid4()}")
     with col2:
         st.selectbox("Voyage Type", ["", "One-way", "Round trip", "STS"], key=f"voyage_type_{uuid.uuid4()}")
         st.selectbox("Voyage Stage", ["", "East", "West", "Ballast", "Laden"], key=f"voyage_stage_{uuid.uuid4()}")
         st.date_input("ETA", value=datetime.now(), key=f"eta_{uuid.uuid4()}")
-        st.text_input("Speed Order", key=f"speed_order_{uuid.uuid4()}")
+       
     with col3:
         st.text_input("Charter Type", key=f"charter_type_{uuid.uuid4()}")
         st.number_input("Time Since Last Report (hours)", min_value=0.0, step=0.1, key=f"time_since_last_report_{uuid.uuid4()}")
