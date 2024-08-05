@@ -8,15 +8,20 @@ st.set_page_config(layout="wide", page_title="Noon Reporting Portal")
 def main():
     st.title("Noon Reporting Portal")
 
-    noon_report_type = st.selectbox("Select Noon Report Type",
-                                    ["Noon at Sea", "Noon at Port", "Noon at Anchor", "Noon at Drifting", "Noon at STS", "Noon at Canal/River Passage"])
+    report_type = st.selectbox(
+        "Select Noon Report Type",
+        ["Noon at Sea", "Noon at Port", "Noon at Anchor", "Noon at Drifting", "Noon at STS", "Noon at Canal/River Passage"]
+    )
 
-    if noon_report_type in ["Noon at Sea", "Noon at Drifting", "Noon at Canal/River Passage"]:
-        display_base_report_form()
-    else:
-        display_custom_report_form(noon_report_type)
+    if report_type in ["Noon at Sea", "Noon at Drifting", "Noon at Canal/River Passage"]:
+        display_full_report()
+    elif report_type in ["Noon at Port", "Noon at Anchor", "Noon at STS"]:
+        display_port_anchor_sts_report()
 
-def display_base_report_form():
+    if st.button("Submit Report", type="primary", key=f"submit_report_{uuid.uuid4()}"):
+        st.success("Report submitted successfully!")
+
+def display_full_report():
     sections = [
         "General Information",
         "Voyage Details",
@@ -38,14 +43,10 @@ def display_base_report_form():
             else:
                 st.write(f"Function {function_name} not found.")
 
-    if st.button("Submit Report", type="primary", key=f"submit_report_{uuid.uuid4()}"):
-        st.success("Report submitted successfully!")
-
-def display_custom_report_form(noon_report_type):
+def display_port_anchor_sts_report():
     sections = [
         "General Information",
-        "Voyage Details",
-        "Speed, Position and Navigation",
+        "Port Details",
         "Weather and Sea Conditions",
         "Cargo and Stability",
         "Fuel Consumption",
@@ -57,14 +58,11 @@ def display_custom_report_form(noon_report_type):
 
     for section in sections:
         with st.expander(section, expanded=False):
-            function_name = f"display_custom_{section.lower().replace(' ', '_').replace(',', '')}"
+            function_name = f"display_{section.lower().replace(' ', '_').replace(',', '')}"
             if function_name in globals():
-                globals()[function_name](noon_report_type)
+                globals()[function_name]()
             else:
                 st.write(f"Function {function_name} not found.")
-
-    if st.button("Submit Report", type="primary", key=f"submit_report_{uuid.uuid4()}"):
-        st.success("Report submitted successfully!")
 
 def display_general_information():
     col1, col2, col3 = st.columns(3)
@@ -78,14 +76,16 @@ def display_general_information():
     with col3:
         st.text_input("Vessel Type", key=f"vessel_type_{uuid.uuid4()}")
 
-def display_custom_voyage_details(noon_report_type):
+def display_voyage_details():
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.text_input("Port Name", key="port_name")
+        st.text_input("Voyage From", key="voyage_from")
+        st.text_input("Voyage To", key="voyage_to")
         st.text_input("Speed Order", key="speed_order")
     
     with col2:
         st.selectbox("Voyage Type", ["", "One-way", "Round trip", "STS"], key="voyage_type")
+        st.selectbox("Voyage Stage", ["", "East", "West", "Ballast", "Laden"], key="voyage_stage")
         st.date_input("ETA", value=datetime.now(), key="eta")
         st.text_input("Charter Type", key="charter_type")
     
@@ -95,94 +95,59 @@ def display_custom_voyage_details(noon_report_type):
         st.number_input("Clocks Changed By (minutes)", min_value=0, step=1, key="clocks_change_minutes")
     
     with col4:
-        offhire = st.checkbox("Off-hire", key="offhire")
-        eca_transit = st.checkbox("ECA Transit", key="eca_transit")
-        fuel_changeover = st.checkbox("Fuel Changeover", key="fuel_changeover")
+        st.checkbox("Off-hire", key="offhire")
+        st.checkbox("ECA Transit", key="eca_transit")
+        st.checkbox("Fuel Changeover", key="fuel_changeover")
+        st.checkbox("IDL Crossing", key="idl_crossing")
+        st.checkbox("Ice Navigation", key="ice_navigation")
+        st.checkbox("Deviation", key="deviation")
+        st.checkbox("Transiting Special Area", key="special_area")
 
-    if offhire:
-        st.subheader("Off-hire Details")
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.date_input("Off-hire Start Date (LT)", key="offhire_start_date_lt")
-            st.time_input("Off-hire Start Time (LT)", key="offhire_start_time_lt")
-            st.date_input("Off-hire Start Date (UTC)", key="offhire_start_date_utc")
-            st.time_input("Off-hire Start Time (UTC)", key="offhire_start_time_utc")
-        with col2:
-            st.text_input("Start Off-hire Position Latitude", key="start_offhire_lat")
-            st.text_input("Start Off-hire Position Longitude", key="start_offhire_lon")
-            st.date_input("Off-hire End Date (LT)", key="offhire_end_date_lt")
-            st.time_input("Off-hire End Time (LT)", key="offhire_end_time_lt")
-        with col3:
-            st.date_input("Off-hire End Date (UTC)", key="offhire_end_date_utc")
-            st.time_input("Off-hire End Time (UTC)", key="offhire_end_time_utc")
-            st.text_input("End Off-hire Position Latitude", key="end_offhire_lat")
-            st.text_input("End Off-hire Position Longitude", key="end_offhire_lon")
-        with col4:
-            st.text_area("Off-hire Reason", key="offhire_reason")
+def display_port_details():
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.text_input("Port Name", key="port_name")
+    with col2:
+        st.number_input("Time Since Last Report (hours)", min_value=0.0, step=0.1, key="time_since_last_report")
+    with col3:
+        st.selectbox("Clocks Advanced/Retarded", ["", "Advanced", "Retarded"], key="clocks_change")
+        st.number_input("Clocks Changed By (minutes)", min_value=0, step=1, key="clocks_change_minutes")
     
-    if eca_transit:
-        st.subheader("ECA Transit Details")
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.date_input("ECA Entry Date", key="eca_entry_date")
-            st.time_input("ECA Entry Time", key="eca_entry_time")
-        with col2:
-            st.text_input("ECA Entry Latitude", key="eca_entry_lat")
-            st.text_input("ECA Entry Longitude", key="eca_entry_lon")
-        with col3:
-            st.date_input("ECA Exit Date", key="eca_exit_date")
-            st.time_input("ECA Exit Time", key="eca_exit_time")
-        with col4:
-            st.text_input("ECA Exit Latitude", key="eca_exit_lat")
-            st.text_input("ECA Exit Longitude", key="eca_exit_lon")
-        st.text_input("ECA Name", key="eca_name")
-    
-    if fuel_changeover:
-        st.subheader("Fuel Changeover Details")
-        st.subheader("Start of Changeover")
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.date_input("Changeover Start Date", key="changeover_start_date")
-            st.time_input("Changeover Start Time", key="changeover_start_time")
-        with col2:
-            st.text_input("Changeover Start Latitude", key="changeover_start_lat")
-            st.text_input("Changeover Start Longitude", key="changeover_start_lon")
-        with col3:
-            st.number_input("VLSFO ROB at Start (MT)", min_value=0.0, step=0.1, key="vlsfo_rob_start")
-            st.number_input("LSMGO ROB at Start (MT)", min_value=0.0, step=0.1, key="lsmgo_rob_start")
-        
-        st.subheader("End of Changeover")
-        with col1:
-            st.date_input("Changeover End Date", key="changeover_end_date")
-            st.time_input("Changeover End Time", key="changeover_end_time")
-        with col2:
-            st.text_input("Changeover End Latitude", key="changeover_end_lat")
-            st.text_input("Changeover End Longitude", key="changeover_end_lon")
-        with col3:
-            st.number_input("VLSFO ROB at End (MT)", min_value=0.0, step=0.1, key="vlsfo_rob_end")
-            st.number_input("LSMGO ROB at End (MT)", min_value=0.0, step=0.1, key="lsmgo_rob_end")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.checkbox("Off-hire", key="offhire")
+        st.checkbox("ECA Transit", key="eca_transit")
+    with col2:
+        st.checkbox("Fuel Changeover", key="fuel_changeover")
 
-def display_custom_speed_position_and_navigation(noon_report_type):
+def display_speed_position_and_navigation():
     st.subheader("Speed, Position and Navigation")
     col1, col2, col3, col4 = st.columns(4)
     with col1:
+        st.number_input("Full Speed (hrs)", min_value=0.0, step=0.1, key=f"full_speed_hrs_{uuid.uuid4()}")
+        st.number_input("Reduced Speed/Slow Steaming (hrs)", min_value=0.0, step=0.1, key=f"reduced_speed_hrs_{uuid.uuid4()}")
         st.number_input("Stopped (hrs)", min_value=0.0, step=0.1, key=f"stopped_hrs_{uuid.uuid4()}")
-        st.number_input("Latitude Degree", min_value=-90, max_value=90, step=1, key=f"lat_degree_{uuid.uuid4()}")
+        st.number_input("Distance Observed (nm)", min_value=0.0, step=0.1, value=0.00, key=f"distance_observed_{uuid.uuid4()}")
         st.date_input("Date (Local)", value=datetime.now(), key=f"local_date_{uuid.uuid4()}")
         
     with col2:
+        st.number_input("Distance Through Water (nm)", min_value=0.0, step=0.1, key=f"distance_through_water_{uuid.uuid4()}")
+        st.number_input("Obs Speed (SOG) (kts)", min_value=0.0, step=0.1, key=f"obs_speed_sog_{uuid.uuid4()}")
+        st.number_input("EM Log Speed (LOG) (kts)", min_value=0.0, step=0.1, key=f"em_log_speed_{uuid.uuid4()}")
+        st.number_input("Latitude Degree", min_value=-90, max_value=90, step=1, key=f"lat_degree_{uuid.uuid4()}")
+        st.time_input("Time (Local)", value=datetime.now().time(), key=f"local_time_{uuid.uuid4()}")
+    with col3:
         st.number_input("Latitude Minutes", min_value=0.0, max_value=59.99, step=0.01, format="%.2f", key=f"lat_minutes_{uuid.uuid4()}")
         st.selectbox("Latitude N/S", ["N", "S"], key=f"lat_ns_{uuid.uuid4()}")
         st.number_input("Longitude Degree", min_value=-180, max_value=180, step=1, key=f"lon_degree_{uuid.uuid4()}")
-        
-    with col3:
         st.number_input("Longitude Minutes", min_value=0.0, max_value=59.99, step=0.01, format="%.2f", key=f"lon_minutes_{uuid.uuid4()}")
-        st.selectbox("Longitude E/W", ["E", "W"], key=f"lon_ew_{uuid.uuid4()}")
-        st.number_input("True Heading (°)", min_value=0, max_value=359, step=1, key=f"true_heading_{uuid.uuid4()}")
+        st.date_input("Date (UTC)", value=datetime.now(), key=f"utc_date_{uuid.uuid4()}")
         
     with col4:
-        st.time_input("Time (Local)", value=datetime.now().time(), key=f"local_time_{uuid.uuid4()}")
-        st.date_input("Date (UTC)", value=datetime.now(), key=f"utc_date_{uuid.uuid4()}")
+        st.selectbox("Longitude E/W", ["E", "W"], key=f"lon_ew_{uuid.uuid4()}")
+        st.number_input("Course (°)", min_value=0, max_value=359, step=1, key=f"course_{uuid.uuid4()}")
+        st.number_input("Heading (°)", min_value=0, max_value=359, step=1, key=f"heading_{uuid.uuid4()}")
+        st.number_input("True Heading (°)", min_value=0, max_value=359, step=1, key=f"true_heading_{uuid.uuid4()}")
         st.time_input("Time (UTC)", value=datetime.now().time(), key=f"utc_time_{uuid.uuid4()}")
 
 def display_weather_and_sea_conditions():
@@ -234,12 +199,10 @@ def display_cargo_and_stability():
         st.number_input("Total TEU", min_value=0, step=1, key=f"total_teu_{uuid.uuid4()}")
     with col2:
         st.number_input("Reefer TEU", min_value=0, step=1, key=f"reefer_teu_{uuid.uuid4()}")
-        st.number_input("Reefer 20ft Chilled", min_value=0, step=1, key=f"reefer_20ft_chilled_{uuid.uuid4()}")
-        st.number_input("Reefer 40ft Chilled", min_value=0, step=1, key=f"reefer_40ft_chilled_{uuid.uuid4()}")
         st.number_input("Reefer 20ft Frozen", min_value=0, step=1, key=f"reefer_20ft_frozen_{uuid.uuid4()}")
         st.number_input("Reefer 40ft Frozen", min_value=0, step=1, key=f"reefer_40ft_frozen_{uuid.uuid4()}")
 
-def display_custom_fuel_consumption(noon_report_type):
+def display_fuel_consumption():
     st.markdown("""
     <style>
     .fuel-table {
@@ -269,46 +232,6 @@ def display_custom_fuel_consumption(noon_report_type):
 
     st.markdown("<h3 style='font-size: 18px;'>Fuel Consumption (mt)</h3>", unsafe_allow_html=True)
     
-    # Bunkering checkbox
-    bunkering_happened = st.checkbox("Bunkering Happened")
-
-    if bunkering_happened:
-        st.markdown("<h4 style='font-size: 16px;'>Bunkering Details</h4>", unsafe_allow_html=True)
-        
-        # Initialize bunkering entries in session state if not present
-        if 'bunkering_entries' not in st.session_state:
-            st.session_state.bunkering_entries = [{}]
-
-        # Display each bunkering entry without using expander
-        for i, entry in enumerate(st.session_state.bunkering_entries):
-            st.markdown(f"**Bunkering Entry {i+1}**")
-            col1, col2, col3, col4 = st.columns(4)
-            with col1:
-                entry['grade'] = st.selectbox("Grade of Fuel Bunkered", 
-                                              ["VLSFO", "HFO", "MGO", "LSMGO", "LNG"], 
-                                              key=f"grade_{i}")
-                entry['grade_bdn'] = st.text_input("Grade as per BDN", key=f"grade_bdn_{i}")
-            with col2:
-                entry['qty_bdn'] = st.number_input("Quantity as per BDN (mt)", 
-                                                   min_value=0.0, step=0.1, key=f"qty_bdn_{i}")
-                entry['density'] = st.number_input("Density (kg/m³)", 
-                                                   min_value=0.0, step=0.1, key=f"density_{i}")
-            with col3:
-                entry['viscosity'] = st.number_input("Viscosity (cSt)", 
-                                                     min_value=0.0, step=0.1, key=f"viscosity_{i}")
-                entry['lcv'] = st.number_input("LCV (MJ/kg)", 
-                                               min_value=0.0, step=0.1, key=f"lcv_{i}")
-            with col4:
-                entry['bdn_file'] = st.file_uploader("Upload BDN", 
-                                                     type=['pdf', 'jpg', 'png'], 
-                                                     key=f"bdn_file_{i}")
-
-        # Button to add new bunkering entry
-        if st.button("➕ Add Bunkering Entry"):
-            st.session_state.bunkering_entries.append({})
-            st.experimental_rerun()
-
-    # Rest of the fuel consumption table code
     fuel_types = [
         "Heavy Fuel Oil RME-RMK >80cSt",
         "Heavy Fuel Oil RMA-RMD <80cSt",
@@ -326,73 +249,16 @@ def display_custom_fuel_consumption(noon_report_type):
         "LNG (Bunkered)"
     ]
 
-    columns = ["Oil Type", "Previous ROB", "IN PORT M/E", "IN PORT A/E", "IN PORT BLR", "IN PORT IGG", "IN PORT GE/NG", "IN PORT OTH",
-               "Bunker Qty", "Sulphur %", "Total", "ROB at Noon", "Action"]
+    columns = ["Oil Type", "Previous ROB", "AT SEA M/E", "AT SEA A/E", "AT SEA BLR", "AT SEA IGG", "AT SEA GE/NG", "AT SEA OTH",
+               "IN PORT M/E", "IN PORT A/E", "IN PORT BLR", "IN PORT IGG", "IN PORT GE/NG", "IN PORT OTH",
+               "Bunker Qty", "Sulphur %", "Total", "ROB at Noon"]
 
-    # Create the header row
-    header_html = "<tr>"
-    for col in columns:
-        header_html += f"<th>{col}</th>"
-    header_html += "</tr>"
-
-    rows_html = ""
-    for fuel in fuel_types:
-        rows_html += "<tr>"
-        rows_html += f"<td>{fuel}</td>"
-        for i in range(1, len(columns) - 1):  # Skip the last column (Action)
-            if columns[i] == "Sulphur %":
-                rows_html += f"<td><input type='number' step='0.01' min='0' max='100' style='width: 100%;'></td>"
-            else:
-                rows_html += f"<td><input type='number' step='0.1' min='0' style='width: 100%;'></td>"
-        rows_html += "<td><button>Edit</button> <button>Delete</button></td>"
-        rows_html += "</tr>"
-
-    table_html = f"""
-    <div class="fuel-table">
-        <table style="width: 100%;">
-            {header_html}
-            {rows_html}
-        </table>
-    </div>
-    """
-
-    st.markdown(table_html, unsafe_allow_html=True)
+    df = pd.DataFrame(columns=columns)
+    df['Oil Type'] = fuel_types
+    edited_df = st.data_editor(df, num_rows="dynamic", key=f"fuel_consumption_table_{uuid.uuid4()}")
 
     if st.button("Add New Fuel Type"):
         st.text_input("New Fuel Type Name")
-
-    st.markdown("<h3 style='font-size: 18px;'>Tank Distribution</h3>", unsafe_allow_html=True)
-
-    tank_names = ["Tank1", "Tank2", "Tank3", "Tank4", "Tank5", "Tank6", 
-                  "FO Serv Tank 1", "FO Serv Tank 2", "DO Serv Tank", 
-                  "FO Overflow Tank", "FO Drain Tank"]
-    
-    columns = ["Tank Name", "Grade of Fuel", "ROB (m³)"]
-
-    # Create the header row
-    header_html = "<tr>"
-    for col in columns:
-        header_html += f"<th>{col}</th>"
-    header_html += "</tr>"
-
-    rows_html = ""
-    for tank in tank_names:
-        rows_html += "<tr>"
-        rows_html += f"<td>{tank}</td>"
-        rows_html += f"<td><select><option value=''></option><option value='VLSFO'>VLSFO</option><option value='HFO'>HFO</option><option value='MGO'>MGO</option><option value='LSMGO'>LSMGO</option><option value='LNG'>LNG</option></select></td>"
-        rows_html += f"<td><input type='number' step='0.1' min='0' style='width: 100%;'></td>"
-        rows_html += "</tr>"
-
-    table_html = f"""
-    <div class="fuel-table">
-        <table style="width: 100%;">
-            {header_html}
-            {rows_html}
-        </table>
-    </div>
-    """
-
-    st.markdown(table_html, unsafe_allow_html=True)
 
 def display_fuel_allocation():
     st.subheader("Fuel Allocation")
@@ -449,15 +315,29 @@ def display_fuel_allocation():
         st.subheader("Shore-Side Electricity")
         st.number_input("Work", key=f"shore_side_work_{uuid.uuid4()}", step=0.1)
 
-def display_custom_machinery(noon_report_type):
+def display_machinery():
     st.subheader("Machinery")
 
     # Main Engine
     st.subheader("Main Engine")
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
     with col1:
+        st.number_input("ME RPM", min_value=0.0, step=0.1, key=f"me_rpm_{uuid.uuid4()}")
+        st.number_input("ME TC1 RPM", min_value=0.0, step=0.1, key=f"me_tc1_rpm_{uuid.uuid4()}")
+        st.number_input("ME TC2 RPM", min_value=0.0, step=0.1, key=f"me_tc2_rpm_{uuid.uuid4()}")
+    with col2:
+        st.number_input("Exhaust Max. Temp.(C)", min_value=0.0, step=0.1, key=f"exhaust_max_temp_{uuid.uuid4()}")
+        st.number_input("Exhaust Min. Temp.(C)", min_value=0.0, step=0.1, key=f"exhaust_min_temp_{uuid.uuid4()}")
         st.number_input("M/E rev counter", min_value=0, step=1, key=f"me_rev_counter_{uuid.uuid4()}")
-    
+    with col3:
+        st.number_input("Scavenge pressure(BAR)", min_value=0.0, step=0.01, key=f"scavenge_pressure_{uuid.uuid4()}")
+        st.number_input("MCR", min_value=0.0, max_value=100.0, step=0.1, key=f"mcr_{uuid.uuid4()}")
+        st.number_input("Avg KW", min_value=0.0, step=0.1, key=f"avg_kw_{uuid.uuid4()}")
+    with col4:
+        st.number_input("Slip", min_value=0.0, max_value=100.0, step=0.1, key=f"slip_{uuid.uuid4()}")
+        st.number_input("SFOC", min_value=0.0, step=0.1, key=f"sfoc_{uuid.uuid4()}")
+        st.number_input("Propeller pitch", min_value=0.0, step=0.1, key=f"propeller_pitch_{uuid.uuid4()}")
+
     # Auxiliary Engines
     st.subheader("Auxiliary Engines")
     col1, col2, col3, col4 = st.columns(4)
@@ -494,7 +374,7 @@ def display_custom_machinery(noon_report_type):
     with col2:
         st.number_input("Boiler 2 running hrs", min_value=0.0, step=0.1, key=f"boiler_2_hours_{uuid.uuid4()}")
 
-def display_custom_environmental_compliance(noon_report_type):
+def display_environmental_compliance():
     st.subheader("Environmental Compliance")
     col1, col2, col3 = st.columns(3)
     
