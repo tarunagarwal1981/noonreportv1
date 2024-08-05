@@ -69,6 +69,8 @@ def display_voyage_details():
         fuel_changeover = st.checkbox("Fuel Changeover", key="fuel_changeover")
         idl_crossing = st.checkbox("IDL Crossing", key="idl_crossing")
         ice_navigation = st.checkbox("Ice Navigation", key="ice_navigation")
+        deviation = st.checkbox("Deviation", key="deviation")
+        special_area = st.checkbox("Transiting Special Area", key="special_area")
         
     if offhire:
         st.subheader("Off-hire Details")
@@ -138,6 +140,58 @@ def display_voyage_details():
     
     if ice_navigation:
         st.number_input("Ice Navigation Hours", min_value=0.0, step=0.1, key="ice_navigation_hours")
+    
+    if deviation:
+        st.subheader("Deviation Details")
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            reason = st.selectbox("Reason for Deviation", ["Heavy weather", "SAR operation", "Navigational area Warning", "Med-evac", "Others"], key="deviation_reason")
+        with col2:
+            if reason == "Others":
+                st.text_input("Specify Other Reason", key="deviation_other_reason")
+        with col3:
+            st.date_input("Start Deviation Date (LT)", key="start_deviation_date_lt")
+            st.time_input("Start Deviation Time (LT)", key="start_deviation_time_lt")
+            st.date_input("Start Deviation Date (UTC)", key="start_deviation_date_utc")
+            st.time_input("Start Deviation Time (UTC)", key="start_deviation_time_utc")
+        with col4:
+            st.text_input("Start Deviation Position Latitude", key="start_deviation_lat")
+            st.text_input("Start Deviation Position Longitude", key="start_deviation_lon")
+
+        st.subheader("End of Deviation")
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.date_input("End Deviation Date (LT)", key="end_deviation_date_lt")
+            st.time_input("End Deviation Time (LT)", key="end_deviation_time_lt")
+            st.date_input("End Deviation Date (UTC)", key="end_deviation_date_utc")
+            st.time_input("End Deviation Time (UTC)", key="end_deviation_time_utc")
+        with col2:
+            st.text_input("End Deviation Position Latitude", key="end_deviation_lat")
+            st.text_input("End Deviation Position Longitude", key="end_deviation_lon")
+        with col3:
+            st.text_area("Deviation Comments", key="deviation_comments")
+
+    if special_area:
+        st.subheader("Transiting Special Area Details")
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            special_area_type = st.selectbox("Special Area Type", ["JWC area", "IWL", "ICE regions", "HRA"], key="special_area_type")
+        with col2:
+            st.date_input("Entry Special Area Date (LT)", key="entry_special_area_date_lt")
+            st.time_input("Entry Special Area Time (LT)", key="entry_special_area_time_lt")
+            st.date_input("Entry Special Area Date (UTC)", key="entry_special_area_date_utc")
+            st.time_input("Entry Special Area Time (UTC)", key="entry_special_area_time_utc")
+        with col3:
+            st.text_input("Entry Special Area Position Latitude", key="entry_special_area_lat")
+            st.text_input("Entry Special Area Position Longitude", key="entry_special_area_lon")
+            st.date_input("Exit Special Area Date (LT)", key="exit_special_area_date_lt")
+            st.time_input("Exit Special Area Time (LT)", key="exit_special_area_time_lt")
+        with col4:
+            st.date_input("Exit Special Area Date (UTC)", key="exit_special_area_date_utc")
+                        st.time_input("Exit Special Area Time (UTC)", key="exit_special_area_time_utc")
+            st.text_input("Exit Special Area Position Latitude", key="exit_special_area_lat")
+            st.text_input("Exit Special Area Position Longitude", key="exit_special_area_lon")
+            st.text_area("Special Area Comments", key="special_area_comments")
 
 
 def display_speed_position_and_navigation():
