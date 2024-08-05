@@ -188,7 +188,7 @@ def display_voyage_details():
             st.time_input("Exit Special Area Time (LT)", key="exit_special_area_time_lt")
         with col4:
             st.date_input("Exit Special Area Date (UTC)", key="exit_special_area_date_utc")
-                        st.time_input("Exit Special Area Time (UTC)", key="exit_special_area_time_utc")
+            st.time_input("Exit Special Area Time (UTC)", key="exit_special_area_time_utc")
             st.text_input("Exit Special Area Position Latitude", key="exit_special_area_lat")
             st.text_input("Exit Special Area Position Longitude", key="exit_special_area_lon")
             st.text_area("Special Area Comments", key="special_area_comments")
