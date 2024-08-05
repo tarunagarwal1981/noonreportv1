@@ -51,17 +51,15 @@ def display_voyage_details():
     with col1:
         st.text_input("Voyage From", key="voyage_from")
         st.text_input("Voyage To", key="voyage_to")
-        st.text_input("Voyage ID", key="voyage_id")
-        st.text_input("Segment ID", key="segment_id")
+        st.text_input("Speed Order", key="speed_order")
     
     with col2:
         st.selectbox("Voyage Type", ["", "One-way", "Round trip", "STS"], key="voyage_type")
         st.selectbox("Voyage Stage", ["", "East", "West", "Ballast", "Laden"], key="voyage_stage")
         st.date_input("ETA", value=datetime.now(), key="eta")
-        st.text_input("Speed Order", key="speed_order")
+        st.text_input("Charter Type", key="charter_type")
     
     with col3:
-        st.text_input("Charter Type", key="charter_type")
         st.number_input("Time Since Last Report (hours)", min_value=0.0, step=0.1, key="time_since_last_report")
         st.selectbox("Clocks Advanced/Retarded", ["", "Advanced", "Retarded"], key="clocks_change")
         st.number_input("Clocks Changed By (minutes)", min_value=0, step=1, key="clocks_change_minutes")
