@@ -18,8 +18,7 @@ def main():
         "Fuel Allocation",
         "Machinery",
         "Environmental Compliance",
-        "Fresh Water",
-        "Lubricating Oil",
+        "Miscellaneous Consumables",
     ]
 
     for section in sections:
@@ -565,8 +564,10 @@ def display_environmental_compliance():
         st.number_input("Bilge Water Pumped Out through 15ppm Equipment (m³)", min_value=0.0, step=0.1, key=f"bilge_pumped_out_{uuid.uuid4()}")
         st.number_input("Bilge Water Landed Ashore (m³)", min_value=0.0, step=0.1, key=f"bilge_landed_{uuid.uuid4()}")
 
-def display_fresh_water():
-    st.subheader("Fresh Water")
+def display_miscellaneous_consumables():
+    st.subheader("Miscellaneous Consumables")
+
+    st.markdown("Fresh Water")
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
@@ -585,9 +586,7 @@ def display_fresh_water():
         st.number_input("Fresh Water Usage - Galley (m³)", min_value=0.0, step=0.1, key=f"fw_usage_galley_{uuid.uuid4()}")
         st.number_input("Fresh Water Usage - Laundry (m³)", min_value=0.0, step=0.1, key=f"fw_usage_laundry_{uuid.uuid4()}")
 
-
-def display_lubricating_oil():
-    st.subheader("Lubricating Oil")
+    st.markdown("Lubricating Oil")
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
