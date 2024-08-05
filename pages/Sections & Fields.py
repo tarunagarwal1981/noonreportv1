@@ -89,7 +89,7 @@ def display_offhire_details():
     with col2:
         st.date_input("Off-hire End Date", key=f"offhire_end_date_{uuid.uuid4()}")
         st.time_input("Off-hire End Time", key=f"offhire_end_time_{uuid.uuid4()}")
-    st.text_area("Off-hire Reason", key=f"offhire_reason_{uuid.uuid4()}")
+        st.text_area("Off-hire Reason", key=f"offhire_reason_{uuid.uuid4()}")
 
 def display_eca_transit_details():
     st.subheader("ECA Transit Details")
