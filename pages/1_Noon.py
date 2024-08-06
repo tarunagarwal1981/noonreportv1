@@ -205,6 +205,7 @@ def display_voyage_details():
             st.number_input("VLSFO ROB at End (MT)", min_value=0.0, step=0.1, key=f"vlsfo_rob_end_{uuid.uuid4()}")
             st.number_input("LSMGO ROB at End (MT)", min_value=0.0, step=0.1, key=f"lsmgo_rob_end_{uuid.uuid4()}")
 
+
 def display_custom_voyage_details(noon_report_type):
     col1, col2, col3, col4 = st.columns(4)
     with col1:
