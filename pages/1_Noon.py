@@ -97,7 +97,7 @@ def display_voyage_details():
         st.text_input("Voyage From", key=f"voyage_from_{uuid.uuid4()}")
         st.text_input("Voyage From UNLOCODE", key=f"from_unlo_{uuid.uuid4()}")
         st.text_input("From Port Timezone", key=f"from_timezone_{uuid.uuid4()}")
-        st.text_input("Speed Order", key=f"speed_order_{uuid.uuid4()}")
+        
             
     with col2:
         st.text_input("Voyage To", key=f"voyage_to_{uuid.uuid4()}")
@@ -210,7 +210,7 @@ def display_custom_voyage_details(noon_report_type):
     with col1:
         st.text_input("Port Name", key=f"port_name_{uuid.uuid4()}")
         st.text_input("Port UNLOCODE", key=f"port_unlo_{uuid.uuid4()}")
-        st.text_input("Speed Order", key=f"speed_order_{uuid.uuid4()}")
+        
     
     with col2:
         st.selectbox("Voyage Type", ["", "One-way", "Round trip", "STS"], key=f"voyage_type_{uuid.uuid4()}")
@@ -297,10 +297,10 @@ def display_speed_position_and_navigation():
     with col1:
         st.number_input("Full Speed (hrs)", min_value=0.0, step=0.1, key=f"full_speed_hrs_{uuid.uuid4()}")
         st.number_input("Reduced Speed/Slow Steaming (hrs)", min_value=0.0, step=0.1, key=f"reduced_speed_hrs_{uuid.uuid4()}")
-        
         st.number_input("Distance Observed (nm)", min_value=0.0, step=0.1, value=0.00, key=f"distance_observed_{uuid.uuid4()}")
         st.number_input("Distance To Go (nm)", min_value=0.0, step=0.1, value=0.00, key=f"distance_togo_{uuid.uuid4()}")
         st.date_input("Date (Local)", value=datetime.now(), key=f"local_date_{uuid.uuid4()}")
+        st.text_input("Ordered Speed", key=f"speed_order_{uuid.uuid4()}")
         
     with col2:
         st.number_input("Distance Through Water (nm)", min_value=0.0, step=0.1, key=f"distance_through_water_{uuid.uuid4()}")
