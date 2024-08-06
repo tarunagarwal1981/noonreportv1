@@ -97,7 +97,6 @@ def display_voyage_details():
         st.text_input("Voyage From", key=f"voyage_from_{uuid.uuid4()}")
         st.text_input("Voyage From UNLOCODE", key=f"from_unlo_{uuid.uuid4()}")
         st.text_input("From Port Timezone", key=f"from_timezone_{uuid.uuid4()}")
-        
             
     with col2:
         st.text_input("Voyage To", key=f"voyage_to_{uuid.uuid4()}")
@@ -108,7 +107,7 @@ def display_voyage_details():
     with col3:
         st.text_input("Charter Type", key=f"charter_type_{uuid.uuid4()}")
         st.date_input("ETA Date", value=datetime.now(), key=f"etadate_{uuid.uuid4()}")
-        st.date_input("ETA Time", value=datetime.now(), key=f"etatime_{uuid.uuid4()}")
+        st.time_input("ETA Time", value=datetime.now().time(), key=f"etatime_{uuid.uuid4()}")
         st.number_input("Time Since Last Report (hours)", min_value=0.0, step=0.1, key=f"time_since_last_report_{uuid.uuid4()}")
         st.selectbox("Clocks Advanced/Retarded", ["", "Advanced", "Retarded"], key=f"clocks_change_{uuid.uuid4()}")
         st.number_input("Clocks Changed By (minutes)", min_value=0, step=1, key=f"clocks_change_minutes_{uuid.uuid4()}")
@@ -120,7 +119,7 @@ def display_voyage_details():
         idl_crossing = st.checkbox("IDL Crossing", key=f"idl_crossing_{uuid.uuid4()}")
         deviation = st.checkbox("Deviation", key=f"deviation_{uuid.uuid4()}")
         special_area = st.checkbox("Transiting Special Area", key=f"special_area_{uuid.uuid4()}")
-        stoppage = st.checkbox("Stoppage", key=f"deviation_{uuid.uuid4()}")
+        stoppage = st.checkbox("Stoppage", key=f"stoppage_{uuid.uuid4()}")
         
     if offhire:
         st.subheader("Off-hire Details")
@@ -144,25 +143,25 @@ def display_voyage_details():
             st.text_area("Off-hire Reason", key=f"offhire_reason_{uuid.uuid4()}")
 
     if stoppage:
-        st.subheader("Stoppage details")
+        st.subheader("Stoppage Details")
         col1, col2, col3, col4 = st.columns(4)
         with col1:
-            st.date_input("Stoppage Start Date (LT)", key=f"offhire_start_date_lt_{uuid.uuid4()}")
-            st.time_input("Stoppage Start Time (LT)", key=f"offhire_start_time_lt_{uuid.uuid4()}")
-            st.date_input("Stoppage Start Date (UTC)", key=f"offhire_start_date_utc_{uuid.uuid4()}")
-            st.time_input("Stoppage Start Time (UTC)", key=f"offhire_start_time_utc_{uuid.uuid4()}")
+            st.date_input("Stoppage Start Date (LT)", key=f"stoppage_start_date_lt_{uuid.uuid4()}")
+            st.time_input("Stoppage Start Time (LT)", key=f"stoppage_start_time_lt_{uuid.uuid4()}")
+            st.date_input("Stoppage Start Date (UTC)", key=f"stoppage_start_date_utc_{uuid.uuid4()}")
+            st.time_input("Stoppage Start Time (UTC)", key=f"stoppage_start_time_utc_{uuid.uuid4()}")
         with col2:
-            st.text_input("Start Stoppage Position Latitude", key=f"start_offhire_lat_{uuid.uuid4()}")
-            st.text_input("Start Stoppage Position Longitude", key=f"start_offhire_lon_{uuid.uuid4()}")
-            st.date_input("Stoppage End Date (LT)", key=f"offhire_end_date_lt_{uuid.uuid4()}")
-            st.time_input("Stoppage End Time (LT)", key=f"offhire_end_time_lt_{uuid.uuid4()}")
+            st.text_input("Start Stoppage Position Latitude", key=f"start_stoppage_lat_{uuid.uuid4()}")
+            st.text_input("Start Stoppage Position Longitude", key=f"start_stoppage_lon_{uuid.uuid4()}")
+            st.date_input("Stoppage End Date (LT)", key=f"stoppage_end_date_lt_{uuid.uuid4()}")
+            st.time_input("Stoppage End Time (LT)", key=f"stoppage_end_time_lt_{uuid.uuid4()}")
         with col3:
-            st.date_input("Stoppage End Date (UTC)", key=f"offhire_end_date_utc_{uuid.uuid4()}")
-            st.time_input("Stoppage End Time (UTC)", key=f"offhire_end_time_utc_{uuid.uuid4()}")
-            st.text_input("End Stoppage Position Latitude", key=f"end_offhire_lat_{uuid.uuid4()}")
-            st.text_input("End Stoppage Position Longitude", key=f"end_offhire_lon_{uuid.uuid4()}")
+            st.date_input("Stoppage End Date (UTC)", key=f"stoppage_end_date_utc_{uuid.uuid4()}")
+            st.time_input("Stoppage End Time (UTC)", key=f"stoppage_end_time_utc_{uuid.uuid4()}")
+            st.text_input("End Stoppage Position Latitude", key=f"end_stoppage_lat_{uuid.uuid4()}")
+            st.text_input("End Stoppage Position Longitude", key=f"end_stoppage_lon_{uuid.uuid4()}")
         with col4:
-            st.text_area("Stoppage Reason", key=f"offhire_reason_{uuid.uuid4()}")
+            st.text_area("Stoppage Reason", key=f"stoppage_reason_{uuid.uuid4()}")
     
     if eca_transit:
         st.subheader("ECA Transit Details")
@@ -186,7 +185,7 @@ def display_voyage_details():
         st.subheader("Start of Changeover")
         col1, col2, col3, col4 = st.columns(4)
         with col1:
-            st.date_input("Changeover Start Date", key=f"changeover_start_date_{uuid.uuid4()}")
+                        st.date_input("Changeover Start Date", key=f"changeover_start_date_{uuid.uuid4()}")
             st.time_input("Changeover Start Time", key=f"changeover_start_time_{uuid.uuid4()}")
         with col2:
             st.text_input("Changeover Start Latitude", key=f"changeover_start_lat_{uuid.uuid4()}")
@@ -216,7 +215,7 @@ def display_custom_voyage_details(noon_report_type):
     with col2:
         st.selectbox("Voyage Type", ["", "One-way", "Round trip", "STS"], key=f"voyage_type_{uuid.uuid4()}")
         st.date_input("ETD Date", value=datetime.now(), key=f"etdd_{uuid.uuid4()}")
-        st.date_input("ETD Time", value=datetime.now(), key=f"etdtime_{uuid.uuid4()}")
+        st.time_input("ETD Time", value=datetime.now().time(), key=f"etdtime_{uuid.uuid4()}")
         st.text_input("Next Port UNLOCODE", key=f"next_unlo_{uuid.uuid4()}")
     
     with col3:
@@ -293,6 +292,8 @@ def display_custom_voyage_details(noon_report_type):
             st.number_input("VLSFO ROB at End (MT)", min_value=0.0, step=0.1, key=f"vlsfo_rob_end_{uuid.uuid4()}")
             st.number_input("LSMGO ROB at End (MT)", min_value=0.0, step=0.1, key=f"lsmgo_rob_end_{uuid.uuid4()}")
 
+
+                                                                                
 def display_speed_position_and_navigation():
     st.subheader("Speed, Position and Navigation")
     col1, col2, col3, col4 = st.columns(4)
