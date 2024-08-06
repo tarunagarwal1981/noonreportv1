@@ -78,6 +78,19 @@ def display_general_information():
     with col3:
         st.text_input("Vessel Type", key=f"vessel_type_{uuid.uuid4()}")
 
+def display_custom_general_information(noon_report_type):
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.text_input("Port Name", key=f"port_name_{uuid.uuid4()}")
+        st.text_input("Port UNLOCODE", key=f"port_unlo_{uuid.uuid4()}")
+        
+    with col2:
+        st.text_input("Vessel Name", key=f"vessel_name_{uuid.uuid4()}")
+        st.text_input("Segment ID", key=f"segment_id_{uuid.uuid4()}")
+    with col3:
+        st.text_input("Vessel Type", key=f"vessel_type_{uuid.uuid4()}")
+
+
 def display_voyage_details():
     col1, col2, col3, col4 = st.columns(4)
     with col1:
