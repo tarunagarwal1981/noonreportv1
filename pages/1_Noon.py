@@ -114,7 +114,7 @@ def display_voyage_details():
         eca_transit = st.checkbox("ECA Transit", key="eca_transit")
         fuel_changeover = st.checkbox("Fuel Changeover", key="fuel_changeover")
         idl_crossing = st.checkbox("IDL Crossing", key="idl_crossing")
-        ice_navigation = st.checkbox("Ice Navigation", key="ice_navigation")
+        stoppage = st.checkbox("Stoppge", key="Stoppge")
         deviation = st.checkbox("Deviation", key="deviation")
         special_area = st.checkbox("Transiting Special Area", key="special_area")
         
@@ -184,8 +184,24 @@ def display_voyage_details():
     if idl_crossing:
         st.selectbox("IDL Direction", ["East", "West"], key="idl_direction")
     
-    if ice_navigation:
-        st.number_input("Ice Navigation Hours", min_value=0.0, step=0.1, key="ice_navigation_hours")
+    if stoppage:
+        st.subheader("Stoppage")
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.date_input("Stoppage Start Date (LT)", key="offhire_start_date_lt")
+            st.time_input("Stoppage Start Time (LT)", key="offhire_start_time_lt")
+            st.date_input("Stoppage Start Date (UTC)", key="offhire_start_date_utc")
+            st.time_input("Stoppage Start Time (UTC)", key="offhire_start_time_utc")
+        with col2:
+            st.text_input("Start Stoppage Position Latitude", key="start_offhire_lat")
+            st.text_input("Start Stoppage Position Longitude", key="start_offhire_lon")
+            st.date_input("Stoppage End Date (LT)", key="offhire_end_date_lt")
+            st.time_input("Stoppage End Time (LT)", key="offhire_end_time_lt")
+        with col3:
+            st.date_input("Stoppage End Date (UTC)", key="offhire_end_date_utc")
+            st.time_input("Stoppage End Time (UTC)", key="offhire_end_time_utc")
+            st.text_input("End Stoppage Position Latitude", key="end_offhire_lat")
+            st.text_input("End Stoppage Position Longitude", key="end_offhire_lon")
     
     if deviation:
         st.subheader("Deviation Details")
