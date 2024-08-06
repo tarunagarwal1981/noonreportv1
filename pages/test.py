@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime, time
 import uuid
-import extra_streamlit_components as stx
 
 st.set_page_config(layout="wide", page_title="Maritime Reporting Portal", page_icon="🚢")
 
@@ -72,17 +71,44 @@ def display_base_report_form():
         "Miscellaneous Consumables",
     ]
 
-    tabs = stx.tab_bar(data=[
-        stx.TabBarItemData(id=section.lower().replace(" ", "_"), title=section, description="")
-        for section in sections
-    ])
+    selected_section = st.radio("Select Section", sections)
 
     for section in sections:
-        if tabs == section.lower().replace(" ", "_"):
+        if selected_section == section:
             st.markdown(f'<div class="section-header"><h2>{section}</h2></div>', unsafe_allow_html=True)
             function_name = f"display_{section.lower().replace(' ', '_').replace(',', '')}"
             if function_name in globals():
                 globals()[function_name]()
+            else:
+                st.warning(f"Function {function_name} not found.")
+
+    col1, col2, col3 = st.columns(3)
+    with col2:
+        if st.button("Submit Report", type="primary", key=f"submit_report_{uuid.uuid4()}"):
+            st.success("Report submitted successfully!")
+
+def display_custom_report_form(noon_report_type):
+    sections = [
+        "General Information",
+        "Voyage Details",
+        "Speed, Position and Navigation",
+        "Weather and Sea Conditions",
+        "Cargo and Stability",
+        "Fuel Consumption",
+        "Fuel Allocation",
+        "Machinery",
+        "Environmental Compliance",
+        "Miscellaneous Consumables",
+    ]
+
+    selected_section = st.radio("Select Section", sections)
+
+    for section in sections:
+        if selected_section == section:
+            st.markdown(f'<div class="section-header"><h2>{section}</h2></div>', unsafe_allow_html=True)
+            function_name = f"display_custom_{section.lower().replace(' ', '_').replace(',', '')}"
+            if function_name in globals():
+                globals()[function_name](noon_report_type)
             else:
                 st.warning(f"Function {function_name} not found.")
 
