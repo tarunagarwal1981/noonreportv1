@@ -258,93 +258,94 @@ def display_voyage_details():
             st.text_area("Special Area Comments", key="special_area_comments")
 
 def display_custom_voyage_details(noon_report_type):
+
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.text_input("Port Name", key=f"port_name_{uuid.uuid4()}")
-        st.text_input("Port UNLOCODE", key=f"port_unlo_{uuid.uuid4()}")
-        st.text_input("Next Port of Call", key=f"next_port_{uuid.uuid4()}")
+        st.text_input("Voyage From", key="voyage_from")
+        st.text_input("Voyage To", key="voyage_to")
+        st.text_input("Speed Order", key="speed_order")
     
     with col2:
-        st.selectbox("Voyage Type", ["", "One-way", "Round trip", "STS"], key=f"voyage_type_{uuid.uuid4()}")
-        st.date_input("ETD Date", value=datetime.now(), key=f"etdd_{uuid.uuid4()}")
-        st.time_input("ETD Time", value=datetime.now().time(), key=f"etdtime_{uuid.uuid4()}")
-        st.text_input("Next Port UNLOCODE", key=f"next_unlo_{uuid.uuid4()}")
+        st.selectbox("Voyage Type", ["", "One-way", "Round trip", "STS"], key="voyage_type")
+        st.selectbox("Voyage Stage", ["", "East", "West", "Ballast", "Laden"], key="voyage_stage")
+        st.date_input("ETA", value=datetime.now(), key="eta")
+        st.text_input("Charter Type", key="charter_type")
     
     with col3:
-        st.number_input("Time Since Last Report (hours)", min_value=0.0, step=0.1, key=f"time_since_last_report_{uuid.uuid4()}")
-        st.selectbox("Clocks Advanced/Retarded", ["", "Advanced", "Retarded"], key=f"clocks_change_{uuid.uuid4()}")
-        st.number_input("Clocks Changed By (minutes)", min_value=0, step=1, key=f"clocks_change_minutes_{uuid.uuid4()}")
+        st.number_input("Time Since Last Report (hours)", min_value=0.0, step=0.1, key="time_since_last_report")
+        st.selectbox("Clocks Advanced/Retarded", ["", "Advanced", "Retarded"], key="clocks_change")
+        st.number_input("Clocks Changed By (minutes)", min_value=0, step=1, key="clocks_change_minutes")
     
     with col4:
-        offhire = st.checkbox("Off-hire", key=f"offhire_{uuid.uuid4()}")
-        drydock = st.checkbox("Dry Dock", key=f"DD_{uuid.uuid4()}")
-        eca_transit = st.checkbox("ECA Transit", key=f"eca_transit_{uuid.uuid4()}")
-        fuel_changeover = st.checkbox("Fuel Changeover", key=f"fuel_changeover_{uuid.uuid4()}")
-
+        offhire = st.checkbox("Off-hire", key="offhire")
+        eca_transit = st.checkbox("ECA Transit", key="eca_transit")
+        fuel_changeover = st.checkbox("Fuel Changeover", key="fuel_changeover")
+        drydock = st.checkbox("Drydock", key="drydock")
+                
     if offhire:
         st.subheader("Off-hire Details")
         col1, col2, col3, col4 = st.columns(4)
         with col1:
-            st.date_input("Off-hire Start Date (LT)", key=f"offhire_start_date_lt_{uuid.uuid4()}")
-            st.time_input("Off-hire Start Time (LT)", key=f"offhire_start_time_lt_{uuid.uuid4()}")
-            st.date_input("Off-hire Start Date (UTC)", key=f"offhire_start_date_utc_{uuid.uuid4()}")
-            st.time_input("Off-hire Start Time (UTC)", key=f"offhire_start_time_utc_{uuid.uuid4()}")
+            st.date_input("Off-hire Start Date (LT)", key="offhire_start_date_lt")
+            st.time_input("Off-hire Start Time (LT)", key="offhire_start_time_lt")
+            st.date_input("Off-hire Start Date (UTC)", key="offhire_start_date_utc")
+            st.time_input("Off-hire Start Time (UTC)", key="offhire_start_time_utc")
         with col2:
-            st.text_input("Start Off-hire Position Latitude", key=f"start_offhire_lat_{uuid.uuid4()}")
-            st.text_input("Start Off-hire Position Longitude", key=f"start_offhire_lon_{uuid.uuid4()}")
-            st.date_input("Off-hire End Date (LT)", key=f"offhire_end_date_lt_{uuid.uuid4()}")
-            st.time_input("Off-hire End Time (LT)", key=f"offhire_end_time_lt_{uuid.uuid4()}")
+            st.text_input("Start Off-hire Position Latitude", key="start_offhire_lat")
+            st.text_input("Start Off-hire Position Longitude", key="start_offhire_lon")
+            st.date_input("Off-hire End Date (LT)", key="offhire_end_date_lt")
+            st.time_input("Off-hire End Time (LT)", key="offhire_end_time_lt")
         with col3:
-            st.date_input("Off-hire End Date (UTC)", key=f"offhire_end_date_utc_{uuid.uuid4()}")
-            st.time_input("Off-hire End Time (UTC)", key=f"offhire_end_time_utc_{uuid.uuid4()}")
-            st.text_input("End Off-hire Position Latitude", key=f"end_offhire_lat_{uuid.uuid4()}")
-            st.text_input("End Off-hire Position Longitude", key=f"end_offhire_lon_{uuid.uuid4()}")
+            st.date_input("Off-hire End Date (UTC)", key="offhire_end_date_utc")
+            st.time_input("Off-hire End Time (UTC)", key="offhire_end_time_utc")
+            st.text_input("End Off-hire Position Latitude", key="end_offhire_lat")
+            st.text_input("End Off-hire Position Longitude", key="end_offhire_lon")
         with col4:
-            st.text_area("Off-hire Reason", key=f"offhire_reason_{uuid.uuid4()}")
+            st.text_area("Off-hire Reason", key="offhire_reason")
     
     if eca_transit:
         st.subheader("ECA Transit Details")
         col1, col2, col3, col4 = st.columns(4)
         with col1:
-            st.date_input("ECA Entry Date", key=f"eca_entry_date_{uuid.uuid4()}")
-            st.time_input("ECA Entry Time", key=f"eca_entry_time_{uuid.uuid4()}")
+            st.date_input("ECA Entry Date", key="eca_entry_date")
+            st.time_input("ECA Entry Time", key="eca_entry_time")
         with col2:
-            st.text_input("ECA Entry Latitude", key=f"eca_entry_lat_{uuid.uuid4()}")
-            st.text_input("ECA Entry Longitude", key=f"eca_entry_lon_{uuid.uuid4()}")
+            st.text_input("ECA Entry Latitude", key="eca_entry_lat")
+            st.text_input("ECA Entry Longitude", key="eca_entry_lon")
         with col3:
-            st.date_input("ECA Exit Date", key=f"eca_exit_date_{uuid.uuid4()}")
-            st.time_input("ECA Exit Time", key=f"eca_exit_time_{uuid.uuid4()}")
+            st.date_input("ECA Exit Date", key="eca_exit_date")
+            st.time_input("ECA Exit Time", key="eca_exit_time")
         with col4:
-            st.text_input("ECA Exit Latitude", key=f"eca_exit_lat_{uuid.uuid4()}")
-            st.text_input("ECA Exit Longitude", key=f"eca_exit_lon_{uuid.uuid4()}")
-        st.text_input("ECA Name", key=f"eca_name_{uuid.uuid4()}")
+            st.text_input("ECA Exit Latitude", key="eca_exit_lat")
+            st.text_input("ECA Exit Longitude", key="eca_exit_lon")
+        st.text_input("ECA Name", key="eca_name")
     
     if fuel_changeover:
         st.subheader("Fuel Changeover Details")
         st.subheader("Start of Changeover")
         col1, col2, col3, col4 = st.columns(4)
         with col1:
-            st.date_input("Changeover Start Date", key=f"changeover_start_date_{uuid.uuid4()}")
-            st.time_input("Changeover Start Time", key=f"changeover_start_time_{uuid.uuid4()}")
+            st.date_input("Changeover Start Date", key="changeover_start_date")
+            st.time_input("Changeover Start Time", key="changeover_start_time")
         with col2:
-            st.text_input("Changeover Start Latitude", key=f"changeover_start_lat_{uuid.uuid4()}")
-            st.text_input("Changeover Start Longitude", key=f"changeover_start_lon_{uuid.uuid4()}")
+            st.text_input("Changeover Start Latitude", key="changeover_start_lat")
+            st.text_input("Changeover Start Longitude", key="changeover_start_lon")
         with col3:
-            st.number_input("VLSFO ROB at Start (MT)", min_value=0.0, step=0.1, key=f"vlsfo_rob_start_{uuid.uuid4()}")
-            st.number_input("LSMGO ROB at Start (MT)", min_value=0.0, step=0.1, key=f"lsmgo_rob_start_{uuid.uuid4()}")
+            st.number_input("VLSFO ROB at Start (MT)", min_value=0.0, step=0.1, key="vlsfo_rob_start")
+            st.number_input("LSMGO ROB at Start (MT)", min_value=0.0, step=0.1, key="lsmgo_rob_start")
         
         st.subheader("End of Changeover")
         with col1:
-            st.date_input("Changeover End Date", key=f"changeover_end_date_{uuid.uuid4()}")
-            st.time_input("Changeover End Time", key=f"changeover_end_time_{uuid.uuid4()}")
+            st.date_input("Changeover End Date", key="changeover_end_date")
+            st.time_input("Changeover End Time", key="changeover_end_time")
         with col2:
-            st.text_input("Changeover End Latitude", key=f"changeover_end_lat_{uuid.uuid4()}")
-            st.text_input("Changeover End Longitude", key=f"changeover_end_lon_{uuid.uuid4()}")
+            st.text_input("Changeover End Latitude", key="changeover_end_lat")
+            st.text_input("Changeover End Longitude", key="changeover_end_lon")
         with col3:
-            st.number_input("VLSFO ROB at End (MT)", min_value=0.0, step=0.1, key=f"vlsfo_rob_end_{uuid.uuid4()}")
-            st.number_input("LSMGO ROB at End (MT)", min_value=0.0, step=0.1, key=f"lsmgo_rob_end_{uuid.uuid4()}")
-
-
+            st.number_input("VLSFO ROB at End (MT)", min_value=0.0, step=0.1, key="vlsfo_rob_end")
+            st.number_input("LSMGO ROB at End (MT)", min_value=0.0, step=0.1, key="lsmgo_rob_end")
+    
+    
                                                                                 
 def display_speed_position_and_navigation():
     st.subheader("Speed, Position and Navigation")
