@@ -82,16 +82,19 @@ def display_voyage_details():
     col1, col2, col3, col4 = st.columns(4)
     with col1:
         st.text_input("Voyage From", key="voyage_from")
-        st.text_input("Voyage To", key="voyage_to")
+        st.text_input("Voyage From UNLOCODE", key="from_unlo")
+        st.text_input("From Port Timezone", key="from_timezone")
         st.text_input("Speed Order", key="speed_order")
-    
+            
     with col2:
-        st.selectbox("Voyage Type", ["", "One-way", "Round trip", "STS"], key="voyage_type")
-        st.selectbox("Voyage Stage", ["", "East", "West", "Ballast", "Laden"], key="voyage_stage")
-        st.date_input("ETA", value=datetime.now(), key="eta")
-        st.text_input("Charter Type", key="charter_type")
+        st.text_input("Voyage To", key="voyage_to")
+        st.text_input("Voyage To UNLOCODE", key="from_unlo")
+        st.text_input("To Port Timezone", key="to_timezone")
+        st.selectbox("Voyage Type", ["", "One-way", "Round trip", "STS"], key="voyage_type")    
     
     with col3:
+        st.text_input("Charter Type", key="charter_type")
+        st.date_input("ETA", value=datetime.now(), key="eta")
         st.number_input("Time Since Last Report (hours)", min_value=0.0, step=0.1, key="time_since_last_report")
         st.selectbox("Clocks Advanced/Retarded", ["", "Advanced", "Retarded"], key="clocks_change")
         st.number_input("Clocks Changed By (minutes)", min_value=0, step=1, key="clocks_change_minutes")
@@ -101,7 +104,6 @@ def display_voyage_details():
         eca_transit = st.checkbox("ECA Transit", key="eca_transit")
         fuel_changeover = st.checkbox("Fuel Changeover", key="fuel_changeover")
         idl_crossing = st.checkbox("IDL Crossing", key="idl_crossing")
-        ice_navigation = st.checkbox("Ice Navigation", key="ice_navigation")
         deviation = st.checkbox("Deviation", key="deviation")
         special_area = st.checkbox("Transiting Special Area", key="special_area")
         
@@ -230,6 +232,7 @@ def display_custom_voyage_details(noon_report_type):
     col1, col2, col3, col4 = st.columns(4)
     with col1:
         st.text_input("Port Name", key="port_name")
+        st.text_input("Port UNLOCODE", key="port_unlo")
         st.text_input("Speed Order", key="speed_order")
     
     with col2:
@@ -244,6 +247,7 @@ def display_custom_voyage_details(noon_report_type):
     
     with col4:
         offhire = st.checkbox("Off-hire", key="offhire")
+        drydock = st.checkbox("Dry Dock", key="DD")
         eca_transit = st.checkbox("ECA Transit", key="eca_transit")
         fuel_changeover = st.checkbox("Fuel Changeover", key="fuel_changeover")
 
@@ -318,6 +322,7 @@ def display_speed_position_and_navigation():
         st.number_input("Reduced Speed/Slow Steaming (hrs)", min_value=0.0, step=0.1, key=f"reduced_speed_hrs_{uuid.uuid4()}")
         st.number_input("Stopped (hrs)", min_value=0.0, step=0.1, key=f"stopped_hrs_{uuid.uuid4()}")
         st.number_input("Distance Observed (nm)", min_value=0.0, step=0.1, value=0.00, key=f"distance_observed_{uuid.uuid4()}")
+        st.number_input("Distance To Go (nm)", min_value=0.0, step=0.1, value=0.00, key=f"distance_togo_{uuid.uuid4()}")
         st.date_input("Date (Local)", value=datetime.now(), key=f"local_date_{uuid.uuid4()}")
         
     with col2:
@@ -347,6 +352,7 @@ def display_custom_speed_position_and_navigation(noon_report_type):
         st.number_input("Stopped (hrs)", min_value=0.0, step=0.1, key=f"stopped_hrs_{uuid.uuid4()}")
         st.number_input("Latitude Degree", min_value=-90, max_value=90, step=1, key=f"lat_degree_{uuid.uuid4()}")
         st.date_input("Date (Local)", value=datetime.now(), key=f"local_date_{uuid.uuid4()}")
+        st.number_input("Distance To Go (nm)", min_value=0.0, step=0.1, value=0.00, key=f"distance_togo_{uuid.uuid4()}")
         
     with col2:
         st.number_input("Latitude Minutes", min_value=0.0, max_value=59.99, step=0.01, format="%.2f", key=f"lat_minutes_{uuid.uuid4()}")
@@ -370,10 +376,14 @@ def display_weather_and_sea_conditions():
         st.number_input("True Wind Speed (kts)", min_value=0.0, step=0.1, key=f"true_wind_speed_{uuid.uuid4()}")
         st.selectbox("BF Scale", range(13), key=f"bf_scale_{uuid.uuid4()}")
         st.number_input("True Wind Direction (°)", min_value=0, max_value=359, step=1, key=f"true_wind_direction_{uuid.uuid4()}")
+        st.number_input("Sea Water Temp (°C)", min_value=-2.0, max_value=35.0, step=0.1, key=f"sea_water_temp_{uuid.uuid4()}")
+        
     with col2:
         st.number_input("Significant Wave Height (m)", min_value=0.0, step=0.1, key=f"sig_wave_height_{uuid.uuid4()}")
         st.selectbox("Sea State (Douglas)", range(10), key=f"douglas_sea_state_{uuid.uuid4()}")
         st.number_input("Sea Height (m)", min_value=0.0, step=0.1, key=f"sea_height_{uuid.uuid4()}")
+        st.number_input("Air Temp (°C)", min_value=-50.0, max_value=50.0, step=0.1, key=f"air_temp_{uuid.uuid4()}")
+        
     with col3:
         st.number_input("Sea Direction (°)", min_value=0, max_value=359, step=1, key=f"sea_direction_{uuid.uuid4()}")
         st.number_input("Swell Direction (°)", min_value=0, max_value=359, step=1, key=f"swell_direction_{uuid.uuid4()}")
@@ -381,8 +391,8 @@ def display_weather_and_sea_conditions():
     with col4:
         st.number_input("Current Strength (kts)", min_value=0.0, step=0.1, key=f"current_strength_{uuid.uuid4()}")
         st.number_input("Current Direction (°)", min_value=0, max_value=359, step=1, key=f"current_direction_{uuid.uuid4()}")
-        st.number_input("Sea Water Temp (°C)", min_value=-2.0, max_value=35.0, step=0.1, key=f"sea_water_temp_{uuid.uuid4()}")
-        st.number_input("Air Temp (°C)", min_value=-50.0, max_value=50.0, step=0.1, key=f"air_temp_{uuid.uuid4()}")
+        st.number_input("Atm Pr (bar)", min_value=0, max_value=359, step=1, key=f"atms_pr_{uuid.uuid4()}")
+        
 
 def display_cargo_and_stability():
     st.subheader("Cargo and Stability")
@@ -418,74 +428,7 @@ def display_cargo_and_stability():
         st.number_input("Reefer 40ft Frozen", min_value=0, step=1, key=f"reefer_40ft_frozen_{uuid.uuid4()}")
 
 def display_fuel_consumption():
-    st.markdown("""
-    <style>
-    .fuel-table {
-        font-size: 12px;
-    }
-    .fuel-table input, .fuel-table select {
-        font-size: 12px;
-        padding: 2px 5px;
-        height: 25px;
-        min-height: 25px;
-    }
-    .fuel-table th {
-        font-weight: bold;
-        text-align: center;
-        padding: 2px;
-    }
-    .fuel-table td {
-        padding: 2px.
-    }
-    .stButton > button {
-        font-size: 10px;
-        padding: 2px 5px;
-        height: auto;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
-    st.markdown("<h3 style='font-size: 18px;'>Fuel Consumption (mt)</h3>", unsafe_allow_html=True)
     
-    # Bunkering checkbox
-    bunkering_happened = st.checkbox("Bunkering Happened")
-
-    if bunkering_happened:
-        st.markdown("<h4 style='font-size: 16px;'>Bunkering Details</h4>", unsafe_allow_html=True)
-        
-        # Initialize bunkering entries in session state if not present
-        if 'bunkering_entries' not in st.session_state:
-            st.session_state.bunkering_entries = [{}]
-
-        # Display each bunkering entry without using expander
-        for i, entry in enumerate(st.session_state.bunkering_entries):
-            st.markdown(f"**Bunkering Entry {i+1}**")
-            col1, col2, col3, col4 = st.columns(4)
-            with col1:
-                entry['grade'] = st.selectbox("Grade of Fuel Bunkered", 
-                                              ["VLSFO", "HFO", "MGO", "LSMGO", "LNG"], 
-                                              key=f"grade_{i}")
-                entry['grade_bdn'] = st.text_input("Grade as per BDN", key=f"grade_bdn_{i}")
-            with col2:
-                entry['qty_bdn'] = st.number_input("Quantity as per BDN (mt)", 
-                                                   min_value=0.0, step=0.1, key=f"qty_bdn_{i}")
-                entry['density'] = st.number_input("Density (kg/m³)", 
-                                                   min_value=0.0, step=0.1, key=f"density_{i}")
-            with col3:
-                entry['viscosity'] = st.number_input("Viscosity (cSt)", 
-                                                     min_value=0.0, step=0.1, key=f"viscosity_{i}")
-                entry['lcv'] = st.number_input("LCV (MJ/kg)", 
-                                               min_value=0.0, step=0.1, key=f"lcv_{i}")
-            with col4:
-                entry['bdn_file'] = st.file_uploader("Upload BDN", 
-                                                     type=['pdf', 'jpg', 'png'], 
-                                                     key=f"bdn_file_{i}")
-
-        # Button to add new bunkering entry
-        if st.button("➕ Add Bunkering Entry"):
-            st.session_state.bunkering_entries.append({})
-            st.experimental_rerun()
-
     # Rest of the fuel consumption table code
     fuel_types = [
         "Heavy Fuel Oil RME-RMK >80cSt",
@@ -505,8 +448,7 @@ def display_fuel_consumption():
     ]
 
     columns = ["Oil Type", "Previous ROB", "AT SEA M/E", "AT SEA A/E", "AT SEA BLR", "AT SEA IGG", "AT SEA GE/NG", "AT SEA OTH",
-               "IN PORT M/E", "IN PORT A/E", "IN PORT BLR", "IN PORT IGG", "IN PORT GE/NG", "IN PORT OTH",
-               "Bunker Qty", "Sulphur %", "Total", "ROB at Noon", "Action"]
+               "Incinerator", "GCU", "Total", "ROB at Noon", "Action"]
 
     # Create the header row
     header_html = "<tr>"
@@ -660,7 +602,7 @@ def display_custom_fuel_consumption(noon_report_type):
         "LNG (Bunkered)"
     ]
 
-    columns = ["Oil Type", "Previous ROB", "IN PORT M/E", "IN PORT A/E", "IN PORT BLR", "IN PORT IGG", "IN PORT GE/NG", "IN PORT OTH",
+    columns = ["Oil Type", "Previous ROB", "IN PORT M/E", "IN PORT A/E", "IN PORT BLR", "IN PORT IGG", "IN PORT GE/NG", "IN PORT OTH", "GCU", "Incinerator",
                "Bunker Qty", "Sulphur %", "Total", "ROB at Noon", "Action"]
 
     # Create the header row
@@ -802,10 +744,13 @@ def display_custom_weather_and_sea_conditions(noon_report_type):
         st.number_input("True Wind Speed (kts)", min_value=0.0, step=0.1, key=f"true_wind_speed_{uuid.uuid4()}")
         st.selectbox("BF Scale", range(13), key=f"bf_scale_{uuid.uuid4()}")
         st.number_input("True Wind Direction (°)", min_value=0, max_value=359, step=1, key=f"true_wind_direction_{uuid.uuid4()}")
+        st.number_input("Sea Water Temp (°C)", min_value=-2.0, max_value=35.0, step=0.1, key=f"sea_water_temp_{uuid.uuid4()}")
+        
     with col2:
         st.number_input("Significant Wave Height (m)", min_value=0.0, step=0.1, key=f"sig_wave_height_{uuid.uuid4()}")
         st.selectbox("Sea State (Douglas)", range(10), key=f"douglas_sea_state_{uuid.uuid4()}")
         st.number_input("Sea Height (m)", min_value=0.0, step=0.1, key=f"sea_height_{uuid.uuid4()}")
+        st.number_input("Air Temp (°C)", min_value=-50.0, max_value=50.0, step=0.1, key=f"air_temp_{uuid.uuid4()}")
     with col3:
         st.number_input("Sea Direction (°)", min_value=0, max_value=359, step=1, key=f"sea_direction_{uuid.uuid4()}")
         st.number_input("Swell Direction (°)", min_value=0, max_value=359, step=1, key=f"swell_direction_{uuid.uuid4()}")
@@ -813,8 +758,7 @@ def display_custom_weather_and_sea_conditions(noon_report_type):
     with col4:
         st.number_input("Current Strength (kts)", min_value=0.0, step=0.1, key=f"current_strength_{uuid.uuid4()}")
         st.number_input("Current Direction (°)", min_value=0, max_value=359, step=1, key=f"current_direction_{uuid.uuid4()}")
-        st.number_input("Sea Water Temp (°C)", min_value=-2.0, max_value=35.0, step=0.1, key=f"sea_water_temp_{uuid.uuid4()}")
-        st.number_input("Air Temp (°C)", min_value=-50.0, max_value=50.0, step=0.1, key=f"air_temp_{uuid.uuid4()}")
+        st.number_input("Atm Pr (bar)", min_value=0, max_value=359, step=1, key=f"atms_pr_{uuid.uuid4()}")
 
 def display_custom_cargo_and_stability(noon_report_type):
     st.subheader("Cargo and Stability")
