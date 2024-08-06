@@ -107,7 +107,8 @@ def display_voyage_details():
     
     with col3:
         st.text_input("Charter Type", key=f"charter_type_{uuid.uuid4()}")
-        st.date_input("ETA", value=datetime.now(), key=f"eta_{uuid.uuid4()}")
+        st.date_input("ETA Date", value=datetime.now(), key=f"etadate_{uuid.uuid4()}")
+        st.date_input("ETA Time", value=datetime.now(), key=f"etatime_{uuid.uuid4()}")
         st.number_input("Time Since Last Report (hours)", min_value=0.0, step=0.1, key=f"time_since_last_report_{uuid.uuid4()}")
         st.selectbox("Clocks Advanced/Retarded", ["", "Advanced", "Retarded"], key=f"clocks_change_{uuid.uuid4()}")
         st.number_input("Clocks Changed By (minutes)", min_value=0, step=1, key=f"clocks_change_minutes_{uuid.uuid4()}")
@@ -214,8 +215,8 @@ def display_custom_voyage_details(noon_report_type):
     
     with col2:
         st.selectbox("Voyage Type", ["", "One-way", "Round trip", "STS"], key=f"voyage_type_{uuid.uuid4()}")
-        st.date_input("ETD", value=datetime.now(), key=f"etd_{uuid.uuid4()}")
-        
+        st.date_input("ETD Date", value=datetime.now(), key=f"etdd_{uuid.uuid4()}")
+        st.date_input("ETD Time", value=datetime.now(), key=f"etdtime_{uuid.uuid4()}")
         st.text_input("Next Port UNLOCODE", key=f"next_unlo_{uuid.uuid4()}")
     
     with col3:
@@ -319,7 +320,7 @@ def display_speed_position_and_navigation():
         st.selectbox("Longitude E/W", ["E", "W"], key=f"lon_ew_{uuid.uuid4()}")
         st.number_input("Course (°)", min_value=0, max_value=359, step=1, key=f"course_{uuid.uuid4()}")
         st.number_input("Heading (°)", min_value=0, max_value=359, step=1, key=f"heading_{uuid.uuid4()}")
-        st.number_input("True Heading (°)", min_value=0, max_value=359, step=1, key=f"true_heading_{uuid.uuid4()}")
+        
         st.time_input("Time (UTC)", value=datetime.now().time(), key=f"utc_time_{uuid.uuid4()}")
 
 def display_custom_speed_position_and_navigation(noon_report_type):
