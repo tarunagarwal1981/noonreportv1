@@ -81,238 +81,180 @@ def display_general_information():
 def display_voyage_details():
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.text_input("Voyage From", key="voyage_from")
-        st.text_input("Voyage From UNLOCODE", key="from_unlo")
-        st.text_input("From Port Timezone", key="from_timezone")
-        st.text_input("Speed Order", key="speed_order")
+        st.text_input("Voyage From", key=f"voyage_from_{uuid.uuid4()}")
+        st.text_input("Voyage From UNLOCODE", key=f"from_unlo_{uuid.uuid4()}")
+        st.text_input("From Port Timezone", key=f"from_timezone_{uuid.uuid4()}")
+        st.text_input("Speed Order", key=f"speed_order_{uuid.uuid4()}")
             
     with col2:
-        st.text_input("Voyage To", key="voyage_to")
-        st.text_input("Voyage To UNLOCODE", key="from_unlo")
-        st.text_input("To Port Timezone", key="to_timezone")
-        st.selectbox("Voyage Type", ["", "One-way", "Round trip", "STS"], key="voyage_type")    
+        st.text_input("Voyage To", key=f"voyage_to_{uuid.uuid4()}")
+        st.text_input("Voyage To UNLOCODE", key=f"to_unlo_{uuid.uuid4()}")
+        st.text_input("To Port Timezone", key=f"to_timezone_{uuid.uuid4()}")
+        st.selectbox("Voyage Type", ["", "One-way", "Round trip", "STS"], key=f"voyage_type_{uuid.uuid4()}")    
     
     with col3:
-        st.text_input("Charter Type", key="charter_type")
-        st.date_input("ETA", value=datetime.now(), key="eta")
-        st.number_input("Time Since Last Report (hours)", min_value=0.0, step=0.1, key="time_since_last_report")
-        st.selectbox("Clocks Advanced/Retarded", ["", "Advanced", "Retarded"], key="clocks_change")
-        st.number_input("Clocks Changed By (minutes)", min_value=0, step=1, key="clocks_change_minutes")
+        st.text_input("Charter Type", key=f"charter_type_{uuid.uuid4()}")
+        st.date_input("ETA", value=datetime.now(), key=f"eta_{uuid.uuid4()}")
+        st.number_input("Time Since Last Report (hours)", min_value=0.0, step=0.1, key=f"time_since_last_report_{uuid.uuid4()}")
+        st.selectbox("Clocks Advanced/Retarded", ["", "Advanced", "Retarded"], key=f"clocks_change_{uuid.uuid4()}")
+        st.number_input("Clocks Changed By (minutes)", min_value=0, step=1, key=f"clocks_change_minutes_{uuid.uuid4()}")
     
     with col4:
-        offhire = st.checkbox("Off-hire", key="offhire")
-        eca_transit = st.checkbox("ECA Transit", key="eca_transit")
-        fuel_changeover = st.checkbox("Fuel Changeover", key="fuel_changeover")
-        idl_crossing = st.checkbox("IDL Crossing", key="idl_crossing")
-        deviation = st.checkbox("Deviation", key="deviation")
-        special_area = st.checkbox("Transiting Special Area", key="special_area")
+        offhire = st.checkbox("Off-hire", key=f"offhire_{uuid.uuid4()}")
+        eca_transit = st.checkbox("ECA Transit", key=f"eca_transit_{uuid.uuid4()}")
+        fuel_changeover = st.checkbox("Fuel Changeover", key=f"fuel_changeover_{uuid.uuid4()}")
+        idl_crossing = st.checkbox("IDL Crossing", key=f"idl_crossing_{uuid.uuid4()}")
+        deviation = st.checkbox("Deviation", key=f"deviation_{uuid.uuid4()}")
+        special_area = st.checkbox("Transiting Special Area", key=f"special_area_{uuid.uuid4()}")
         
     if offhire:
         st.subheader("Off-hire Details")
         col1, col2, col3, col4 = st.columns(4)
         with col1:
-            st.date_input("Off-hire Start Date (LT)", key="offhire_start_date_lt")
-            st.time_input("Off-hire Start Time (LT)", key="offhire_start_time_lt")
-            st.date_input("Off-hire Start Date (UTC)", key="offhire_start_date_utc")
-            st.time_input("Off-hire Start Time (UTC)", key="offhire_start_time_utc")
+            st.date_input("Off-hire Start Date (LT)", key=f"offhire_start_date_lt_{uuid.uuid4()}")
+            st.time_input("Off-hire Start Time (LT)", key=f"offhire_start_time_lt_{uuid.uuid4()}")
+            st.date_input("Off-hire Start Date (UTC)", key=f"offhire_start_date_utc_{uuid.uuid4()}")
+            st.time_input("Off-hire Start Time (UTC)", key=f"offhire_start_time_utc_{uuid.uuid4()}")
         with col2:
-            st.text_input("Start Off-hire Position Latitude", key="start_offhire_lat")
-            st.text_input("Start Off-hire Position Longitude", key="start_offhire_lon")
-            st.date_input("Off-hire End Date (LT)", key="offhire_end_date_lt")
-            st.time_input("Off-hire End Time (LT)", key="offhire_end_time_lt")
+            st.text_input("Start Off-hire Position Latitude", key=f"start_offhire_lat_{uuid.uuid4()}")
+            st.text_input("Start Off-hire Position Longitude", key=f"start_offhire_lon_{uuid.uuid4()}")
+            st.date_input("Off-hire End Date (LT)", key=f"offhire_end_date_lt_{uuid.uuid4()}")
+            st.time_input("Off-hire End Time (LT)", key=f"offhire_end_time_lt_{uuid.uuid4()}")
         with col3:
-            st.date_input("Off-hire End Date (UTC)", key="offhire_end_date_utc")
-            st.time_input("Off-hire End Time (UTC)", key="offhire_end_time_utc")
-            st.text_input("End Off-hire Position Latitude", key="end_offhire_lat")
-            st.text_input("End Off-hire Position Longitude", key="end_offhire_lon")
+            st.date_input("Off-hire End Date (UTC)", key=f"offhire_end_date_utc_{uuid.uuid4()}")
+            st.time_input("Off-hire End Time (UTC)", key=f"offhire_end_time_utc_{uuid.uuid4()}")
+            st.text_input("End Off-hire Position Latitude", key=f"end_offhire_lat_{uuid.uuid4()}")
+            st.text_input("End Off-hire Position Longitude", key=f"end_offhire_lon_{uuid.uuid4()}")
         with col4:
-            st.text_area("Off-hire Reason", key="offhire_reason")
+            st.text_area("Off-hire Reason", key=f"offhire_reason_{uuid.uuid4()}")
     
     if eca_transit:
         st.subheader("ECA Transit Details")
         col1, col2, col3, col4 = st.columns(4)
         with col1:
-            st.date_input("ECA Entry Date", key="eca_entry_date")
-            st.time_input("ECA Entry Time", key="eca_entry_time")
+            st.date_input("ECA Entry Date", key=f"eca_entry_date_{uuid.uuid4()}")
+            st.time_input("ECA Entry Time", key=f"eca_entry_time_{uuid.uuid4()}")
         with col2:
-            st.text_input("ECA Entry Latitude", key="eca_entry_lat")
-            st.text_input("ECA Entry Longitude", key="eca_entry_lon")
+            st.text_input("ECA Entry Latitude", key=f"eca_entry_lat_{uuid.uuid4()}")
+            st.text_input("ECA Entry Longitude", key=f"eca_entry_lon_{uuid.uuid4()}")
         with col3:
-            st.date_input("ECA Exit Date", key="eca_exit_date")
-            st.time_input("ECA Exit Time", key="eca_exit_time")
+            st.date_input("ECA Exit Date", key=f"eca_exit_date_{uuid.uuid4()}")
+            st.time_input("ECA Exit Time", key=f"eca_exit_time_{uuid.uuid4()}")
         with col4:
-            st.text_input("ECA Exit Latitude", key="eca_exit_lat")
-            st.text_input("ECA Exit Longitude", key="eca_exit_lon")
-        st.text_input("ECA Name", key="eca_name")
+            st.text_input("ECA Exit Latitude", key=f"eca_exit_lat_{uuid.uuid4()}")
+            st.text_input("ECA Exit Longitude", key=f"eca_exit_lon_{uuid.uuid4()}")
+        st.text_input("ECA Name", key=f"eca_name_{uuid.uuid4()}")
     
     if fuel_changeover:
         st.subheader("Fuel Changeover Details")
         st.subheader("Start of Changeover")
         col1, col2, col3, col4 = st.columns(4)
         with col1:
-            st.date_input("Changeover Start Date", key="changeover_start_date")
-            st.time_input("Changeover Start Time", key="changeover_start_time")
+            st.date_input("Changeover Start Date", key=f"changeover_start_date_{uuid.uuid4()}")
+            st.time_input("Changeover Start Time", key=f"changeover_start_time_{uuid.uuid4()}")
         with col2:
-            st.text_input("Changeover Start Latitude", key="changeover_start_lat")
-            st.text_input("Changeover Start Longitude", key="changeover_start_lon")
+            st.text_input("Changeover Start Latitude", key=f"changeover_start_lat_{uuid.uuid4()}")
+            st.text_input("Changeover Start Longitude", key=f"changeover_start_lon_{uuid.uuid4()}")
         with col3:
-            st.number_input("VLSFO ROB at Start (MT)", min_value=0.0, step=0.1, key="vlsfo_rob_start")
-            st.number_input("LSMGO ROB at Start (MT)", min_value=0.0, step=0.1, key="lsmgo_rob_start")
+            st.number_input("VLSFO ROB at Start (MT)", min_value=0.0, step=0.1, key=f"vlsfo_rob_start_{uuid.uuid4()}")
+            st.number_input("LSMGO ROB at Start (MT)", min_value=0.0, step=0.1, key=f"lsmgo_rob_start_{uuid.uuid4()}")
         
         st.subheader("End of Changeover")
         with col1:
-            st.date_input("Changeover End Date", key="changeover_end_date")
-            st.time_input("Changeover End Time", key="changeover_end_time")
+            st.date_input("Changeover End Date", key=f"changeover_end_date_{uuid.uuid4()}")
+            st.time_input("Changeover End Time", key=f"changeover_end_time_{uuid.uuid4()}")
         with col2:
-            st.text_input("Changeover End Latitude", key="changeover_end_lat")
-            st.text_input("Changeover End Longitude", key="changeover_end_lon")
+            st.text_input("Changeover End Latitude", key=f"changeover_end_lat_{uuid.uuid4()}")
+            st.text_input("Changeover End Longitude", key=f"changeover_end_lon_{uuid.uuid4()}")
         with col3:
-            st.number_input("VLSFO ROB at End (MT)", min_value=0.0, step=0.1, key="vlsfo_rob_end")
-            st.number_input("LSMGO ROB at End (MT)", min_value=0.0, step=0.1, key="lsmgo_rob_end")
-    
-    if idl_crossing:
-        st.selectbox("IDL Direction", ["East", "West"], key="idl_direction")
-    
-    if ice_navigation:
-        st.number_input("Ice Navigation Hours", min_value=0.0, step=0.1, key="ice_navigation_hours")
-    
-    if deviation:
-        st.subheader("Deviation Details")
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            reason = st.selectbox("Reason for Deviation", ["Heavy weather", "SAR operation", "Navigational area Warning", "Med-evac", "Others"], key="deviation_reason")
-        with col2:
-            if reason == "Others":
-                st.text_input("Specify Other Reason", key="deviation_other_reason")
-        with col3:
-            st.date_input("Start Deviation Date (LT)", key="start_deviation_date_lt")
-            st.time_input("Start Deviation Time (LT)", key="start_deviation_time_lt")
-            st.date_input("Start Deviation Date (UTC)", key="start_deviation_date_utc")
-            st.time_input("Start Deviation Time (UTC)", key="start_deviation_time_utc")
-        with col4:
-            st.text_input("Start Deviation Position Latitude", key="start_deviation_lat")
-            st.text_input("Start Deviation Position Longitude", key="start_deviation_lon")
-
-        st.subheader("End of Deviation")
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.date_input("End Deviation Date (LT)", key="end_deviation_date_lt")
-            st.time_input("End Deviation Time (LT)", key="end_deviation_time_lt")
-            st.date_input("End Deviation Date (UTC)", key="end_deviation_date_utc")
-            st.time_input("End Deviation Time (UTC)", key="end_deviation_time_utc")
-        with col2:
-            st.text_input("End Deviation Position Latitude", key="end_deviation_lat")
-            st.text_input("End Deviation Position Longitude", key="end_deviation_lon")
-        with col3:
-            st.text_area("Deviation Comments", key="deviation_comments")
-
-    if special_area:
-        st.subheader("Transiting Special Area Details")
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            special_area_type = st.selectbox("Special Area Type", ["JWC area", "IWL", "ICE regions", "HRA"], key="special_area_type")
-        with col2:
-            st.date_input("Entry Special Area Date (LT)", key="entry_special_area_date_lt")
-            st.time_input("Entry Special Area Time (LT)", key="entry_special_area_time_lt")
-            st.date_input("Entry Special Area Date (UTC)", key="entry_special_area_date_utc")
-            st.time_input("Entry Special Area Time (UTC)", key="entry_special_area_time_utc")
-        with col3:
-            st.text_input("Entry Special Area Position Latitude", key="entry_special_area_lat")
-            st.text_input("Entry Special Area Position Longitude", key="entry_special_area_lon")
-            st.date_input("Exit Special Area Date (LT)", key="exit_special_area_date_lt")
-            st.time_input("Exit Special Area Time (LT)", key="exit_special_area_time_lt")
-        with col4:
-            st.date_input("Exit Special Area Date (UTC)", key="exit_special_area_date_utc")
-            st.time_input("Exit Special Area Time (UTC)", key="exit_special_area_time_utc")
-            st.text_input("Exit Special Area Position Latitude", key="exit_special_area_lat")
-            st.text_input("Exit Special Area Position Longitude", key="exit_special_area_lon")
-            st.text_area("Special Area Comments", key="special_area_comments")
+            st.number_input("VLSFO ROB at End (MT)", min_value=0.0, step=0.1, key=f"vlsfo_rob_end_{uuid.uuid4()}")
+            st.number_input("LSMGO ROB at End (MT)", min_value=0.0, step=0.1, key=f"lsmgo_rob_end_{uuid.uuid4()}")
 
 def display_custom_voyage_details(noon_report_type):
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.text_input("Port Name", key="port_name")
-        st.text_input("Port UNLOCODE", key="port_unlo")
-        st.text_input("Speed Order", key="speed_order")
+        st.text_input("Port Name", key=f"port_name_{uuid.uuid4()}")
+        st.text_input("Port UNLOCODE", key=f"port_unlo_{uuid.uuid4()}")
+        st.text_input("Speed Order", key=f"speed_order_{uuid.uuid4()}")
     
     with col2:
-        st.selectbox("Voyage Type", ["", "One-way", "Round trip", "STS"], key="voyage_type")
-        st.date_input("ETA", value=datetime.now(), key="eta")
-        st.text_input("Charter Type", key="charter_type")
+        st.selectbox("Voyage Type", ["", "One-way", "Round trip", "STS"], key=f"voyage_type_{uuid.uuid4()}")
+        st.date_input("ETA", value=datetime.now(), key=f"eta_{uuid.uuid4()}")
+        st.text_input("Charter Type", key=f"charter_type_{uuid.uuid4()}")
     
     with col3:
-        st.number_input("Time Since Last Report (hours)", min_value=0.0, step=0.1, key="time_since_last_report")
-        st.selectbox("Clocks Advanced/Retarded", ["", "Advanced", "Retarded"], key="clocks_change")
-        st.number_input("Clocks Changed By (minutes)", min_value=0, step=1, key="clocks_change_minutes")
+        st.number_input("Time Since Last Report (hours)", min_value=0.0, step=0.1, key=f"time_since_last_report_{uuid.uuid4()}")
+        st.selectbox("Clocks Advanced/Retarded", ["", "Advanced", "Retarded"], key=f"clocks_change_{uuid.uuid4()}")
+        st.number_input("Clocks Changed By (minutes)", min_value=0, step=1, key=f"clocks_change_minutes_{uuid.uuid4()}")
     
     with col4:
-        offhire = st.checkbox("Off-hire", key="offhire")
-        drydock = st.checkbox("Dry Dock", key="DD")
-        eca_transit = st.checkbox("ECA Transit", key="eca_transit")
-        fuel_changeover = st.checkbox("Fuel Changeover", key="fuel_changeover")
+        offhire = st.checkbox("Off-hire", key=f"offhire_{uuid.uuid4()}")
+        drydock = st.checkbox("Dry Dock", key=f"DD_{uuid.uuid4()}")
+        eca_transit = st.checkbox("ECA Transit", key=f"eca_transit_{uuid.uuid4()}")
+        fuel_changeover = st.checkbox("Fuel Changeover", key=f"fuel_changeover_{uuid.uuid4()}")
 
     if offhire:
         st.subheader("Off-hire Details")
         col1, col2, col3, col4 = st.columns(4)
         with col1:
-            st.date_input("Off-hire Start Date (LT)", key="offhire_start_date_lt")
-            st.time_input("Off-hire Start Time (LT)", key="offhire_start_time_lt")
-            st.date_input("Off-hire Start Date (UTC)", key="offhire_start_date_utc")
-            st.time_input("Off-hire Start Time (UTC)", key="offhire_start_time_utc")
+            st.date_input("Off-hire Start Date (LT)", key=f"offhire_start_date_lt_{uuid.uuid4()}")
+            st.time_input("Off-hire Start Time (LT)", key=f"offhire_start_time_lt_{uuid.uuid4()}")
+            st.date_input("Off-hire Start Date (UTC)", key=f"offhire_start_date_utc_{uuid.uuid4()}")
+            st.time_input("Off-hire Start Time (UTC)", key=f"offhire_start_time_utc_{uuid.uuid4()}")
         with col2:
-            st.text_input("Start Off-hire Position Latitude", key="start_offhire_lat")
-            st.text_input("Start Off-hire Position Longitude", key="start_offhire_lon")
-            st.date_input("Off-hire End Date (LT)", key="offhire_end_date_lt")
-            st.time_input("Off-hire End Time (LT)", key="offhire_end_time_lt")
+            st.text_input("Start Off-hire Position Latitude", key=f"start_offhire_lat_{uuid.uuid4()}")
+            st.text_input("Start Off-hire Position Longitude", key=f"start_offhire_lon_{uuid.uuid4()}")
+            st.date_input("Off-hire End Date (LT)", key=f"offhire_end_date_lt_{uuid.uuid4()}")
+            st.time_input("Off-hire End Time (LT)", key=f"offhire_end_time_lt_{uuid.uuid4()}")
         with col3:
-            st.date_input("Off-hire End Date (UTC)", key="offhire_end_date_utc")
-            st.time_input("Off-hire End Time (UTC)", key="offhire_end_time_utc")
-            st.text_input("End Off-hire Position Latitude", key="end_offhire_lat")
-            st.text_input("End Off-hire Position Longitude", key="end_offhire_lon")
+            st.date_input("Off-hire End Date (UTC)", key=f"offhire_end_date_utc_{uuid.uuid4()}")
+            st.time_input("Off-hire End Time (UTC)", key=f"offhire_end_time_utc_{uuid.uuid4()}")
+            st.text_input("End Off-hire Position Latitude", key=f"end_offhire_lat_{uuid.uuid4()}")
+            st.text_input("End Off-hire Position Longitude", key=f"end_offhire_lon_{uuid.uuid4()}")
         with col4:
-            st.text_area("Off-hire Reason", key="offhire_reason")
+            st.text_area("Off-hire Reason", key=f"offhire_reason_{uuid.uuid4()}")
     
     if eca_transit:
         st.subheader("ECA Transit Details")
         col1, col2, col3, col4 = st.columns(4)
         with col1:
-            st.date_input("ECA Entry Date", key="eca_entry_date")
-            st.time_input("ECA Entry Time", key="eca_entry_time")
+            st.date_input("ECA Entry Date", key=f"eca_entry_date_{uuid.uuid4()}")
+            st.time_input("ECA Entry Time", key=f"eca_entry_time_{uuid.uuid4()}")
         with col2:
-            st.text_input("ECA Entry Latitude", key="eca_entry_lat")
-            st.text_input("ECA Entry Longitude", key="eca_entry_lon")
+            st.text_input("ECA Entry Latitude", key=f"eca_entry_lat_{uuid.uuid4()}")
+            st.text_input("ECA Entry Longitude", key=f"eca_entry_lon_{uuid.uuid4()}")
         with col3:
-            st.date_input("ECA Exit Date", key="eca_exit_date")
-            st.time_input("ECA Exit Time", key="eca_exit_time")
+            st.date_input("ECA Exit Date", key=f"eca_exit_date_{uuid.uuid4()}")
+            st.time_input("ECA Exit Time", key=f"eca_exit_time_{uuid.uuid4()}")
         with col4:
-            st.text_input("ECA Exit Latitude", key="eca_exit_lat")
-            st.text_input("ECA Exit Longitude", key="eca_exit_lon")
-        st.text_input("ECA Name", key="eca_name")
+            st.text_input("ECA Exit Latitude", key=f"eca_exit_lat_{uuid.uuid4()}")
+            st.text_input("ECA Exit Longitude", key=f"eca_exit_lon_{uuid.uuid4()}")
+        st.text_input("ECA Name", key=f"eca_name_{uuid.uuid4()}")
     
     if fuel_changeover:
         st.subheader("Fuel Changeover Details")
         st.subheader("Start of Changeover")
         col1, col2, col3, col4 = st.columns(4)
         with col1:
-            st.date_input("Changeover Start Date", key="changeover_start_date")
-            st.time_input("Changeover Start Time", key="changeover_start_time")
+            st.date_input("Changeover Start Date", key=f"changeover_start_date_{uuid.uuid4()}")
+            st.time_input("Changeover Start Time", key=f"changeover_start_time_{uuid.uuid4()}")
         with col2:
-            st.text_input("Changeover Start Latitude", key="changeover_start_lat")
-            st.text_input("Changeover Start Longitude", key="changeover_start_lon")
+            st.text_input("Changeover Start Latitude", key=f"changeover_start_lat_{uuid.uuid4()}")
+            st.text_input("Changeover Start Longitude", key=f"changeover_start_lon_{uuid.uuid4()}")
         with col3:
-            st.number_input("VLSFO ROB at Start (MT)", min_value=0.0, step=0.1, key="vlsfo_rob_start")
-            st.number_input("LSMGO ROB at Start (MT)", min_value=0.0, step=0.1, key="lsmgo_rob_start")
+            st.number_input("VLSFO ROB at Start (MT)", min_value=0.0, step=0.1, key=f"vlsfo_rob_start_{uuid.uuid4()}")
+            st.number_input("LSMGO ROB at Start (MT)", min_value=0.0, step=0.1, key=f"lsmgo_rob_start_{uuid.uuid4()}")
         
         st.subheader("End of Changeover")
         with col1:
-            st.date_input("Changeover End Date", key="changeover_end_date")
-            st.time_input("Changeover End Time", key="changeover_end_time")
+            st.date_input("Changeover End Date", key=f"changeover_end_date_{uuid.uuid4()}")
+            st.time_input("Changeover End Time", key=f"changeover_end_time_{uuid.uuid4()}")
         with col2:
-            st.text_input("Changeover End Latitude", key="changeover_end_lat")
-            st.text_input("Changeover End Longitude", key="changeover_end_lon")
+            st.text_input("Changeover End Latitude", key=f"changeover_end_lat_{uuid.uuid4()}")
+            st.text_input("Changeover End Longitude", key=f"changeover_end_lon_{uuid.uuid4()}")
         with col3:
-            st.number_input("VLSFO ROB at End (MT)", min_value=0.0, step=0.1, key="vlsfo_rob_end")
-            st.number_input("LSMGO ROB at End (MT)", min_value=0.0, step=0.1, key="lsmgo_rob_end")
+            st.number_input("VLSFO ROB at End (MT)", min_value=0.0, step=0.1, key=f"vlsfo_rob_end_{uuid.uuid4()}")
+            st.number_input("LSMGO ROB at End (MT)", min_value=0.0, step=0.1, key=f"lsmgo_rob_end_{uuid.uuid4()}")
 
 def display_speed_position_and_navigation():
     st.subheader("Speed, Position and Navigation")
@@ -392,7 +334,29 @@ def display_weather_and_sea_conditions():
         st.number_input("Current Strength (kts)", min_value=0.0, step=0.1, key=f"current_strength_{uuid.uuid4()}")
         st.number_input("Current Direction (°)", min_value=0, max_value=359, step=1, key=f"current_direction_{uuid.uuid4()}")
         st.number_input("Atm Pr (bar)", min_value=0, max_value=359, step=1, key=f"atms_pr_{uuid.uuid4()}")
+
+def display_custom_weather_and_sea_conditions(noon_report_type):
+    st.subheader("Weather and Sea Conditions")
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.number_input("True Wind Speed (kts)", min_value=0.0, step=0.1, key=f"true_wind_speed_{uuid.uuid4()}")
+        st.selectbox("BF Scale", range(13), key=f"bf_scale_{uuid.uuid4()}")
+        st.number_input("True Wind Direction (°)", min_value=0, max_value=359, step=1, key=f"true_wind_direction_{uuid.uuid4()}")
+        st.number_input("Sea Water Temp (°C)", min_value=-2.0, max_value=35.0, step=0.1, key=f"sea_water_temp_{uuid.uuid4()}")
         
+    with col2:
+        st.number_input("Significant Wave Height (m)", min_value=0.0, step=0.1, key=f"sig_wave_height_{uuid.uuid4()}")
+        st.selectbox("Sea State (Douglas)", range(10), key=f"douglas_sea_state_{uuid.uuid4()}")
+        st.number_input("Sea Height (m)", min_value=0.0, step=0.1, key=f"sea_height_{uuid.uuid4()}")
+        st.number_input("Air Temp (°C)", min_value=-50.0, max_value=50.0, step=0.1, key=f"air_temp_{uuid.uuid4()}")
+    with col3:
+        st.number_input("Sea Direction (°)", min_value=0, max_value=359, step=1, key=f"sea_direction_{uuid.uuid4()}")
+        st.number_input("Swell Direction (°)", min_value=0, max_value=359, step=1, key=f"swell_direction_{uuid.uuid4()}")
+        st.number_input("Swell Height (m) (DSS)", min_value=0.0, step=0.1, key=f"swell_height_{uuid.uuid4()}")
+    with col4:
+        st.number_input("Current Strength (kts)", min_value=0.0, step=0.1, key=f"current_strength_{uuid.uuid4()}")
+        st.number_input("Current Direction (°)", min_value=0, max_value=359, step=1, key=f"current_direction_{uuid.uuid4()}")
+        st.number_input("Atm Pr (bar)", min_value=0, max_value=359, step=1, key=f"atms_pr_{uuid.uuid4()}")
 
 def display_cargo_and_stability():
     st.subheader("Cargo and Stability")
@@ -427,9 +391,42 @@ def display_cargo_and_stability():
         st.number_input("Reefer 20ft Frozen", min_value=0, step=1, key=f"reefer_20ft_frozen_{uuid.uuid4()}")
         st.number_input("Reefer 40ft Frozen", min_value=0, step=1, key=f"reefer_40ft_frozen_{uuid.uuid4()}")
 
+def display_custom_cargo_and_stability(noon_report_type):
+    st.subheader("Cargo and Stability")
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.selectbox("Vessel Condition", ["", "Laden", "Ballast"], key=f"vessel_condition_{uuid.uuid4()}")
+        st.number_input("FWD Draft (m)", min_value=0.0, step=0.01, key=f"fwd_draft_{uuid.uuid4()}")
+        st.number_input("GM (m)", min_value=0.0, step=0.01, key=f"gm_{uuid.uuid4()}")
+        st.number_input("LCG (m)", min_value=0.0, step=0.01, key=f"lcg_{uuid.uuid4()}")
+    with col2:
+        st.number_input("Displacement (MT)", min_value=0.0, step=0.1, key=f"displacement_{uuid.uuid4()}")
+        st.number_input("Mid Draft (m)", min_value=0.0, step=0.01, key=f"mid_draft_{uuid.uuid4()}")
+        st.number_input("Ballast Quantity (m³)", min_value=0.0, step=0.1, key=f"ballast_qty_{uuid.uuid4()}")
+        st.number_input("VCG (m)", min_value=0.0, step=0.01, key=f"vcg_{uuid.uuid4()}")
+    with col3:
+        st.number_input("Water Plane Co-efficient", min_value=0.0, step=0.01, key=f"water_plane_coefficient_{uuid.uuid4()}")
+        st.number_input("AFT Draft (m)", min_value=0.0, step=0.01, key=f"aft_draft_{uuid.uuid4()}")
+        st.number_input("Freeboard (m)", min_value=0.0, step=0.01, key=f"freeboard_{uuid.uuid4()}")
+        st.number_input("Cb (Block Co-efficient)", min_value=0.0, step=0.01, key=f"cb_{uuid.uuid4()}")
+
+    st.markdown("<h3 style='font-size: 18px;'>Cargo Operations</h3>", unsafe_allow_html=True)
+    col1, col2 = st.columns(2)
+    with col1:
+        st.number_input("Cargo Weight (MT)", min_value=0.0, step=0.1, key=f"cargo_weight_{uuid.uuid4()}")
+        st.number_input("Cargo Volume (m³)", min_value=0.0, step=0.1, key=f"cargo_volume_{uuid.uuid4()}")
+        st.number_input("Number of Passengers", min_value=0, step=1, key=f"passengers_{uuid.uuid4()}")
+        st.number_input("Total TEU", min_value=0, step=1, key=f"total_teu_{uuid.uuid4()}")
+    with col2:
+        st.number_input("Reefer TEU", min_value=0, step=1, key=f"reefer_teu_{uuid.uuid4()}")
+        st.number_input("Reefer 20ft Chilled", min_value=0, step=1, key=f"reefer_20ft_chilled_{uuid.uuid4()}")
+        st.number_input("Reefer 40ft Chilled", min_value=0, step=1, key=f"reefer_40ft_chilled_{uuid.uuid4()}")
+        st.number_input("Reefer 20ft Frozen", min_value=0, step=1, key=f"reefer_20ft_frozen_{uuid.uuid4()}")
+        st.number_input("Reefer 40ft Frozen", min_value=0, step=1, key=f"reefer_40ft_frozen_{uuid.uuid4()}")
+
 def display_fuel_consumption():
+    st.subheader("Fuel Consumption (MT)")
     
-    # Rest of the fuel consumption table code
     fuel_types = [
         "Heavy Fuel Oil RME-RMK >80cSt",
         "Heavy Fuel Oil RMA-RMD <80cSt",
@@ -725,74 +722,6 @@ def display_fuel_allocation():
         st.subheader("Shore-Side Electricity")
         st.number_input("Work", key=f"shore_side_work_{uuid.uuid4()}", step=0.1)
 
-def display_custom_general_information(noon_report_type):
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.text_input("IMO Number", key=f"imo_number_{uuid.uuid4()}")
-        st.text_input("Voyage ID", key=f"voyage_id_{uuid.uuid4()}")
-        
-    with col2:
-        st.text_input("Vessel Name", key=f"vessel_name_{uuid.uuid4()}")
-        st.text_input("Segment ID", key=f"segment_id_{uuid.uuid4()}")
-    with col3:
-        st.text_input("Vessel Type", key=f"vessel_type_{uuid.uuid4()}")
-
-def display_custom_weather_and_sea_conditions(noon_report_type):
-    st.subheader("Weather and Sea Conditions")
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        st.number_input("True Wind Speed (kts)", min_value=0.0, step=0.1, key=f"true_wind_speed_{uuid.uuid4()}")
-        st.selectbox("BF Scale", range(13), key=f"bf_scale_{uuid.uuid4()}")
-        st.number_input("True Wind Direction (°)", min_value=0, max_value=359, step=1, key=f"true_wind_direction_{uuid.uuid4()}")
-        st.number_input("Sea Water Temp (°C)", min_value=-2.0, max_value=35.0, step=0.1, key=f"sea_water_temp_{uuid.uuid4()}")
-        
-    with col2:
-        st.number_input("Significant Wave Height (m)", min_value=0.0, step=0.1, key=f"sig_wave_height_{uuid.uuid4()}")
-        st.selectbox("Sea State (Douglas)", range(10), key=f"douglas_sea_state_{uuid.uuid4()}")
-        st.number_input("Sea Height (m)", min_value=0.0, step=0.1, key=f"sea_height_{uuid.uuid4()}")
-        st.number_input("Air Temp (°C)", min_value=-50.0, max_value=50.0, step=0.1, key=f"air_temp_{uuid.uuid4()}")
-    with col3:
-        st.number_input("Sea Direction (°)", min_value=0, max_value=359, step=1, key=f"sea_direction_{uuid.uuid4()}")
-        st.number_input("Swell Direction (°)", min_value=0, max_value=359, step=1, key=f"swell_direction_{uuid.uuid4()}")
-        st.number_input("Swell Height (m) (DSS)", min_value=0.0, step=0.1, key=f"swell_height_{uuid.uuid4()}")
-    with col4:
-        st.number_input("Current Strength (kts)", min_value=0.0, step=0.1, key=f"current_strength_{uuid.uuid4()}")
-        st.number_input("Current Direction (°)", min_value=0, max_value=359, step=1, key=f"current_direction_{uuid.uuid4()}")
-        st.number_input("Atm Pr (bar)", min_value=0, max_value=359, step=1, key=f"atms_pr_{uuid.uuid4()}")
-
-def display_custom_cargo_and_stability(noon_report_type):
-    st.subheader("Cargo and Stability")
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        st.selectbox("Vessel Condition", ["", "Laden", "Ballast"], key=f"vessel_condition_{uuid.uuid4()}")
-        st.number_input("FWD Draft (m)", min_value=0.0, step=0.01, key=f"fwd_draft_{uuid.uuid4()}")
-        st.number_input("GM (m)", min_value=0.0, step=0.01, key=f"gm_{uuid.uuid4()}")
-        st.number_input("LCG (m)", min_value=0.0, step=0.01, key=f"lcg_{uuid.uuid4()}")
-    with col2:
-        st.number_input("Displacement (MT)", min_value=0.0, step=0.1, key=f"displacement_{uuid.uuid4()}")
-        st.number_input("Mid Draft (m)", min_value=0.0, step=0.01, key=f"mid_draft_{uuid.uuid4()}")
-        st.number_input("Ballast Quantity (m³)", min_value=0.0, step=0.1, key=f"ballast_qty_{uuid.uuid4()}")
-        st.number_input("VCG (m)", min_value=0.0, step=0.01, key=f"vcg_{uuid.uuid4()}")
-    with col3:
-        st.number_input("Water Plane Co-efficient", min_value=0.0, step=0.01, key=f"water_plane_coefficient_{uuid.uuid4()}")
-        st.number_input("AFT Draft (m)", min_value=0.0, step=0.01, key=f"aft_draft_{uuid.uuid4()}")
-        st.number_input("Freeboard (m)", min_value=0.0, step=0.01, key=f"freeboard_{uuid.uuid4()}")
-        st.number_input("Cb (Block Co-efficient)", min_value=0.0, step=0.01, key=f"cb_{uuid.uuid4()}")
-
-    st.markdown("<h3 style='font-size: 18px;'>Cargo Operations</h3>", unsafe_allow_html=True)
-    col1, col2 = st.columns(2)
-    with col1:
-        st.number_input("Cargo Weight (MT)", min_value=0.0, step=0.1, key=f"cargo_weight_{uuid.uuid4()}")
-        st.number_input("Cargo Volume (m³)", min_value=0.0, step=0.1, key=f"cargo_volume_{uuid.uuid4()}")
-        st.number_input("Number of Passengers", min_value=0, step=1, key=f"passengers_{uuid.uuid4()}")
-        st.number_input("Total TEU", min_value=0, step=1, key=f"total_teu_{uuid.uuid4()}")
-    with col2:
-        st.number_input("Reefer TEU", min_value=0, step=1, key=f"reefer_teu_{uuid.uuid4()}")
-        st.number_input("Reefer 20ft Chilled", min_value=0, step=1, key=f"reefer_20ft_chilled_{uuid.uuid4()}")
-        st.number_input("Reefer 40ft Chilled", min_value=0, step=1, key=f"reefer_40ft_chilled_{uuid.uuid4()}")
-        st.number_input("Reefer 20ft Frozen", min_value=0, step=1, key=f"reefer_20ft_frozen_{uuid.uuid4()}")
-        st.number_input("Reefer 40ft Frozen", min_value=0, step=1, key=f"reefer_40ft_frozen_{uuid.uuid4()}")
-
 def display_custom_fuel_allocation(noon_report_type):
     st.subheader("Fuel Allocation")
     
@@ -847,48 +776,6 @@ def display_custom_fuel_allocation(noon_report_type):
     with col4:
         st.subheader("Shore-Side Electricity")
         st.number_input("Work", key=f"shore_side_work_{uuid.uuid4()}", step=0.1)
-
-def display_custom_miscellaneous_consumables(noon_report_type):
-    st.subheader("Miscellaneous Consumables")
-
-    st.markdown("Fresh Water")
-    col1, col2, col3, col4 = st.columns(4)
-    
-    with col1:
-        st.number_input("Fresh Water Bunkered (m³)", min_value=0.0, step=0.1, key=f"fw_bunkered_{uuid.uuid4()}")
-        st.number_input("Fresh Water Consumption - Drinking (m³)", min_value=0.0, step=0.1, key=f"fw_consumption_drinking_{uuid.uuid4()}")
-    
-    with col2:
-        st.number_input("Fresh Water Consumption - Technical (m³)", min_value=0.0, step=0.1, key=f"fw_consumption_technical_{uuid.uuid4()}")
-        st.number_input("Fresh Water Consumption - Washing (m³)", min_value=0.0, step=0.1, key=f"fw_consumption_washing_{uuid.uuid4()}")
-    
-    with col3:
-        st.number_input("Fresh Water Produced (m³)", min_value=0.0, step=0.1, key=f"fw_produced_{uuid.uuid4()}")
-        st.number_input("Fresh Water ROB (m³)", min_value=0.0, step=0.1, key=f"fw_rob_{uuid.uuid4()}")
-    
-    with col4:
-        st.number_input("Fresh Water Usage - Galley (m³)", min_value=0.0, step=0.1, key=f"fw_usage_galley_{uuid.uuid4()}")
-        st.number_input("Fresh Water Usage - Laundry (m³)", min_value=0.0, step=0.1, key=f"fw_usage_laundry_{uuid.uuid4()}")
-
-    st.markdown("Lubricating Oil")
-    col1, col2, col3, col4 = st.columns(4)
-    
-    with col1:
-        st.number_input("ME Cylinder Oil High BN ROB (liters)", min_value=0, step=1, key=f"me_cyl_oil_high_bn_rob_{uuid.uuid4()}")
-        st.number_input("ME Cylinder Oil Low BN ROB (liters)", min_value=0, step=1, key=f"me_cyl_oil_low_bn_rob_{uuid.uuid4()}")
-    
-    with col2:
-        st.number_input("ME System Oil ROB (liters)", min_value=0, step=1, key=f"me_system_oil_rob_{uuid.uuid4()}")
-        st.number_input("AE System Oil ROB (liters)", min_value=0, step=1, key=f"ae_system_oil_rob_{uuid.uuid4()}")
-    
-    with col3:
-        st.number_input("ME Cylinder Oil Consumption (liters)", min_value=0, step=1, key=f"me_cyl_oil_consumption_{uuid.uuid4()}")
-        st.number_input("ME Cylinder Oil Feed Rate (g/kWh)", min_value=0.0, step=0.1, key=f"me_cyl_oil_feed_rate_{uuid.uuid4()}")
-    
-    with col4:
-        st.number_input("ME System Oil Consumption (liters)", min_value=0, step=1, key=f"me_system_oil_consumption_{uuid.uuid4()}")
-        st.number_input("AE System Oil Consumption (liters)", min_value=0, step=1, key=f"ae_system_oil_consumption_{uuid.uuid4()}")
-
 
 def display_machinery():
     st.subheader("Machinery")
@@ -1025,6 +912,47 @@ def display_custom_environmental_compliance(noon_report_type):
         st.number_input("Bilge Water Landed Ashore (m³)", min_value=0.0, step=0.1, key=f"bilge_landed_{uuid.uuid4()}")
 
 def display_miscellaneous_consumables():
+    st.subheader("Miscellaneous Consumables")
+
+    st.markdown("Fresh Water")
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.number_input("Fresh Water Bunkered (m³)", min_value=0.0, step=0.1, key=f"fw_bunkered_{uuid.uuid4()}")
+        st.number_input("Fresh Water Consumption - Drinking (m³)", min_value=0.0, step=0.1, key=f"fw_consumption_drinking_{uuid.uuid4()}")
+    
+    with col2:
+        st.number_input("Fresh Water Consumption - Technical (m³)", min_value=0.0, step=0.1, key=f"fw_consumption_technical_{uuid.uuid4()}")
+        st.number_input("Fresh Water Consumption - Washing (m³)", min_value=0.0, step=0.1, key=f"fw_consumption_washing_{uuid.uuid4()}")
+    
+    with col3:
+        st.number_input("Fresh Water Produced (m³)", min_value=0.0, step=0.1, key=f"fw_produced_{uuid.uuid4()}")
+        st.number_input("Fresh Water ROB (m³)", min_value=0.0, step=0.1, key=f"fw_rob_{uuid.uuid4()}")
+    
+    with col4:
+        st.number_input("Fresh Water Usage - Galley (m³)", min_value=0.0, step=0.1, key=f"fw_usage_galley_{uuid.uuid4()}")
+        st.number_input("Fresh Water Usage - Laundry (m³)", min_value=0.0, step=0.1, key=f"fw_usage_laundry_{uuid.uuid4()}")
+
+    st.markdown("Lubricating Oil")
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.number_input("ME Cylinder Oil High BN ROB (liters)", min_value=0, step=1, key=f"me_cyl_oil_high_bn_rob_{uuid.uuid4()}")
+        st.number_input("ME Cylinder Oil Low BN ROB (liters)", min_value=0, step=1, key=f"me_cyl_oil_low_bn_rob_{uuid.uuid4()}")
+    
+    with col2:
+        st.number_input("ME System Oil ROB (liters)", min_value=0, step=1, key=f"me_system_oil_rob_{uuid.uuid4()}")
+        st.number_input("AE System Oil ROB (liters)", min_value=0, step=1, key=f"ae_system_oil_rob_{uuid.uuid4()}")
+    
+    with col3:
+        st.number_input("ME Cylinder Oil Consumption (liters)", min_value=0, step=1, key=f"me_cyl_oil_consumption_{uuid.uuid4()}")
+        st.number_input("ME Cylinder Oil Feed Rate (g/kWh)", min_value=0.0, step=0.1, key=f"me_cyl_oil_feed_rate_{uuid.uuid4()}")
+    
+    with col4:
+        st.number_input("ME System Oil Consumption (liters)", min_value=0, step=1, key=f"me_system_oil_consumption_{uuid.uuid4()}")
+        st.number_input("AE System Oil Consumption (liters)", min_value=0, step=1, key=f"ae_system_oil_consumption_{uuid.uuid4()}")
+
+def display_custom_miscellaneous_consumables(noon_report_type):
     st.subheader("Miscellaneous Consumables")
 
     st.markdown("Fresh Water")
