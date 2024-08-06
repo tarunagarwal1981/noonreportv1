@@ -202,7 +202,9 @@ def display_voyage_details():
             st.time_input("Stoppage End Time (UTC)", key="offhire_end_time_utc")
             st.text_input("End Stoppage Position Latitude", key="end_offhire_lat")
             st.text_input("End Stoppage Position Longitude", key="end_offhire_lon")
-    
+        with col4:
+            st.text_area("Stoppage Reason", key="offhire_reason")
+        
     if deviation:
         st.subheader("Deviation Details")
         col1, col2, col3, col4 = st.columns(4)
