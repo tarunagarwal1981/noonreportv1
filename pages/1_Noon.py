@@ -119,6 +119,7 @@ def display_voyage_details():
         idl_crossing = st.checkbox("IDL Crossing", key=f"idl_crossing_{uuid.uuid4()}")
         deviation = st.checkbox("Deviation", key=f"deviation_{uuid.uuid4()}")
         special_area = st.checkbox("Transiting Special Area", key=f"special_area_{uuid.uuid4()}")
+        stoppage = st.checkbox("Stoppage", key=f"deviation_{uuid.uuid4()}")
         
     if offhire:
         st.subheader("Off-hire Details")
@@ -140,6 +141,27 @@ def display_voyage_details():
             st.text_input("End Off-hire Position Longitude", key=f"end_offhire_lon_{uuid.uuid4()}")
         with col4:
             st.text_area("Off-hire Reason", key=f"offhire_reason_{uuid.uuid4()}")
+
+    if stoppage:
+        st.subheader("Stoppage details")
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.date_input("Stoppage Start Date (LT)", key=f"offhire_start_date_lt_{uuid.uuid4()}")
+            st.time_input("Stoppage Start Time (LT)", key=f"offhire_start_time_lt_{uuid.uuid4()}")
+            st.date_input("Stoppage Start Date (UTC)", key=f"offhire_start_date_utc_{uuid.uuid4()}")
+            st.time_input("Stoppage Start Time (UTC)", key=f"offhire_start_time_utc_{uuid.uuid4()}")
+        with col2:
+            st.text_input("Start Stoppage Position Latitude", key=f"start_offhire_lat_{uuid.uuid4()}")
+            st.text_input("Start Stoppage Position Longitude", key=f"start_offhire_lon_{uuid.uuid4()}")
+            st.date_input("Stoppage End Date (LT)", key=f"offhire_end_date_lt_{uuid.uuid4()}")
+            st.time_input("Stoppage End Time (LT)", key=f"offhire_end_time_lt_{uuid.uuid4()}")
+        with col3:
+            st.date_input("Stoppage End Date (UTC)", key=f"offhire_end_date_utc_{uuid.uuid4()}")
+            st.time_input("Stoppage End Time (UTC)", key=f"offhire_end_time_utc_{uuid.uuid4()}")
+            st.text_input("End Stoppage Position Latitude", key=f"end_offhire_lat_{uuid.uuid4()}")
+            st.text_input("End Stoppage Position Longitude", key=f"end_offhire_lon_{uuid.uuid4()}")
+        with col4:
+            st.text_area("Stoppage Reason", key=f"offhire_reason_{uuid.uuid4()}")
     
     if eca_transit:
         st.subheader("ECA Transit Details")
@@ -275,7 +297,7 @@ def display_speed_position_and_navigation():
     with col1:
         st.number_input("Full Speed (hrs)", min_value=0.0, step=0.1, key=f"full_speed_hrs_{uuid.uuid4()}")
         st.number_input("Reduced Speed/Slow Steaming (hrs)", min_value=0.0, step=0.1, key=f"reduced_speed_hrs_{uuid.uuid4()}")
-        st.number_input("Stopped (hrs)", min_value=0.0, step=0.1, key=f"stopped_hrs_{uuid.uuid4()}")
+        
         st.number_input("Distance Observed (nm)", min_value=0.0, step=0.1, value=0.00, key=f"distance_observed_{uuid.uuid4()}")
         st.number_input("Distance To Go (nm)", min_value=0.0, step=0.1, value=0.00, key=f"distance_togo_{uuid.uuid4()}")
         st.date_input("Date (Local)", value=datetime.now(), key=f"local_date_{uuid.uuid4()}")
@@ -284,13 +306,13 @@ def display_speed_position_and_navigation():
         st.number_input("Distance Through Water (nm)", min_value=0.0, step=0.1, key=f"distance_through_water_{uuid.uuid4()}")
         st.number_input("Obs Speed (SOG) (kts)", min_value=0.0, step=0.1, key=f"obs_speed_sog_{uuid.uuid4()}")
         st.number_input("EM Log Speed (LOG) (kts)", min_value=0.0, step=0.1, key=f"em_log_speed_{uuid.uuid4()}")
-        st.number_input("Latitude Degree", min_value=-90, max_value=90, step=1, key=f"lat_degree_{uuid.uuid4()}")
+        st.number_input("Latitude", min_value=-90, max_value=90, step=1, key=f"lat_degree_{uuid.uuid4()}")
         st.time_input("Time (Local)", value=datetime.now().time(), key=f"local_time_{uuid.uuid4()}")
     with col3:
-        st.number_input("Latitude Minutes", min_value=0.0, max_value=59.99, step=0.01, format="%.2f", key=f"lat_minutes_{uuid.uuid4()}")
+        
         st.selectbox("Latitude N/S", ["N", "S"], key=f"lat_ns_{uuid.uuid4()}")
-        st.number_input("Longitude Degree", min_value=-180, max_value=180, step=1, key=f"lon_degree_{uuid.uuid4()}")
-        st.number_input("Longitude Minutes", min_value=0.0, max_value=59.99, step=0.01, format="%.2f", key=f"lon_minutes_{uuid.uuid4()}")
+        st.number_input("Longitude", min_value=-180, max_value=180, step=1, key=f"lon_degree_{uuid.uuid4()}")
+       
         st.date_input("Date (UTC)", value=datetime.now(), key=f"utc_date_{uuid.uuid4()}")
         
     with col4:
@@ -304,18 +326,18 @@ def display_custom_speed_position_and_navigation(noon_report_type):
     st.subheader("Speed, Position and Navigation")
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.number_input("Stopped (hrs)", min_value=0.0, step=0.1, key=f"stopped_hrs_{uuid.uuid4()}")
-        st.number_input("Latitude Degree", min_value=-90, max_value=90, step=1, key=f"lat_degree_{uuid.uuid4()}")
+        
+        st.number_input("Latitude", min_value=-90, max_value=90, step=1, key=f"lat_degree_{uuid.uuid4()}")
         st.date_input("Date (Local)", value=datetime.now(), key=f"local_date_{uuid.uuid4()}")
         st.number_input("Distance To Go (nm)", min_value=0.0, step=0.1, value=0.00, key=f"distance_togo_{uuid.uuid4()}")
         
     with col2:
-        st.number_input("Latitude Minutes", min_value=0.0, max_value=59.99, step=0.01, format="%.2f", key=f"lat_minutes_{uuid.uuid4()}")
+        
         st.selectbox("Latitude N/S", ["N", "S"], key=f"lat_ns_{uuid.uuid4()}")
-        st.number_input("Longitude Degree", min_value=-180, max_value=180, step=1, key=f"lon_degree_{uuid.uuid4()}")
+        st.number_input("Longitude", min_value=-180, max_value=180, step=1, key=f"lon_degree_{uuid.uuid4()}")
         
     with col3:
-        st.number_input("Longitude Minutes", min_value=0.0, max_value=59.99, step=0.01, format="%.2f", key=f"lon_minutes_{uuid.uuid4()}")
+       
         st.selectbox("Longitude E/W", ["E", "W"], key=f"lon_ew_{uuid.uuid4()}")
         st.number_input("True Heading (°)", min_value=0, max_value=359, step=1, key=f"true_heading_{uuid.uuid4()}")
         
