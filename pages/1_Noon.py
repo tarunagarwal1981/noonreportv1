@@ -1,4 +1,4 @@
-import streamlit as st
+3import streamlit as st
 import pandas as pd
 from datetime import datetime, time
 import uuid
@@ -457,12 +457,12 @@ def display_custom_cargo_and_stability(noon_report_type):
         st.number_input("Reefer 40ft Chilled Loaded", min_value=0, step=1, key=f"reefer_40ft_chilled_{uuid.uuid4()}")
         st.number_input("Reefer 20ft Frozen Loaded", min_value=0, step=1, key=f"reefer_20ft_frozen_{uuid.uuid4()}")
         st.number_input("Reefer 40ft Frozen Loaded", min_value=0, step=1, key=f"reefer_40ft_frozen_{uuid.uuid4()}")
-    with col1:
+    with col3:
         st.number_input("Cargo Discharged (MT)", min_value=0.0, step=0.1, key=f"cargo_weight_{uuid.uuid4()}")
         st.number_input("Cargo Discharged (m³)", min_value=0.0, step=0.1, key=f"cargo_volume_{uuid.uuid4()}")
         
         st.number_input("Total TEU Discharged", min_value=0, step=1, key=f"total_teu_{uuid.uuid4()}")
-    with col2:
+    with col4:
         st.number_input("Reefer TEU Discharged", min_value=0, step=1, key=f"reefer_teu_{uuid.uuid4()}")
         st.number_input("Reefer 20ft Chilled Discharged", min_value=0, step=1, key=f"reefer_20ft_chilled_{uuid.uuid4()}")
         st.number_input("Reefer 40ft Chilled Discharged", min_value=0, step=1, key=f"reefer_40ft_chilled_{uuid.uuid4()}")
