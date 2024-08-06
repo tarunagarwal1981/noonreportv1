@@ -295,8 +295,7 @@ def display_speed_position_and_navigation():
     st.subheader("Speed, Position and Navigation")
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.number_input("Full Speed (hrs)", min_value=0.0, step=0.1, key=f"full_speed_hrs_{uuid.uuid4()}")
-        st.number_input("Reduced Speed/Slow Steaming (hrs)", min_value=0.0, step=0.1, key=f"reduced_speed_hrs_{uuid.uuid4()}")
+        
         st.number_input("Distance Observed (nm)", min_value=0.0, step=0.1, value=0.00, key=f"distance_observed_{uuid.uuid4()}")
         st.number_input("Distance To Go (nm)", min_value=0.0, step=0.1, value=0.00, key=f"distance_togo_{uuid.uuid4()}")
         st.date_input("Date (Local)", value=datetime.now(), key=f"local_date_{uuid.uuid4()}")
@@ -430,7 +429,7 @@ def display_custom_cargo_and_stability(noon_report_type):
     st.subheader("Cargo and Stability")
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.selectbox("Vessel Condition", ["", "Laden", "Ballast"], key=f"vessel_condition_{uuid.uuid4()}")
+        st.selectbox("Vessel Activity", ["Loading", "Discharging", "Both"], key=f"vessel_condition_{uuid.uuid4()}")
         st.number_input("FWD Draft (m)", min_value=0.0, step=0.01, key=f"fwd_draft_{uuid.uuid4()}")
         st.number_input("GM (m)", min_value=0.0, step=0.01, key=f"gm_{uuid.uuid4()}")
         st.number_input("LCG (m)", min_value=0.0, step=0.01, key=f"lcg_{uuid.uuid4()}")
@@ -446,18 +445,31 @@ def display_custom_cargo_and_stability(noon_report_type):
         st.number_input("Cb (Block Co-efficient)", min_value=0.0, step=0.01, key=f"cb_{uuid.uuid4()}")
 
     st.markdown("<h3 style='font-size: 18px;'>Cargo Operations</h3>", unsafe_allow_html=True)
-    col1, col2 = st.columns(2)
+    col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.number_input("Cargo Weight (MT)", min_value=0.0, step=0.1, key=f"cargo_weight_{uuid.uuid4()}")
-        st.number_input("Cargo Volume (m³)", min_value=0.0, step=0.1, key=f"cargo_volume_{uuid.uuid4()}")
-        st.number_input("Number of Passengers", min_value=0, step=1, key=f"passengers_{uuid.uuid4()}")
-        st.number_input("Total TEU", min_value=0, step=1, key=f"total_teu_{uuid.uuid4()}")
+        st.number_input("Cargo Loaded (MT)", min_value=0.0, step=0.1, key=f"cargo_weight_{uuid.uuid4()}")
+        st.number_input("Cargo Loaded (m³)", min_value=0.0, step=0.1, key=f"cargo_volume_{uuid.uuid4()}")
+        
+        st.number_input("Total TEU Loaded", min_value=0, step=1, key=f"total_teu_{uuid.uuid4()}")
     with col2:
-        st.number_input("Reefer TEU", min_value=0, step=1, key=f"reefer_teu_{uuid.uuid4()}")
-        st.number_input("Reefer 20ft Chilled", min_value=0, step=1, key=f"reefer_20ft_chilled_{uuid.uuid4()}")
-        st.number_input("Reefer 40ft Chilled", min_value=0, step=1, key=f"reefer_40ft_chilled_{uuid.uuid4()}")
-        st.number_input("Reefer 20ft Frozen", min_value=0, step=1, key=f"reefer_20ft_frozen_{uuid.uuid4()}")
-        st.number_input("Reefer 40ft Frozen", min_value=0, step=1, key=f"reefer_40ft_frozen_{uuid.uuid4()}")
+        st.number_input("Reefer TEU Loaded", min_value=0, step=1, key=f"reefer_teu_{uuid.uuid4()}")
+        st.number_input("Reefer 20ft Chilled Loaded", min_value=0, step=1, key=f"reefer_20ft_chilled_{uuid.uuid4()}")
+        st.number_input("Reefer 40ft Chilled Loaded", min_value=0, step=1, key=f"reefer_40ft_chilled_{uuid.uuid4()}")
+        st.number_input("Reefer 20ft Frozen Loaded", min_value=0, step=1, key=f"reefer_20ft_frozen_{uuid.uuid4()}")
+        st.number_input("Reefer 40ft Frozen Loaded", min_value=0, step=1, key=f"reefer_40ft_frozen_{uuid.uuid4()}")
+    with col1:
+        st.number_input("Cargo Discharged (MT)", min_value=0.0, step=0.1, key=f"cargo_weight_{uuid.uuid4()}")
+        st.number_input("Cargo Discharged (m³)", min_value=0.0, step=0.1, key=f"cargo_volume_{uuid.uuid4()}")
+        
+        st.number_input("Total TEU Discharged", min_value=0, step=1, key=f"total_teu_{uuid.uuid4()}")
+    with col2:
+        st.number_input("Reefer TEU Discharged", min_value=0, step=1, key=f"reefer_teu_{uuid.uuid4()}")
+        st.number_input("Reefer 20ft Chilled Discharged", min_value=0, step=1, key=f"reefer_20ft_chilled_{uuid.uuid4()}")
+        st.number_input("Reefer 40ft Chilled Discharged", min_value=0, step=1, key=f"reefer_40ft_chilled_{uuid.uuid4()}")
+        st.number_input("Reefer 20ft Frozen Discharged", min_value=0, step=1, key=f"reefer_20ft_frozen_{uuid.uuid4()}")
+        st.number_input("Reefer 40ft Frozen Discharged", min_value=0, step=1, key=f"reefer_40ft_frozen_{uuid.uuid4()}")
+
+
 
 def display_fuel_consumption():
     st.subheader("Fuel Consumption (MT)")
