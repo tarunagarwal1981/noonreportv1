@@ -210,12 +210,13 @@ def display_custom_voyage_details(noon_report_type):
     with col1:
         st.text_input("Port Name", key=f"port_name_{uuid.uuid4()}")
         st.text_input("Port UNLOCODE", key=f"port_unlo_{uuid.uuid4()}")
-        
+        st.text_input("Next Port of Call", key=f"next_port_{uuid.uuid4()}")
     
     with col2:
         st.selectbox("Voyage Type", ["", "One-way", "Round trip", "STS"], key=f"voyage_type_{uuid.uuid4()}")
-        st.date_input("ETA", value=datetime.now(), key=f"eta_{uuid.uuid4()}")
-        st.text_input("Charter Type", key=f"charter_type_{uuid.uuid4()}")
+        st.date_input("ETD", value=datetime.now(), key=f"etd_{uuid.uuid4()}")
+        
+        st.text_input("Next Port UNLOCODE", key=f"next_unlo_{uuid.uuid4()}")
     
     with col3:
         st.number_input("Time Since Last Report (hours)", min_value=0.0, step=0.1, key=f"time_since_last_report_{uuid.uuid4()}")
