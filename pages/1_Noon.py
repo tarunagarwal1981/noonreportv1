@@ -185,7 +185,7 @@ def display_voyage_details():
         st.subheader("Start of Changeover")
         col1, col2, col3, col4 = st.columns(4)
         with col1:
-                        st.date_input("Changeover Start Date", key=f"changeover_start_date_{uuid.uuid4()}")
+            st.date_input("Changeover Start Date", key=f"changeover_start_date_{uuid.uuid4()}")
             st.time_input("Changeover Start Time", key=f"changeover_start_time_{uuid.uuid4()}")
         with col2:
             st.text_input("Changeover Start Latitude", key=f"changeover_start_lat_{uuid.uuid4()}")
