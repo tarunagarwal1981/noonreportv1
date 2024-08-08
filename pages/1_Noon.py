@@ -355,6 +355,7 @@ def display_speed_position_and_navigation():
         
         st.number_input("Distance Observed (nm)", min_value=0.0, step=0.1, value=0.00, key=f"distance_observed_{uuid.uuid4()}")
         st.number_input("Distance To Go (nm)", min_value=0.0, step=0.1, value=0.00, key=f"distance_togo_{uuid.uuid4()}")
+        st.number_input("Distance Adjusted (nm)", min_value=0.0, step=0.1, value=0.00, key=f"distance_adj_{uuid.uuid4()}")
         st.date_input("Date (Local)", value=datetime.now(), key=f"local_date_{uuid.uuid4()}")
         st.text_input("Ordered Speed", key=f"speed_order_{uuid.uuid4()}")
         
