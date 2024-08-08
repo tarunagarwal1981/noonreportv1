@@ -102,7 +102,6 @@ def display_voyage_details():
     
     with col2:
         st.selectbox("Voyage Type", ["", "One-way", "Round trip", "STS"], key="voyage_type")
-        st.selectbox("Voyage Stage", ["", "East", "West", "Ballast", "Laden"], key="voyage_stage")
         st.date_input("ETA", value=datetime.now(), key="eta")
         st.text_input("Charter Type", key="charter_type")
     
