@@ -81,12 +81,14 @@ def display_general_information():
 def display_custom_general_information(noon_report_type):
     col1, col2, col3 = st.columns(3)
     with col1:
+        st.text_input("IMO Number", key=f"imo_number_{uuid.uuid4()}")
+        st.text_input("Voyage ID", key=f"voyage_id_{uuid.uuid4()}")
         
         
-    with col2:
+    with col1:
         st.text_input("Vessel Name", key=f"vessel_name_{uuid.uuid4()}")
         st.text_input("Segment ID", key=f"segment_id_{uuid.uuid4()}")
-    with col3:
+    with col2:
         st.text_input("Vessel Type", key=f"vessel_type_{uuid.uuid4()}")
 
 
