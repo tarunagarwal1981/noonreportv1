@@ -9,9 +9,9 @@ def main():
     st.title("Noon Reporting Portal")
 
     noon_report_type = st.selectbox("Select Noon Report Type",
-                                    ["Arriving at Port", "Arrival Anchoring", "Entering Canal/River", "Arrival for STS"])
+                                    ["Departing Port", "Departing Anchoring", "Departing Canal/River", "Departing STS"])
 
-    if noon_report_type in ["Arriving at Port", "Arrival Anchoring", "Entering Canal/River", "Arrival for STS"]:
+    if noon_report_type in ["Departing Port", "Departing Anchoring", "Departing Canal/River", "Departing STS"]:
         display_base_report_form()
     else:
         display_custom_report_form(noon_report_type)
