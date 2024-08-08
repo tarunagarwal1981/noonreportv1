@@ -81,8 +81,7 @@ def display_general_information():
 def display_custom_general_information(noon_report_type):
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.text_input("Port Name", key=f"port_name_{uuid.uuid4()}")
-        st.text_input("Port UNLOCODE", key=f"port_unlo_{uuid.uuid4()}")
+        
         
     with col2:
         st.text_input("Vessel Name", key=f"vessel_name_{uuid.uuid4()}")
@@ -95,8 +94,9 @@ def display_voyage_details():
     col1, col2, col3, col4 = st.columns(4)
     with col1:
         st.text_input("Voyage From", key="voyage_from")
+        st.text_input("Voyage From UNLO", key="voyage_fromunlo")
         st.text_input("Voyage To", key="voyage_to")
-        st.text_input("Speed Order", key="speed_order")
+        st.text_input("Voyage To UNLO", key="voyage_tounlo")  
     
     with col2:
         st.selectbox("Voyage Type", ["", "One-way", "Round trip", "STS"], key="voyage_type")
@@ -108,6 +108,7 @@ def display_voyage_details():
         st.number_input("Time Since Last Report (hours)", min_value=0.0, step=0.1, key="time_since_last_report")
         st.selectbox("Clocks Advanced/Retarded", ["", "Advanced", "Retarded"], key="clocks_change")
         st.number_input("Clocks Changed By (minutes)", min_value=0, step=1, key="clocks_change_minutes")
+        st.text_input("Speed Order", key="speed_order")
     
     with col4:
         offhire = st.checkbox("Off-hire", key="offhire")
@@ -261,13 +262,12 @@ def display_custom_voyage_details(noon_report_type):
 
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.text_input("Voyage From", key="voyage_from")
-        st.text_input("Voyage To", key="voyage_to")
+        st.text_input("Port Name", key=f"port_name_{uuid.uuid4()}")
+        st.text_input("Port UNLOCODE", key=f"port_unlo_{uuid.uuid4()}")
         st.text_input("Speed Order", key="speed_order")
     
     with col2:
         st.selectbox("Voyage Type", ["", "One-way", "Round trip", "STS"], key="voyage_type")
-        st.selectbox("Voyage Stage", ["", "East", "West", "Ballast", "Laden"], key="voyage_stage")
         st.date_input("ETA", value=datetime.now(), key="eta")
         st.text_input("Charter Type", key="charter_type")
     
