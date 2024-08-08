@@ -90,7 +90,6 @@ def display_custom_general_information(noon_report_type):
     with col3:
         st.text_input("Vessel Type", key=f"vessel_type_{uuid.uuid4()}")
 
-
 def display_voyage_details():
     col1, col2, col3, col4 = st.columns(4)
     with col1:
@@ -105,9 +104,8 @@ def display_voyage_details():
         st.date_input("ETA", value=datetime.now(), key="eta")
         st.text_input("Charter Type", key="charter_type")
         st.text_input("Dep Port Timezone", key="dep_timezone")
-        t.text_input("Arr Port Timezone", key="Arr_timezone")
+        st.text_input("Arr Port Timezone", key="Arr_timezone")
         
-    
     with col3:
         st.number_input("Time Since Last Report (hours)", min_value=0.0, step=0.1, key="time_since_last_report")
         st.selectbox("Clocks Advanced/Retarded", ["", "Advanced", "Retarded"], key="clocks_change")
@@ -252,7 +250,6 @@ def display_voyage_details():
         with col3:
             st.text_input("Entry Special Area Position Latitude", key="entry_special_area_lat")
             st.text_input("Entry Special Area Position Longitude", key="entry_special_area_lon")
-            st.date_input("Exit Special Area Date (LT)", key="exit_special_area_date_lt")
             st.time_input("Exit Special Area Time (LT)", key="exit_special_area_time_lt")
         with col4:
             st.date_input("Exit Special Area Date (UTC)", key="exit_special_area_date_utc")
@@ -262,9 +259,8 @@ def display_voyage_details():
             st.text_area("Special Area Comments", key="special_area_comments")
 
 def display_custom_voyage_details(noon_report_type):
-
     col1, col2, col3, col4 = st.columns(4)
-   with col1:
+    with col1:
         st.text_input("Voyage From", key="voyage_from")
         st.text_input("Voyage From UNLOCODE", key="voyage_fromUNLO")
         st.text_input("Voyage To", key="voyage_to")
@@ -276,7 +272,7 @@ def display_custom_voyage_details(noon_report_type):
         st.date_input("ETA", value=datetime.now(), key="eta")
         st.text_input("Charter Type", key="charter_type")
         st.text_input("Dep Port Timezone", key="dep_timezone")
-        t.text_input("Arr Port Timezone", key="Arr_timezone")
+        st.text_input("Arr Port Timezone", key="Arr_timezone")
     
     with col3:
         st.number_input("Time Since Last Report (hours)", min_value=0.0, step=0.1, key="time_since_last_report")
@@ -351,46 +347,35 @@ def display_custom_voyage_details(noon_report_type):
         with col3:
             st.number_input("VLSFO ROB at End (MT)", min_value=0.0, step=0.1, key="vlsfo_rob_end")
             st.number_input("LSMGO ROB at End (MT)", min_value=0.0, step=0.1, key="lsmgo_rob_end")
-    
-    
-                                                                                
+
 def display_speed_position_and_navigation():
     st.subheader("Speed, Position and Navigation")
     col1, col2, col3 = st.columns(3)
     with col1:
-        
         st.date_input("Date Time (Local)", value=datetime.now(), key=f"local_date_{uuid.uuid4()}")
         st.date_input("Date Time (UTC)", value=datetime.now(), key=f"utc_date_{uuid.uuid4()}")
-        
-        
+    
     with col2:
         st.number_input("Latitude", min_value=-90, max_value=90, step=1, key=f"lat_degree_{uuid.uuid4()}")
         st.selectbox("Longitude E/W", ["E", "W"], key=f"lon_ew_{uuid.uuid4()}")
     with col3:
-        
         st.selectbox("Latitude N/S", ["N", "S"], key=f"lat_ns_{uuid.uuid4()}")
         st.number_input("Longitude", min_value=-180, max_value=180, step=1, key=f"lon_degree_{uuid.uuid4()}")
-               
-            
 
 def display_custom_speed_position_and_navigation(noon_report_type):
     st.subheader("Speed, Position and Navigation")
     col1, col2, col3 = st.columns(3)
-     with col1:
-        
+    with col1:
         st.date_input("Date Time (Local)", value=datetime.now(), key=f"local_date_{uuid.uuid4()}")
         st.date_input("Date Time (UTC)", value=datetime.now(), key=f"utc_date_{uuid.uuid4()}")
-        
-        
+    
     with col2:
         st.number_input("Latitude", min_value=-90, max_value=90, step=1, key=f"lat_degree_{uuid.uuid4()}")
         st.selectbox("Longitude E/W", ["E", "W"], key=f"lon_ew_{uuid.uuid4()}")
     with col3:
-        
         st.selectbox("Latitude N/S", ["N", "S"], key=f"lat_ns_{uuid.uuid4()}")
         st.number_input("Longitude", min_value=-180, max_value=180, step=1, key=f"lon_degree_{uuid.uuid4()}")
-               
-    
+
 def display_weather_and_sea_conditions():
     st.subheader("Weather and Sea Conditions")
     col1, col2, col3, col4 = st.columns(4)
@@ -481,6 +466,7 @@ def display_cargo_and_stability():
         st.number_input("Reefer 40ft Chilled Discharged", min_value=0, step=1, key=f"reefer_40ft_chilled_{uuid.uuid4()}")
         st.number_input("Reefer 20ft Frozen Discharged", min_value=0, step=1, key=f"reefer_20ft_frozen_{uuid.uuid4()}")
         st.number_input("Reefer 40ft Frozen Discharged", min_value=0, step=1, key=f"reefer_40ft_frozen_{uuid.uuid4()}")
+
 def display_custom_cargo_and_stability(noon_report_type):
     st.subheader("Cargo and Stability")
     col1, col2, col3, col4 = st.columns(4)
@@ -524,8 +510,6 @@ def display_custom_cargo_and_stability(noon_report_type):
         st.number_input("Reefer 40ft Chilled Discharged", min_value=0, step=1, key=f"reefer_40ft_chilled_{uuid.uuid4()}")
         st.number_input("Reefer 20ft Frozen Discharged", min_value=0, step=1, key=f"reefer_20ft_frozen_{uuid.uuid4()}")
         st.number_input("Reefer 40ft Frozen Discharged", min_value=0, step=1, key=f"reefer_40ft_frozen_{uuid.uuid4()}")
-
-
 
 def display_fuel_consumption():
     st.subheader("Fuel Consumption (MT)")
@@ -1079,7 +1063,6 @@ def display_custom_miscellaneous_consumables(noon_report_type):
 
     st.markdown("Lubricating Oil")
     col1, col2, col3, col4 = st.columns(4)
-    
     with col1:
         st.number_input("ME Cylinder Oil High BN ROB (liters)", min_value=0, step=1, key=f"me_cyl_oil_high_bn_rob_{uuid.uuid4()}")
         st.number_input("ME Cylinder Oil Low BN ROB (liters)", min_value=0, step=1, key=f"me_cyl_oil_low_bn_rob_{uuid.uuid4()}")
