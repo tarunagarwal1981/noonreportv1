@@ -453,7 +453,44 @@ def display_custom_cargo_and_stability(noon_report_type):
 
 def display_fuel_consumption():
     st.subheader("Fuel Consumption (MT)")
-    
+    # Bunkering checkbox
+    bunkering_happened = st.checkbox("Bunkering Happened")
+
+    if bunkering_happened:
+        st.markdown("<h4 style='font-size: 16px;'>Bunkering Details</h4>", unsafe_allow_html=True)
+        
+        # Initialize bunkering entries in session state if not present
+        if 'bunkering_entries' not in st.session_state:
+            st.session_state.bunkering_entries = [{}]
+
+        # Display each bunkering entry without using expander
+        for i, entry in enumerate(st.session_state.bunkering_entries):
+            st.markdown(f"**Bunkering Entry {i+1}**")
+            col1, col2, col3, col4 = st.columns(4)
+            with col1:
+                entry['grade'] = st.selectbox("Grade of Fuel Bunkered", 
+                                              ["VLSFO", "HFO", "MGO", "LSMGO", "LNG"], 
+                                              key=f"grade_{i}")
+                entry['grade_bdn'] = st.text_input("Grade as per BDN", key=f"grade_bdn_{i}")
+            with col2:
+                entry['qty_bdn'] = st.number_input("Quantity as per BDN (mt)", 
+                                                   min_value=0.0, step=0.1, key=f"qty_bdn_{i}")
+                entry['density'] = st.number_input("Density (kg/m³)", 
+                                                   min_value=0.0, step=0.1, key=f"density_{i}")
+            with col3:
+                entry['viscosity'] = st.number_input("Viscosity (cSt)", 
+                                                     min_value=0.0, step=0.1, key=f"viscosity_{i}")
+                entry['lcv'] = st.number_input("LCV (MJ/kg)", 
+                                               min_value=0.0, step=0.1, key=f"lcv_{i}")
+            with col4:
+                entry['bdn_file'] = st.file_uploader("Upload BDN", 
+                                                     type=['pdf', 'jpg', 'png'], 
+                                                     key=f"bdn_file_{i}")
+
+        # Button to add new bunkering entry
+        if st.button("➕ Add Bunkering Entry"):
+            st.session_state.bunkering_entries.append({})
+            st.experimental_rerun()
     fuel_types = [
         "Heavy Fuel Oil RME-RMK >80cSt",
         "Heavy Fuel Oil RMA-RMD <80cSt",
@@ -471,7 +508,7 @@ def display_fuel_consumption():
         "LNG (Bunkered)"
     ]
 
-    columns = ["Oil Type", "Previous ROB", "AT PORT M/E", "AT Port A/E", "AT Port BLR", "AT Port IGG", "AT Port OTH",
+    columns = ["Oil Type", "Previous ROB", "M/E", "A/E", "BLR", "IGG", "OTH",
                "GCU", "Total", "ROB at Noon", "Action"]
 
     # Create the header row
