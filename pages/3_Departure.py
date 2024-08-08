@@ -9,9 +9,9 @@ def main():
     st.title("Noon Reporting Portal")
 
     noon_report_type = st.selectbox("Select Noon Report Type",
-                                    ["Departure for Berth Shifting", "Departure Port", "Departure Anchor", "Departure Drifting", "Departure STS", "Departure Canal/River Passage"])
+                                    ["Departure for Berth Shifting", "Departure Port", "Departure Anchor", "Departure Drifting", "Departure STS"])
 
-    if noon_report_type in ["Departure for Berth Shifting", "Departure Port", "Departure STS"]:
+    if noon_report_type in ["Departure for Berth Shifting", "Departure Port", "Departure Anchor", "Departure STS"]:
         display_base_report_form()
     else:
         display_custom_report_form(noon_report_type)
@@ -93,18 +93,13 @@ def display_custom_general_information(noon_report_type):
 def display_voyage_details():
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.text_input("Voyage From", key="voyage_from")
-        st.text_input("Voyage From UNLOCODE", key="voyage_fromUNLO")
-        st.text_input("Voyage To", key="voyage_to")
-        st.text_input("Voyage To UNLOCODE", key="voyage_toUNLO")
-        st.text_input("Speed Order", key="speed_order")
-    
+        st.text_input("Port", key="voyage_from")
+        st.text_input("Port UNLOCODE", key="voyage_fromUNLO")
+        
+            
     with col2:
-        st.selectbox("Voyage Type", ["", "One-way", "Round trip", "STS"], key="voyage_type")
-        st.date_input("ETA", value=datetime.now(), key="eta")
-        st.text_input("Charter Type", key="charter_type")
-        st.text_input("Dep Port Timezone", key="dep_timezone")
-        st.text_input("Arr Port Timezone", key="Arr_timezone")
+        st.text_input("Port Timezone", key="dep_timezone")
+        st.text_input("Location", key="voyage_to")
         
     with col3:
         st.number_input("Time Since Last Report (hours)", min_value=0.0, step=0.1, key="time_since_last_report")
@@ -115,9 +110,6 @@ def display_voyage_details():
         offhire = st.checkbox("Off-hire", key="offhire")
         eca_transit = st.checkbox("ECA Transit", key="eca_transit")
         fuel_changeover = st.checkbox("Fuel Changeover", key="fuel_changeover")
-        idl_crossing = st.checkbox("IDL Crossing", key="idl_crossing")
-        stoppage = st.checkbox("Stoppge", key="Stoppge")
-        deviation = st.checkbox("Deviation", key="deviation")
         special_area = st.checkbox("Transiting Special Area", key="special_area")
         
     if offhire:
@@ -183,60 +175,6 @@ def display_voyage_details():
             st.number_input("VLSFO ROB at End (MT)", min_value=0.0, step=0.1, key="vlsfo_rob_end")
             st.number_input("LSMGO ROB at End (MT)", min_value=0.0, step=0.1, key="lsmgo_rob_end")
     
-    if idl_crossing:
-        st.selectbox("IDL Direction", ["East", "West"], key="idl_direction")
-    
-    if stoppage:
-        st.subheader("Stoppage")
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.date_input("Stoppage Start Date (LT)", key="offhire_start_date_lt")
-            st.time_input("Stoppage Start Time (LT)", key="offhire_start_time_lt")
-            st.date_input("Stoppage Start Date (UTC)", key="offhire_start_date_utc")
-            st.time_input("Stoppage Start Time (UTC)", key="offhire_start_time_utc")
-        with col2:
-            st.text_input("Start Stoppage Position Latitude", key="start_offhire_lat")
-            st.text_input("Start Stoppage Position Longitude", key="start_offhire_lon")
-            st.date_input("Stoppage End Date (LT)", key="offhire_end_date_lt")
-            st.time_input("Stoppage End Time (LT)", key="offhire_end_time_lt")
-        with col3:
-            st.date_input("Stoppage End Date (UTC)", key="offhire_end_date_utc")
-            st.time_input("Stoppage End Time (UTC)", key="offhire_end_time_utc")
-            st.text_input("End Stoppage Position Latitude", key="end_offhire_lat")
-            st.text_input("End Stoppage Position Longitude", key="end_offhire_lon")
-        with col4:
-            st.text_area("Stoppage Reason", key="offhire_reason")
-        
-    if deviation:
-        st.subheader("Deviation Details")
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            reason = st.selectbox("Reason for Deviation", ["Heavy weather", "SAR operation", "Navigational area Warning", "Med-evac", "Others"], key="deviation_reason")
-        with col2:
-            if reason == "Others":
-                st.text_input("Specify Other Reason", key="deviation_other_reason")
-        with col3:
-            st.date_input("Start Deviation Date (LT)", key="start_deviation_date_lt")
-            st.time_input("Start Deviation Time (LT)", key="start_deviation_time_lt")
-            st.date_input("Start Deviation Date (UTC)", key="start_deviation_date_utc")
-            st.time_input("Start Deviation Time (UTC)", key="start_deviation_time_utc")
-        with col4:
-            st.text_input("Start Deviation Position Latitude", key="start_deviation_lat")
-            st.text_input("Start Deviation Position Longitude", key="start_deviation_lon")
-
-        st.subheader("End of Deviation")
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.date_input("End Deviation Date (LT)", key="end_deviation_date_lt")
-            st.time_input("End Deviation Time (LT)", key="end_deviation_time_lt")
-            st.date_input("End Deviation Date (UTC)", key="end_deviation_date_utc")
-            st.time_input("End Deviation Time (UTC)", key="end_deviation_time_utc")
-        with col2:
-            st.text_input("End Deviation Position Latitude", key="end_deviation_lat")
-            st.text_input("End Deviation Position Longitude", key="end_deviation_lon")
-        with col3:
-            st.text_area("Deviation Comments", key="deviation_comments")
-
     if special_area:
         st.subheader("Transiting Special Area Details")
         col1, col2, col3, col4 = st.columns(4)
@@ -354,6 +292,7 @@ def display_speed_position_and_navigation():
     with col1:
         st.date_input("Date Time (Local)", value=datetime.now(), key=f"local_date_{uuid.uuid4()}")
         st.date_input("Date Time (UTC)", value=datetime.now(), key=f"utc_date_{uuid.uuid4()}")
+        st.number_input("Heading (°)", min_value=0, max_value=359, step=1, key=f"heading_{uuid.uuid4()}")
     
     with col2:
         st.number_input("Latitude", min_value=-90, max_value=90, step=1, key=f"lat_degree_{uuid.uuid4()}")
@@ -368,6 +307,7 @@ def display_custom_speed_position_and_navigation(noon_report_type):
     with col1:
         st.date_input("Date Time (Local)", value=datetime.now(), key=f"local_date_{uuid.uuid4()}")
         st.date_input("Date Time (UTC)", value=datetime.now(), key=f"utc_date_{uuid.uuid4()}")
+        st.number_input("Heading (°)", min_value=0, max_value=359, step=1, key=f"heading_{uuid.uuid4()}")
     
     with col2:
         st.number_input("Latitude", min_value=-90, max_value=90, step=1, key=f"lat_degree_{uuid.uuid4()}")
@@ -867,26 +807,6 @@ def display_custom_fuel_allocation(noon_report_type):
 def display_machinery():
     st.subheader("Machinery")
 
-    # Main Engine
-    st.subheader("Main Engine")
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        st.number_input("ME RPM", min_value=0.0, step=0.1, key=f"me_rpm_{uuid.uuid4()}")
-        st.number_input("ME TC1 RPM", min_value=0.0, step=0.1, key=f"me_tc1_rpm_{uuid.uuid4()}")
-        st.number_input("ME TC2 RPM", min_value=0.0, step=0.1, key=f"me_tc2_rpm_{uuid.uuid4()}")
-    with col2:
-        st.number_input("Exhaust Max. Temp.(C)", min_value=0.0, step=0.1, key=f"exhaust_max_temp_{uuid.uuid4()}")
-        st.number_input("Exhaust Min. Temp.(C)", min_value=0.0, step=0.1, key=f"exhaust_min_temp_{uuid.uuid4()}")
-        st.number_input("M/E rev counter", min_value=0, step=1, key=f"me_rev_counter_{uuid.uuid4()}")
-    with col3:
-        st.number_input("Scavenge pressure(BAR)", min_value=0.0, step=0.01, key=f"scavenge_pressure_{uuid.uuid4()}")
-        st.number_input("MCR", min_value=0.0, max_value=100.0, step=0.1, key=f"mcr_{uuid.uuid4()}")
-        st.number_input("Avg KW", min_value=0.0, step=0.1, key=f"avg_kw_{uuid.uuid4()}")
-    with col4:
-        st.number_input("Slip", min_value=0.0, max_value=100.0, step=0.1, key=f"slip_{uuid.uuid4()}")
-        st.number_input("SFOC", min_value=0.0, step=0.1, key=f"sfoc_{uuid.uuid4()}")
-        st.number_input("Propeller pitch", min_value=0.0, step=0.1, key=f"propeller_pitch_{uuid.uuid4()}")
-
     # Auxiliary Engines
     st.subheader("Auxiliary Engines")
     col1, col2, col3, col4 = st.columns(4)
@@ -925,24 +845,6 @@ def display_machinery():
 
 def display_custom_machinery(noon_report_type):
     st.subheader("Machinery")
-
-    # Main Engine
-    st.subheader("Main Engine")
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.number_input("M/E rev counter", min_value=0, step=1, key=f"me_rev_counter_{uuid.uuid4()}")
-    
-    # Auxiliary Engines
-    st.subheader("Auxiliary Engines")
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        st.number_input("Avg A/E power 1", min_value=0.0, step=0.1, key=f"avg_ae_power_1_{uuid.uuid4()}")
-    with col2:
-        st.number_input("Avg A/E power 2", min_value=0.0, step=0.1, key=f"avg_ae_power_2_{uuid.uuid4()}")
-    with col3:
-        st.number_input("Avg A/E power 3", min_value=0.0, step=0.1, key=f"avg_ae_power_3_{uuid.uuid4()}")
-    with col4:
-        st.number_input("Avg A/E power 4", min_value=0.0, step=0.1, key=f"avg_ae_power_4_{uuid.uuid4()}")
 
     # Running Hours
     st.subheader("Running Hours")
