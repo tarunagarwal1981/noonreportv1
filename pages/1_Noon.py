@@ -642,65 +642,56 @@ def display_fuel_consumption():
     st.metric('Total Fuel Consumed', f'{total_consumption:.2f} units')
 
 def display_custom_fuel_consumption(noon_report_type):
-    st.markdown("""
-    <style>
-    .fuel-table {
-        font-size: 12px.
-    }
-    .fuel-table input, .fuel-table select {
-        font-size: 12px;
-        padding: 2px 5px;
-        height: 25px;
-        min-height: 25px;
-    }
-    .fuel-table th {
-        font-weight: bold;
-        text-align: center;
-        padding: 2px;
-    }
-    .fuel-table td {
-        padding: 2px.
-    }
-    .stButton > button {
-        font-size: 10px;
-        padding: 2px 5px;
-        height: auto.
-    }
-    </style>
-    """, unsafe_allow_html=True)
 
-    st.markdown("<h3 style='font-size: 18px;'>Fuel Consumption (mt)</h3>", unsafe_allow_html=True)
-    
-    # Bunkering checkbox
+    # Initialize session state variables
+    if 'consumers' not in st.session_state:
+        st.session_state.consumers = [
+            'Main Engine', 'Aux Engine1', 'Aux Engine2', 'Aux Engine3',
+            'Boiler 1', 'Boiler 2', 'IGG', 'Incinerator'
+        ]
+    if 'tanks' not in st.session_state:
+        st.session_state.tanks = [f'Tank {i}' for i in range(1, 9)]
+    if 'consumption_data' not in st.session_state:
+        st.session_state.consumption_data = pd.DataFrame(0, index=st.session_state.consumers, columns=st.session_state.tanks)
+    if 'viscosity' not in st.session_state:
+        st.session_state.viscosity = {tank: np.random.uniform(20, 100) for tank in st.session_state.tanks}
+    if 'sulfur' not in st.session_state:
+        st.session_state.sulfur = {tank: np.random.uniform(0.05, 0.49) for tank in st.session_state.tanks}
+    if 'previous_rob' not in st.session_state:
+        st.session_state.previous_rob = pd.Series({tank: np.random.uniform(100, 1000) for tank in st.session_state.tanks})
+    if 'bunkered_qty' not in st.session_state:
+        st.session_state.bunkered_qty = pd.Series({tank: 0 for tank in st.session_state.tanks})
+    if 'bunkering_entries' not in st.session_state:
+        st.session_state.bunkering_entries = []
+
+    st.title('Fuel Consumption Tracker')
+
+    # Bunkering checkbox at the top
     bunkering_happened = st.checkbox("Bunkering Happened")
 
+    # Bunkering details section
     if bunkering_happened:
-        st.markdown("<h4 style='font-size: 16px;'>Bunkering Details</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='font-size: 18px;'>Bunkering Details</h4>", unsafe_allow_html=True)
         
-        # Initialize bunkering entries in session state if not present
-        if 'bunkering_entries' not in st.session_state:
-            st.session_state.bunkering_entries = [{}]
-
-        # Display each bunkering entry without using expander
+        # Display each bunkering entry
         for i, entry in enumerate(st.session_state.bunkering_entries):
-            st.markdown(f"**Bunkering Entry {i+1}**")
-            col1, col2, col3, col4 = st.columns(4)
+            st.markdown(f"<h5 style='font-size: 16px;'>Bunkering Entry {i+1}</h5>", unsafe_allow_html=True)
+            col1, col2, col3 = st.columns(3)
             with col1:
                 entry['grade'] = st.selectbox("Grade of Fuel Bunkered", 
                                               ["VLSFO", "HFO", "MGO", "LSMGO", "LNG"], 
                                               key=f"grade_{i}")
                 entry['grade_bdn'] = st.text_input("Grade as per BDN", key=f"grade_bdn_{i}")
+                entry['total_qty'] = st.number_input("Total Quantity Bunkered (mt)", 
+                                                     min_value=0.0, step=0.1, key=f"total_qty_{i}")
             with col2:
-                entry['qty_bdn'] = st.number_input("Quantity as per BDN (mt)", 
-                                                   min_value=0.0, step=0.1, key=f"qty_bdn_{i}")
                 entry['density'] = st.number_input("Density (kg/m³)", 
                                                    min_value=0.0, step=0.1, key=f"density_{i}")
-            with col3:
                 entry['viscosity'] = st.number_input("Viscosity (cSt)", 
                                                      min_value=0.0, step=0.1, key=f"viscosity_{i}")
+            with col3:
                 entry['lcv'] = st.number_input("LCV (MJ/kg)", 
                                                min_value=0.0, step=0.1, key=f"lcv_{i}")
-            with col4:
                 entry['bdn_file'] = st.file_uploader("Upload BDN", 
                                                      type=['pdf', 'jpg', 'png'], 
                                                      key=f"bdn_file_{i}")
@@ -710,91 +701,103 @@ def display_custom_fuel_consumption(noon_report_type):
             st.session_state.bunkering_entries.append({})
             st.experimental_rerun()
 
-    # Rest of the fuel consumption table code
-    fuel_types = [
-        "Heavy Fuel Oil RME-RMK >80cSt",
-        "Heavy Fuel Oil RMA-RMD <80cSt",
-        "VLSFO RME-RMK Visc >80cSt 0.5%S Max",
-        "VLSFO RMA-RMD Visc <80cSt 0.5%S Max",
-        "ULSFO RME-RMK <80cSt 0.1%S Max",
-        "ULSFO RMA-RMD <80cSt 0.1%S Max",
-        "VLSMGO 0.5%S Max",
-        "ULSMGO 0.1%S Max",
-        "Biofuel - 30",
-        "Biofuel Distillate FO",
-        "LPG - Propane",
-        "LPG - Butane",
-        "LNG Boil Off",
-        "LNG (Bunkered)"
-    ]
+    # Function to create a formatted column header
+    def format_column_header(tank):
+        return f"{tank}\nVisc: {st.session_state.viscosity[tank]:.1f}\nSulfur: {st.session_state.sulfur[tank]:.2f}%"
 
-    columns = ["Oil Type", "Previous ROB", "IN PORT M/E", "IN PORT A/E", "IN PORT BLR", "IN PORT IGG", "IN PORT GE/NG", "IN PORT OTH", "GCU", "Incinerator",
-               "Bunker Qty", "Sulphur %", "Total", "ROB at Noon", "Action"]
+    # Function to create an editable dataframe
+    def create_editable_dataframe():
+        index = ['Previous ROB'] + st.session_state.consumers
+        if bunkering_happened:
+            index += ['Bunkered Qty']
+        index += ['Current ROB']
+        
+        df = pd.DataFrame(index=index, columns=st.session_state.tanks)
+        df.loc['Previous ROB'] = st.session_state.previous_rob
+        df.loc[st.session_state.consumers] = st.session_state.consumption_data
+        if bunkering_happened:
+            total_bunkered = sum(entry.get('total_qty', 0) for entry in st.session_state.bunkering_entries)
+            df.loc['Bunkered Qty'] = [total_bunkered] + [0] * (len(st.session_state.tanks) - 1)
+        
+        # Calculate Current ROB
+        total_consumption = df.loc[st.session_state.consumers].sum()
+        df.loc['Current ROB'] = df.loc['Previous ROB'] - total_consumption
+        if bunkering_happened:
+            df.loc['Current ROB'] += df.loc['Bunkered Qty']
+        
+        # Format column headers
+        df.columns = [format_column_header(tank) for tank in st.session_state.tanks]
+        return df
 
-    # Create the header row
-    header_html = "<tr>"
-    for col in columns:
-        header_html += f"<th>{col}</th>"
-    header_html += "</tr>"
+    # Create the editable dataframe
+    df = create_editable_dataframe()
 
-    rows_html = ""
-    for fuel in fuel_types:
-        rows_html += "<tr>"
-        rows_html += f"<td>{fuel}</td>"
-        for i in range(1, len(columns) - 1):  # Skip the last column (Action)
-            if columns[i] == "Sulphur %":
-                rows_html += f"<td><input type='number' step='0.01' min='0' max='100' style='width: 100%;'></td>"
-            else:
-                rows_html += f"<td><input type='number' step='0.1' min='0' style='width: 100%;'></td>"
-        rows_html += "<td><button>Edit</button> <button>Delete</button></td>"
-        rows_html += "</tr>"
+    # Display the editable table
+    st.write("Fuel Consumption Data:")
+    edited_df = st.data_editor(
+        df,
+        use_container_width=True,
+        disabled=['Current ROB', 'Bunkered Qty'] if bunkering_happened else ['Current ROB'],
+        column_config={
+            column: st.column_config.NumberColumn(
+                column,
+                help=f"Enter data for {column.split()[0]} {column.split()[1]}",
+                min_value=0,
+                max_value=1000,
+                step=0.1,
+                format="%.1f"
+            ) for column in df.columns
+        }
+    )
 
-    table_html = f"""
-    <div class="fuel-table">
-        <table style="width: 100%;">
-            {header_html}
-            {rows_html}
-        </table>
-    </div>
-    """
+    # Update session state with edited values
+    st.session_state.previous_rob = edited_df.loc['Previous ROB']
+    st.session_state.consumption_data = edited_df.loc[st.session_state.consumers]
 
-    st.markdown(table_html, unsafe_allow_html=True)
+    # Function to edit tank properties
+    def edit_tank_properties():
+        st.write("Edit tank properties:")
+        
+        # Create a dataframe for tank properties
+        tank_props = pd.DataFrame({
+            'Viscosity': st.session_state.viscosity,
+            'Sulfur (%)': st.session_state.sulfur
+        })
+        
+        # Display editable dataframe for tank properties
+        edited_props = st.data_editor(
+            tank_props,
+            use_container_width=True,
+            column_config={
+                'Viscosity': st.column_config.NumberColumn(
+                    'Viscosity',
+                    min_value=20.0,
+                    max_value=100.0,
+                    step=0.1,
+                    format="%.1f"
+                ),
+                'Sulfur (%)': st.column_config.NumberColumn(
+                    'Sulfur (%)',
+                    min_value=0.05,
+                    max_value=0.49,
+                    step=0.01,
+                    format="%.2f"
+                )
+            }
+        )
+        
+        # Update session state with edited values
+        st.session_state.viscosity = edited_props['Viscosity'].to_dict()
+        st.session_state.sulfur = edited_props['Sulfur (%)'].to_dict()
 
-    if st.button("Add New Fuel Type"):
-        st.text_input("New Fuel Type Name")
+    # Add a section to edit tank properties
+    if st.checkbox("Edit Tank Properties"):
+        edit_tank_properties()
 
-    st.markdown("<h3 style='font-size: 18px;'>Tank Distribution</h3>", unsafe_allow_html=True)
+    # Calculate and display total consumption
+    total_consumption = st.session_state.consumption_data.sum().sum()
+    st.metric('Total Fuel Consumed', f'{total_consumption:.2f} units')
 
-    tank_names = ["Tank1", "Tank2", "Tank3", "Tank4", "Tank5", "Tank6", 
-                  "FO Serv Tank 1", "FO Serv Tank 2", "DO Serv Tank", 
-                  "FO Overflow Tank", "FO Drain Tank"]
-    
-    columns = ["Tank Name", "Grade of Fuel", "ROB (m³)"]
-
-    # Create the header row
-    header_html = "<tr>"
-    for col in columns:
-        header_html += f"<th>{col}</th>"
-    header_html += "</tr>"
-
-    rows_html = ""
-    for tank in tank_names:
-        rows_html += "<tr>"
-        rows_html += f"<td>{tank}</td>"
-        rows_html += f"<td><select><option value=''></option><option value='VLSFO'>VLSFO</option><option value='HFO'>HFO</option><option value='MGO'>MGO</option><option value='LSMGO'>LSMGO</option><option value='LNG'>LNG</option></select></td>"
-        rows_html += f"<td><input type='number' step='0.1' min='0' style='width: 100%;'></td>"
-        rows_html += "</tr>"
-
-    table_html = f"""
-    <div class="fuel-table">
-        <table style="width: 100%;">
-            {header_html}
-            {rows_html}
-        </table>
-    </div>
-    """
-
-    st.markdown(table_html, unsafe_allow_html=True)
 
 def display_fuel_allocation():
     st.subheader("Fuel Allocation")
