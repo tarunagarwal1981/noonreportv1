@@ -21,7 +21,7 @@ def display_base_report_form():
     sections = [
         "Vessel Information",
         "Voyage Information",
-        "Special Events"
+        "Special Events",
         "Speed, Position and Navigation",
         "Weather and Sea Conditions",
         "Cargo and Stability",
@@ -93,7 +93,7 @@ def display_custom_vessel_information(noon_report_type):
 
 
 def display_voyage_information():
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3, col3 = st.columns(3)
     with col1:
         st.text_input("Departure Port", key="voyage_from")
         st.text_input("UNLOCODE", key="voyage_fromunlo")
@@ -115,154 +115,7 @@ def display_voyage_information():
         if idl_crossing:
             st.selectbox("IDL Direction", ["East", "West"], key="idl_direction")
     
-    with col4:
-        offhire = st.checkbox("Off-hire", key="offhire")
-        eca_transit = st.checkbox("ECA Transit", key="eca_transit")
-        fuel_changeover = st.checkbox("Fuel Changeover", key="fuel_changeover")
-        idl_crossing = st.checkbox("IDL Crossing", key="idl_crossing")
-        stoppage = st.checkbox("Stoppge", key="Stoppge")
-        deviation = st.checkbox("Deviation", key="deviation")
-        special_area = st.checkbox("Transiting Special Area", key="special_area")
-        
-    if offhire:
-        st.subheader("Off-hire Details")
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.date_input("Off-hire Start Date (LT)", key="offhire_start_date_lt")
-            st.time_input("Off-hire Start Time (LT)", key="offhire_start_time_lt")
-            st.date_input("Off-hire Start Date (UTC)", key="offhire_start_date_utc")
-            st.time_input("Off-hire Start Time (UTC)", key="offhire_start_time_utc")
-        with col2:
-            st.text_input("Start Off-hire Position Latitude", key="start_offhire_lat")
-            st.text_input("Start Off-hire Position Longitude", key="start_offhire_lon")
-            st.date_input("Off-hire End Date (LT)", key="offhire_end_date_lt")
-            st.time_input("Off-hire End Time (LT)", key="offhire_end_time_lt")
-        with col3:
-            st.date_input("Off-hire End Date (UTC)", key="offhire_end_date_utc")
-            st.time_input("Off-hire End Time (UTC)", key="offhire_end_time_utc")
-            st.text_input("End Off-hire Position Latitude", key="end_offhire_lat")
-            st.text_input("End Off-hire Position Longitude", key="end_offhire_lon")
-        with col4:
-            st.text_area("Off-hire Reason", key="offhire_reason")
     
-    if eca_transit:
-        st.subheader("ECA Transit Details")
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.date_input("ECA Entry Date", key="eca_entry_date")
-            st.time_input("ECA Entry Time", key="eca_entry_time")
-        with col2:
-            st.text_input("ECA Entry Latitude", key="eca_entry_lat")
-            st.text_input("ECA Entry Longitude", key="eca_entry_lon")
-        with col3:
-            st.date_input("ECA Exit Date", key="eca_exit_date")
-            st.time_input("ECA Exit Time", key="eca_exit_time")
-        with col4:
-            st.text_input("ECA Exit Latitude", key="eca_exit_lat")
-            st.text_input("ECA Exit Longitude", key="eca_exit_lon")
-        st.text_input("ECA Name", key="eca_name")
-    
-    if fuel_changeover:
-        st.subheader("Fuel Changeover Details")
-        st.subheader("Start of Changeover")
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.date_input("Changeover Start Date", key="changeover_start_date")
-            st.time_input("Changeover Start Time", key="changeover_start_time")
-        with col2:
-            st.text_input("Changeover Start Latitude", key="changeover_start_lat")
-            st.text_input("Changeover Start Longitude", key="changeover_start_lon")
-        with col3:
-            st.number_input("VLSFO ROB at Start (MT)", min_value=0.0, step=0.1, key="vlsfo_rob_start")
-            st.number_input("LSMGO ROB at Start (MT)", min_value=0.0, step=0.1, key="lsmgo_rob_start")
-        
-        st.subheader("End of Changeover")
-        with col1:
-            st.date_input("Changeover End Date", key="changeover_end_date")
-            st.time_input("Changeover End Time", key="changeover_end_time")
-        with col2:
-            st.text_input("Changeover End Latitude", key="changeover_end_lat")
-            st.text_input("Changeover End Longitude", key="changeover_end_lon")
-        with col3:
-            st.number_input("VLSFO ROB at End (MT)", min_value=0.0, step=0.1, key="vlsfo_rob_end")
-            st.number_input("LSMGO ROB at End (MT)", min_value=0.0, step=0.1, key="lsmgo_rob_end")
-    
-    if idl_crossing:
-        st.selectbox("IDL Direction", ["East", "West"], key="idl_direction")
-    
-    if stoppage:
-        st.subheader("Stoppage")
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.date_input("Stoppage Start Date (LT)", key="offhire_start_date_lt")
-            st.time_input("Stoppage Start Time (LT)", key="offhire_start_time_lt")
-            st.date_input("Stoppage Start Date (UTC)", key="offhire_start_date_utc")
-            st.time_input("Stoppage Start Time (UTC)", key="offhire_start_time_utc")
-        with col2:
-            st.text_input("Start Stoppage Position Latitude", key="start_offhire_lat")
-            st.text_input("Start Stoppage Position Longitude", key="start_offhire_lon")
-            st.date_input("Stoppage End Date (LT)", key="offhire_end_date_lt")
-            st.time_input("Stoppage End Time (LT)", key="offhire_end_time_lt")
-        with col3:
-            st.date_input("Stoppage End Date (UTC)", key="offhire_end_date_utc")
-            st.time_input("Stoppage End Time (UTC)", key="offhire_end_time_utc")
-            st.text_input("End Stoppage Position Latitude", key="end_offhire_lat")
-            st.text_input("End Stoppage Position Longitude", key="end_offhire_lon")
-        with col4:
-            st.text_area("Stoppage Reason", key="offhire_reason")
-        
-    if deviation:
-        st.subheader("Deviation Details")
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            reason = st.selectbox("Reason for Deviation", ["Heavy weather", "SAR operation", "Navigational area Warning", "Med-evac", "Others"], key="deviation_reason")
-        with col2:
-            if reason == "Others":
-                st.text_input("Specify Other Reason", key="deviation_other_reason")
-        with col3:
-            st.date_input("Start Deviation Date (LT)", key="start_deviation_date_lt")
-            st.time_input("Start Deviation Time (LT)", key="start_deviation_time_lt")
-            st.date_input("Start Deviation Date (UTC)", key="start_deviation_date_utc")
-            st.time_input("Start Deviation Time (UTC)", key="start_deviation_time_utc")
-        with col4:
-            st.text_input("Start Deviation Position Latitude", key="start_deviation_lat")
-            st.text_input("Start Deviation Position Longitude", key="start_deviation_lon")
-
-        st.subheader("End of Deviation")
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.date_input("End Deviation Date (LT)", key="end_deviation_date_lt")
-            st.time_input("End Deviation Time (LT)", key="end_deviation_time_lt")
-            st.date_input("End Deviation Date (UTC)", key="end_deviation_date_utc")
-            st.time_input("End Deviation Time (UTC)", key="end_deviation_time_utc")
-        with col2:
-            st.text_input("End Deviation Position Latitude", key="end_deviation_lat")
-            st.text_input("End Deviation Position Longitude", key="end_deviation_lon")
-        with col3:
-            st.text_area("Deviation Comments", key="deviation_comments")
-
-    if special_area:
-        st.subheader("Transiting Special Area Details")
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            special_area_type = st.selectbox("Special Area Type", ["JWC area", "IWL", "ICE regions", "HRA"], key="special_area_type")
-        with col2:
-            st.date_input("Entry Special Area Date (LT)", key="entry_special_area_date_lt")
-            st.time_input("Entry Special Area Time (LT)", key="entry_special_area_time_lt")
-            st.date_input("Entry Special Area Date (UTC)", key="entry_special_area_date_utc")
-            st.time_input("Entry Special Area Time (UTC)", key="entry_special_area_time_utc")
-        with col3:
-            st.text_input("Entry Special Area Position Latitude", key="entry_special_area_lat")
-            st.text_input("Entry Special Area Position Longitude", key="entry_special_area_lon")
-            st.date_input("Exit Special Area Date (LT)", key="exit_special_area_date_lt")
-            st.time_input("Exit Special Area Time (LT)", key="exit_special_area_time_lt")
-        with col4:
-            st.date_input("Exit Special Area Date (UTC)", key="exit_special_area_date_utc")
-            st.time_input("Exit Special Area Time (UTC)", key="exit_special_area_time_utc")
-            st.text_input("Exit Special Area Position Latitude", key="exit_special_area_lat")
-            st.text_input("Exit Special Area Position Longitude", key="exit_special_area_lon")
-            st.text_area("Special Area Comments", key="special_area_comments")
-
 def display_special_events():
     st.subheader("Special Events")
     
