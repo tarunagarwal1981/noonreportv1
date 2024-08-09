@@ -16,7 +16,8 @@ def display_fuel_consumption():
             'Boiler 2',
             '    Boiler 2 - Cargo Heating',
             '    Boiler 2 - Discharge',
-            'IGG', 'Incinerator'
+            'IGG', 'Incinerator',
+            'DPP1', 'DPP2', 'DPP3'
         ]
     if 'tanks' not in st.session_state:
         st.session_state.tanks = [f'Tank {i}' for i in range(1, 9)]
@@ -110,6 +111,9 @@ def display_fuel_consumption():
         .dataframe td:first-child {
             font-weight: bold;
         }
+        .dataframe td.italic-row {
+            font-style: italic;
+        }
         .dataframe td.boiler-subsection {
             padding-left: 30px !important;
             font-style: italic;
@@ -121,9 +125,13 @@ def display_fuel_consumption():
     # Convert dataframe to HTML and apply custom styling
     df_html = df.to_html(classes='dataframe', escape=False)
     df_html = df_html.replace('<th>', '<th style="text-align: center;">')
+    
+    italic_rows = ['Boiler 1', 'Boiler 2', 'DPP1', 'DPP2', 'DPP3']
     for consumer in st.session_state.consumers:
         if consumer.startswith('    '):
             df_html = df_html.replace(f'<td>{consumer}</td>', f'<td class="boiler-subsection">{consumer.strip()}</td>')
+        elif consumer in italic_rows:
+            df_html = df_html.replace(f'<td>{consumer}</td>', f'<td class="italic-row">{consumer}</td>')
 
     # Display the styled dataframe
     st.markdown(df_html, unsafe_allow_html=True)
