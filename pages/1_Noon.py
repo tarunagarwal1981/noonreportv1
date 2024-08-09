@@ -18,8 +18,8 @@ def main():
 
 def display_base_report_form():
     sections = [
-        "General Information",
-        "Voyage Details",
+        "Vessel Information",
+        "Voyage Information",
         "Speed, Position and Navigation",
         "Weather and Sea Conditions",
         "Cargo and Stability",
@@ -43,8 +43,8 @@ def display_base_report_form():
 
 def display_custom_report_form(noon_report_type):
     sections = [
-        "General Information",
-        "Voyage Details",
+        "Vessel Information",
+        "Voyage Information",
         "Speed, Position and Navigation",
         "Weather and Sea Conditions",
         "Cargo and Stability",
@@ -66,49 +66,49 @@ def display_custom_report_form(noon_report_type):
     if st.button("Submit Report", type="primary", key=f"submit_report_{uuid.uuid4()}"):
         st.success("Report submitted successfully!")
 
-def display_general_information():
+def display_vessel_information():
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.text_input("IMO Number", key=f"imo_number_{uuid.uuid4()}")
-        st.text_input("Voyage ID", key=f"voyage_id_{uuid.uuid4()}")
+        st.text_input("IMO Number", key=f"imo_number_{uuid.uuid4()}")   
         
     with col2:
         st.text_input("Vessel Name", key=f"vessel_name_{uuid.uuid4()}")
-        st.text_input("Segment ID", key=f"segment_id_{uuid.uuid4()}")
+        
     with col3:
         st.text_input("Vessel Type", key=f"vessel_type_{uuid.uuid4()}")
 
-def display_custom_general_information(noon_report_type):
+def display_custom_vessel_information(noon_report_type):
     col1, col2, col3 = st.columns(3)
     with col1:
         st.text_input("IMO Number", key=f"imo_number_{uuid.uuid4()}")
-        st.text_input("Voyage ID", key=f"voyage_id_{uuid.uuid4()}")
+       
         
         
     with col1:
         st.text_input("Vessel Name", key=f"vessel_name_{uuid.uuid4()}")
-        st.text_input("Segment ID", key=f"segment_id_{uuid.uuid4()}")
+       
     with col2:
         st.text_input("Vessel Type", key=f"vessel_type_{uuid.uuid4()}")
 
 
-def display_voyage_details():
+def display_voyage_information():
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.text_input("Voyage From", key="voyage_from")
-        st.text_input("Voyage From UNLO", key="voyage_fromunlo")
-        st.text_input("Voyage To", key="voyage_to")
-        st.text_input("Voyage To UNLO", key="voyage_tounlo")  
+        st.text_input("Departure Port", key="voyage_from")
+        st.text_input("UNLOCODE", key="voyage_fromunlo")
+        st.text_input("Arrival Port", key="voyage_to")
+        st.text_input("UNLOCODE", key="voyage_tounlo")  
+        st.text_input("Voyage ID", key=f"voyage_id_{uuid.uuid4()}")
     
     with col2:
         st.selectbox("Voyage Type", ["", "One-way", "Round trip", "STS"], key="voyage_type")
+        st.selectbox("Vessel Condition", ["", "Laden", "Ballast"], key=f"vessel_condition_{uuid.uuid4()}")
         st.date_input("ETA", value=datetime.now(), key="eta")
         st.text_input("Charter Type", key="charter_type")
+        st.text_input("Segment ID", key=f"segment_id_{uuid.uuid4()}")
     
     with col3:
-        st.number_input("Time Since Last Report (hours)", min_value=0.0, step=0.1, key="time_since_last_report")
-        st.selectbox("Clocks Advanced/Retarded", ["", "Advanced", "Retarded"], key="clocks_change")
-        st.number_input("Clocks Changed By (minutes)", min_value=0, step=1, key="clocks_change_minutes")
+       
         st.text_input("Speed Order", key="speed_order")
     
     with col4:
@@ -269,13 +269,12 @@ def display_custom_voyage_details(noon_report_type):
     
     with col2:
         st.selectbox("Voyage Type", ["", "One-way", "Round trip", "STS"], key="voyage_type")
+        
         st.date_input("ETA", value=datetime.now(), key="eta")
         st.text_input("Charter Type", key="charter_type")
     
     with col3:
-        st.number_input("Time Since Last Report (hours)", min_value=0.0, step=0.1, key="time_since_last_report")
-        st.selectbox("Clocks Advanced/Retarded", ["", "Advanced", "Retarded"], key="clocks_change")
-        st.number_input("Clocks Changed By (minutes)", min_value=0, step=1, key="clocks_change_minutes")
+        st.selectbox("Vessel Condition", ["", "Laden", "Ballast"], key=f"vessel_condition_{uuid.uuid4()}")
     
     with col4:
         offhire = st.checkbox("Off-hire", key="offhire")
@@ -352,32 +351,35 @@ def display_speed_position_and_navigation():
     st.subheader("Speed, Position and Navigation")
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        
-        st.number_input("Distance Observed (nm)", min_value=0.0, step=0.1, value=0.00, key=f"distance_observed_{uuid.uuid4()}")
-        st.number_input("Distance To Go (nm)", min_value=0.0, step=0.1, value=0.00, key=f"distance_togo_{uuid.uuid4()}")
-        st.number_input("Distance Adjusted (nm)", min_value=0.0, step=0.1, value=0.00, key=f"distance_adj_{uuid.uuid4()}")
-        st.date_input("Date (Local)", value=datetime.now(), key=f"local_date_{uuid.uuid4()}")
-        st.text_input("Ordered Speed", key=f"speed_order_{uuid.uuid4()}")
-        
+        st.number_input("Time Since Last Report (hours)", min_value=0.0, step=0.1, key="time_since_last_report")
+        st.selectbox("Clocks Advanced/Retarded", ["", "Advanced", "Retarded"], key="clocks_change")
+        st.number_input("Clocks Changed By (minutes)", min_value=0, step=1, key="clocks_change_minutes")
+        st.time_input("Date Time (Local)", value=datetime.now().time(), key=f"local_time_{uuid.uuid4()}")
+        st.time_input("Vessel Timezone", value=datetime.now().time(), key=f"local_timezone_{uuid.uuid4()}")
+        st.date_input("Date Time (UTC)", value=datetime.now(), key=f"utc_date_{uuid.uuid4()}")
+               
     with col2:
+        st.number_input("Distance Observed (nm)", min_value=0.0, step=0.1, value=0.00, key=f"distance_observed_{uuid.uuid4()}")
+        st.number_input("Distance To Go (nm)", min_value=0.0, step=0.1, value=0.00, key=f"distance_togo_{uuid.uuid4()}")    
         st.number_input("Distance Through Water (nm)", min_value=0.0, step=0.1, key=f"distance_through_water_{uuid.uuid4()}")
+        st.number_input("Distance Adjusted (nm)", min_value=0.0, step=0.1, value=0.00, key=f"distance_adj_{uuid.uuid4()}")
         st.number_input("Obs Speed (SOG) (kts)", min_value=0.0, step=0.1, key=f"obs_speed_sog_{uuid.uuid4()}")
         st.number_input("EM Log Speed (LOG) (kts)", min_value=0.0, step=0.1, key=f"em_log_speed_{uuid.uuid4()}")
-        st.number_input("Latitude", min_value=-90, max_value=90, step=1, key=f"lat_degree_{uuid.uuid4()}")
-        st.time_input("Time (Local)", value=datetime.now().time(), key=f"local_time_{uuid.uuid4()}")
-    with col3:
         
+        
+    with col3:
+        st.number_input("Latitude", min_value=-90, max_value=90, step=1, key=f"lat_degree_{uuid.uuid4()}")
         st.selectbox("Latitude N/S", ["N", "S"], key=f"lat_ns_{uuid.uuid4()}")
         st.number_input("Longitude", min_value=-180, max_value=180, step=1, key=f"lon_degree_{uuid.uuid4()}")
-       
-        st.date_input("Date (UTC)", value=datetime.now(), key=f"utc_date_{uuid.uuid4()}")
-        
-    with col4:
         st.selectbox("Longitude E/W", ["E", "W"], key=f"lon_ew_{uuid.uuid4()}")
         st.number_input("Course (°)", min_value=0, max_value=359, step=1, key=f"course_{uuid.uuid4()}")
         st.number_input("Heading (°)", min_value=0, max_value=359, step=1, key=f"heading_{uuid.uuid4()}")
         
-        st.time_input("Time (UTC)", value=datetime.now().time(), key=f"utc_time_{uuid.uuid4()}")
+        
+    with col4:
+        st.text_input("Ordered Speed", key=f"speed_order_{uuid.uuid4()}")
+        
+        
 
 def display_custom_speed_position_and_navigation(noon_report_type):
     st.subheader("Speed, Position and Navigation")
@@ -454,7 +456,7 @@ def display_cargo_and_stability():
     st.subheader("Cargo and Stability")
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.selectbox("Vessel Condition", ["", "Laden", "Ballast"], key=f"vessel_condition_{uuid.uuid4()}")
+        
         st.number_input("FWD Draft (m)", min_value=0.0, step=0.01, key=f"fwd_draft_{uuid.uuid4()}")
         st.number_input("GM (m)", min_value=0.0, step=0.01, key=f"gm_{uuid.uuid4()}")
         st.number_input("LCG (m)", min_value=0.0, step=0.01, key=f"lcg_{uuid.uuid4()}")
@@ -474,7 +476,7 @@ def display_cargo_and_stability():
     with col1:
         st.number_input("Cargo Weight (MT)", min_value=0.0, step=0.1, key=f"cargo_weight_{uuid.uuid4()}")
         st.number_input("Cargo Volume (m³)", min_value=0.0, step=0.1, key=f"cargo_volume_{uuid.uuid4()}")
-        st.number_input("Number of Passengers", min_value=0, step=1, key=f"passengers_{uuid.uuid4()}")
+        
         st.number_input("Total TEU", min_value=0, step=1, key=f"total_teu_{uuid.uuid4()}")
     with col2:
         st.number_input("Reefer TEU", min_value=0, step=1, key=f"reefer_teu_{uuid.uuid4()}")
@@ -487,10 +489,11 @@ def display_custom_cargo_and_stability(noon_report_type):
     st.subheader("Cargo and Stability")
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.selectbox("Vessel Activity", ["Loading", "Discharging", "Both"], key=f"vessel_condition_{uuid.uuid4()}")
+        
         st.number_input("FWD Draft (m)", min_value=0.0, step=0.01, key=f"fwd_draft_{uuid.uuid4()}")
         st.number_input("GM (m)", min_value=0.0, step=0.01, key=f"gm_{uuid.uuid4()}")
         st.number_input("LCG (m)", min_value=0.0, step=0.01, key=f"lcg_{uuid.uuid4()}")
+        st.number_input("Water Depth (m)", min_value=0.0, step=0.01, key=f"water_depth{uuid.uuid4()}")
     with col2:
         st.number_input("Displacement (MT)", min_value=0.0, step=0.1, key=f"displacement_{uuid.uuid4()}")
         st.number_input("Mid Draft (m)", min_value=0.0, step=0.01, key=f"mid_draft_{uuid.uuid4()}")
@@ -505,9 +508,11 @@ def display_custom_cargo_and_stability(noon_report_type):
     st.markdown("<h3 style='font-size: 18px;'>Cargo Operations</h3>", unsafe_allow_html=True)
     col1, col2, col3, col4 = st.columns(4)
     with col1:
+        st.number_input("Cargo Weight (MT)", min_value=0.0, step=0.1, key=f"cargo_weight_{uuid.uuid4()}")
+        st.number_input("Cargo Volume (m³)", min_value=0.0, step=0.1, key=f"cargo_volume_{uuid.uuid4()}")
+        st.number_input("Total TEU", min_value=0, step=1, key=f"total_teu_{uuid.uuid4()}")
         st.number_input("Cargo Loaded (MT)", min_value=0.0, step=0.1, key=f"cargo_weight_{uuid.uuid4()}")
         st.number_input("Cargo Loaded (m³)", min_value=0.0, step=0.1, key=f"cargo_volume_{uuid.uuid4()}")
-        
         st.number_input("Total TEU Loaded", min_value=0, step=1, key=f"total_teu_{uuid.uuid4()}")
     with col2:
         st.number_input("Reefer TEU Loaded", min_value=0, step=1, key=f"reefer_teu_{uuid.uuid4()}")
@@ -518,7 +523,6 @@ def display_custom_cargo_and_stability(noon_report_type):
     with col3:
         st.number_input("Cargo Discharged (MT)", min_value=0.0, step=0.1, key=f"cargo_weight_{uuid.uuid4()}")
         st.number_input("Cargo Discharged (m³)", min_value=0.0, step=0.1, key=f"cargo_volume_{uuid.uuid4()}")
-        
         st.number_input("Total TEU Discharged", min_value=0, step=1, key=f"total_teu_{uuid.uuid4()}")
     with col4:
         st.number_input("Reefer TEU Discharged", min_value=0, step=1, key=f"reefer_teu_{uuid.uuid4()}")
