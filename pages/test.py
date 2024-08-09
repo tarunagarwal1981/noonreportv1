@@ -96,10 +96,6 @@ def display_fuel_consumption():
                                                     min_value=0.0, step=0.1, key=f"debunker_qty_{i}")
             with col2:
                 entry['bdn_number'] = st.text_input("BDN Number of Debunkered Oil", key=f"debunker_bdn_{i}")
-                entry['receipt_file'] = st.file_uploader("Upload Receipt", 
-                                                     type=['pdf', 'jpg', 'png'], 
-                                                     key=f"bdn_file_{i}")
-
 
         # Button to add new debunkering entry
         if st.button("➕ Add Debunkering Entry"):
