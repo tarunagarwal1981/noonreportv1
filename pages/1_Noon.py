@@ -116,6 +116,9 @@ def display_voyage_information():
             st.selectbox("IDL Direction", ["East", "West"], key="idl_direction")
     
     
+import streamlit as st
+import pandas as pd
+
 def display_special_events():
     st.subheader("Special Events")
     
@@ -139,12 +142,16 @@ def display_special_events():
 
     # Function to add a new row to the DataFrame
     def add_row():
-        new_row = pd.DataFrame([['']*len(columns)], columns=columns)
+        new_row = pd.DataFrame([[""] * len(columns)], columns=columns)
         st.session_state.special_events_df = pd.concat([st.session_state.special_events_df, new_row], ignore_index=True)
 
     # Button to add a new row
     if st.button("Add New Event"):
         add_row()
+
+    # Ensure the DataFrame is not empty
+    if st.session_state.special_events_df.empty:
+        st.session_state.special_events_df = pd.DataFrame([[""] * len(columns)], columns=columns)
 
     # Display the editable DataFrame
     edited_df = st.data_editor(
@@ -197,6 +204,7 @@ def display_special_events():
 
     # Update the session state with the edited DataFrame
     st.session_state.special_events_df = edited_df
+
 
 
 
