@@ -116,30 +116,10 @@ def display_voyage_information():
             st.selectbox("IDL Direction", ["East", "West"], key="idl_direction")
     
     
-import streamlit as st
-import pandas as pd
-
 def display_special_events():
     st.subheader("Special Events")
     
-    events = [
-        "Off-hire",
-        "ECA Transit",
-        "Fuel Changeover",
-        "Stoppage",
-        "Deviation",
-        "    Heavy weather",
-        "    SAR operation",
-        "    Navigational area Warning",
-        "    Med-evac",
-        "    Others",
-        "Transiting Special Area",
-        "    JWC area",
-        "    IWL",
-        "    ICE regions",
-        "    HRA"
-    ]
-    
+    # Define the columns for the DataFrame
     columns = [
         "Event",
         "Start Date Time",
@@ -153,43 +133,71 @@ def display_special_events():
         "Consumption Tank Name"
     ]
     
-    # Create a DataFrame to hold the event data
-    df = pd.DataFrame(columns=columns)
-    df['Event'] = events
-    
-    # Function to create an editable cell
-    def make_editable(val, key):
-        if 'Date Time' in key:
-            return st.text_input('', val, key=key)
-        elif 'Lat' in key or 'Long' in key:
-            return st.text_input('', val, key=key)
-        elif 'Distance' in key or 'Consumption' in key:
-            return st.number_input('', value=float(val) if val else 0.0, step=0.1, format="%.1f", key=key)
-        elif 'Tank Name' in key:
-            return st.selectbox('', options=[f"Tank {i}" for i in range(1, 9)], key=key)
-        else:
-            return val
+    # Initialize the DataFrame in session state if it doesn't exist
+    if 'special_events_df' not in st.session_state:
+        st.session_state.special_events_df = pd.DataFrame(columns=columns)
 
-    # Display the editable table
-    st.write("Enter Special Events Details:")
-    for index, row in df.iterrows():
-        cols = st.columns(len(columns))
-        new_row = {}
-        for col, (column_name, val) in zip(cols, row.items()):
-            with col:
-                if column_name == 'Event':
-                    st.write(("&nbsp;" * 4 + val) if val.startswith("    ") else f"**{val}**")
-                    new_row[column_name] = val
-                else:
-                    new_row[column_name] = make_editable(val, f"{index}_{column_name}")
-        df.loc[index] = new_row
-        st.write("---")
+    # Function to add a new row to the DataFrame
+    def add_row():
+        new_row = pd.DataFrame([['']*len(columns)], columns=columns)
+        st.session_state.special_events_df = pd.concat([st.session_state.special_events_df, new_row], ignore_index=True)
 
-    # Display the DataFrame
-    st.subheader("Special Events Summary")
-    st.dataframe(df)
+    # Button to add a new row
+    if st.button("Add New Event"):
+        add_row()
 
-    
+    # Display the editable DataFrame
+    edited_df = st.data_editor(
+        st.session_state.special_events_df,
+        num_rows="dynamic",
+        use_container_width=True,
+        column_config={
+            "Event": st.column_config.SelectboxColumn(
+                "Event",
+                width="medium",
+                options=[
+                    "Off-hire", "ECA Transit", "Fuel Changeover", "Stoppage",
+                    "Deviation - Heavy weather", "Deviation - SAR operation",
+                    "Deviation - Navigational area Warning", "Deviation - Med-evac",
+                    "Deviation - Others", "Transiting Special Area - JWC area",
+                    "Transiting Special Area - IWL", "Transiting Special Area - ICE regions",
+                    "Transiting Special Area - HRA"
+                ],
+            ),
+            "Start Date Time": st.column_config.DatetimeColumn(
+                "Start Date Time",
+                format="DD/MM/YYYY HH:mm",
+                step=60,
+            ),
+            "End Date Time": st.column_config.DatetimeColumn(
+                "End Date Time",
+                format="DD/MM/YYYY HH:mm",
+                step=60,
+            ),
+            "Distance Travelled": st.column_config.NumberColumn(
+                "Distance Travelled",
+                min_value=0,
+                max_value=1000,
+                step=0.1,
+                format="%.1f"
+            ),
+            "Total Consumption": st.column_config.NumberColumn(
+                "Total Consumption",
+                min_value=0,
+                max_value=1000,
+                step=0.1,
+                format="%.1f"
+            ),
+            "Consumption Tank Name": st.column_config.SelectboxColumn(
+                "Consumption Tank Name",
+                options=[f"Tank {i}" for i in range(1, 9)],
+            ),
+        }
+    )
+
+    # Update the session state with the edited DataFrame
+    st.session_state.special_events_df = edited_df
+
 
 
 def display_custom_voyage_details(noon_report_type):
