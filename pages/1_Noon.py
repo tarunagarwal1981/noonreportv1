@@ -637,10 +637,7 @@ def display_fuel_consumption():
     if st.checkbox("Edit Tank Properties"):
         edit_tank_properties()
 
-    # Calculate and display total consumption
-    total_consumption = st.session_state.consumption_data.sum().sum()
-    st.metric('Total Fuel Consumed', f'{total_consumption:.2f} units')
-
+    
 def display_custom_fuel_consumption(noon_report_type):
 
     # Initialize session state variables
@@ -794,10 +791,7 @@ def display_custom_fuel_consumption(noon_report_type):
     if st.checkbox("Edit Tank Properties"):
         edit_tank_properties()
 
-    # Calculate and display total consumption
-    total_consumption = st.session_state.consumption_data.sum().sum()
-    st.metric('Total Fuel Consumed', f'{total_consumption:.2f} units')
-
+   
 
 def display_fuel_allocation():
     st.subheader("Fuel Allocation")
