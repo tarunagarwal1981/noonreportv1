@@ -229,7 +229,7 @@ def display_custom_voyage_information(noon_report_type):
         drydock = st.checkbox("Drydock", key="drydock")
                 
     
-def display_custom__special_events():
+def display_custom__special_events(noon_report_type):
     st.subheader("Special Events")
     
     # Define the columns for the DataFrame
