@@ -93,7 +93,7 @@ def display_custom_vessel_information(noon_report_type):
 
 
 def display_voyage_information():
-    col1, col2, col3, col3 = st.columns(3)
+    col1, col2, col3 = st.columns(3)
     with col1:
         st.text_input("Departure Port", key="voyage_from")
         st.text_input("UNLOCODE", key="voyage_fromunlo")
