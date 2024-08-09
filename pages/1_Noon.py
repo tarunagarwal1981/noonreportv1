@@ -117,6 +117,9 @@ def display_voyage_information():
     
     
 
+import streamlit as st
+import pandas as pd
+from datetime import datetime
 
 def display_special_events():
     st.subheader("Special Events")
@@ -137,11 +140,19 @@ def display_special_events():
     
     # Initialize the DataFrame in session state if it doesn't exist
     if 'special_events_df' not in st.session_state:
-        st.session_state.special_events_df = pd.DataFrame(columns=columns)
-
-    # Ensure the DataFrame is not empty
-    if st.session_state.special_events_df.empty:
-        st.session_state.special_events_df = pd.DataFrame([[""] * len(columns)], columns=columns)
+        default_row = {
+            "Event": "Off-hire",
+            "Start Date Time": datetime.now(),
+            "Start Lat": "0.0",
+            "Start Long": "0.0",
+            "End Date Time": datetime.now(),
+            "End Lat": "0.0",
+            "End Long": "0.0",
+            "Distance Travelled": 0.0,
+            "Total Consumption": 0.0,
+            "Consumption Tank Name": "Tank 1"
+        }
+        st.session_state.special_events_df = pd.DataFrame([default_row])
 
     # Display the editable DataFrame
     edited_df = st.data_editor(
@@ -194,6 +205,7 @@ def display_special_events():
 
     # Update the session state with the edited DataFrame
     st.session_state.special_events_df = edited_df
+
 
 
 
