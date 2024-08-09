@@ -45,6 +45,8 @@ def display_fuel_consumption():
                                               ["VLSFO", "HFO", "MGO", "LSMGO", "LNG"], 
                                               key=f"grade_{i}")
                 entry['grade_bdn'] = st.text_input("Grade as per BDN", key=f"grade_bdn_{i}")
+                entry['total_qty'] = st.number_input("Total Quantity Bunkered (mt)", 
+                                                     min_value=0.0, step=0.1, key=f"total_qty_{i}")
             with col2:
                 entry['density'] = st.number_input("Density (kg/m³)", 
                                                    min_value=0.0, step=0.1, key=f"density_{i}")
@@ -56,16 +58,6 @@ def display_fuel_consumption():
                 entry['bdn_file'] = st.file_uploader("Upload BDN", 
                                                      type=['pdf', 'jpg', 'png'], 
                                                      key=f"bdn_file_{i}")
-
-            # Tank allocation for this bunkering entry
-            st.markdown("<h6 style='font-size: 14px;'>Allocate Bunkered Fuel to Tanks</h6>", unsafe_allow_html=True)
-            for tank in st.session_state.tanks:
-                entry[f'qty_{tank}'] = st.number_input(f"Quantity for {tank} (mt)", 
-                                                       min_value=0.0, step=0.1, key=f"qty_{tank}_{i}")
-                
-            # Update bunkered_qty in session state
-            for tank in st.session_state.tanks:
-                st.session_state.bunkered_qty[tank] += entry[f'qty_{tank}']
 
         # Button to add new bunkering entry
         if st.button("➕ Add Bunkering Entry"):
@@ -87,7 +79,8 @@ def display_fuel_consumption():
         df.loc['Previous ROB'] = st.session_state.previous_rob
         df.loc[st.session_state.consumers] = st.session_state.consumption_data
         if bunkering_happened:
-            df.loc['Bunkered Qty'] = st.session_state.bunkered_qty
+            total_bunkered = sum(entry.get('total_qty', 0) for entry in st.session_state.bunkering_entries)
+            df.loc['Bunkered Qty'] = [total_bunkered] + [0] * (len(st.session_state.tanks) - 1)
         
         # Calculate Current ROB
         total_consumption = df.loc[st.session_state.consumers].sum()
