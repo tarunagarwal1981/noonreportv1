@@ -10,7 +10,13 @@ def display_fuel_consumption():
     if 'consumers' not in st.session_state:
         st.session_state.consumers = [
             'Main Engine', 'Aux Engine1', 'Aux Engine2', 'Aux Engine3',
-            'Boiler 1', 'Boiler 2', 'IGG', 'Incinerator'
+            'Boiler 1',
+            '    Boiler 1 - Cargo Heating',
+            '    Boiler 1 - Discharge',
+            'Boiler 2',
+            '    Boiler 2 - Cargo Heating',
+            '    Boiler 2 - Discharge',
+            'IGG', 'Incinerator'
         ]
     if 'tanks' not in st.session_state:
         st.session_state.tanks = [f'Tank {i}' for i in range(1, 9)]
@@ -97,25 +103,30 @@ def display_fuel_consumption():
 
     # Display the editable table
     st.write("Fuel Consumption Data:")
-    edited_df = st.data_editor(
-        df,
-        use_container_width=True,
-        disabled=['Current ROB', 'Bunkered Qty'] if bunkering_happened else ['Current ROB'],
-        column_config={
-            column: st.column_config.NumberColumn(
-                column,
-                help=f"Enter data for {column.split()[0]} {column.split()[1]}",
-                min_value=0,
-                max_value=1000,
-                step=0.1,
-                format="%.1f"
-            ) for column in df.columns
+    
+    # Custom CSS to style the dataframe
+    custom_css = """
+    <style>
+        .dataframe td:first-child {
+            font-weight: bold;
         }
-    )
+        .dataframe td.boiler-subsection {
+            padding-left: 30px !important;
+            font-style: italic;
+        }
+    </style>
+    """
+    st.markdown(custom_css, unsafe_allow_html=True)
 
-    # Update session state with edited values
-    st.session_state.previous_rob = edited_df.loc['Previous ROB']
-    st.session_state.consumption_data = edited_df.loc[st.session_state.consumers]
+    # Convert dataframe to HTML and apply custom styling
+    df_html = df.to_html(classes='dataframe', escape=False)
+    df_html = df_html.replace('<th>', '<th style="text-align: center;">')
+    for consumer in st.session_state.consumers:
+        if consumer.startswith('    '):
+            df_html = df_html.replace(f'<td>{consumer}</td>', f'<td class="boiler-subsection">{consumer.strip()}</td>')
+
+    # Display the styled dataframe
+    st.markdown(df_html, unsafe_allow_html=True)
 
     # Function to edit tank properties
     def edit_tank_properties():
