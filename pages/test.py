@@ -2,6 +2,9 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 
+# Set page to wide mode
+st.set_page_config(layout="wide")
+
 # Initialize session state variables
 if 'consumers' not in st.session_state:
     st.session_state.consumers = [
@@ -22,65 +25,39 @@ st.title('Fuel Consumption and Property Tracker')
 # Function to create an editable dataframe
 def create_editable_dataframe():
     df = st.session_state.consumption_data.copy()
-    for consumer in st.session_state.consumers:
-        for tank in st.session_state.tanks:
-            df.at[consumer, tank] = st.number_input(
-                f'{consumer} - {tank}',
-                value=float(df.at[consumer, tank]),
-                key=f'input_{consumer}_{tank}',
-                step=0.1
-            )
+    viscosity_row = pd.Series(st.session_state.viscosity, name='Viscosity')
+    sulfur_row = pd.Series(st.session_state.sulfur, name='Sulfur (%)')
+    df = pd.concat([viscosity_row.to_frame().T, sulfur_row.to_frame().T, df])
+    
     return df
 
-# Main content
-st.header('Fuel Consumption Data')
+# Create the editable dataframe
+df = create_editable_dataframe()
 
-# Create tabs for data entry and table view
-tab1, tab2 = st.tabs(['Data Entry', 'Table View'])
+# Display the editable table
+st.write("Edit the table below:")
+edited_df = st.data_editor(
+    df,
+    use_container_width=True,
+    hide_index=False,
+    column_config={
+        tank: st.column_config.NumberColumn(
+            tank,
+            help=f"Enter data for {tank}",
+            min_value=0,
+            max_value=1000,
+            step=0.1,
+            format="%.1f"
+        ) for tank in st.session_state.tanks
+    }
+)
 
-with tab1:
-    st.subheader('Enter Consumption Data')
-    st.session_state.consumption_data = create_editable_dataframe()
-    
-    st.subheader('Enter Fuel Properties')
-    cols = st.columns(4)
-    for i, tank in enumerate(st.session_state.tanks):
-        with cols[i % 4]:
-            st.session_state.viscosity[tank] = st.number_input(
-                f'{tank} Viscosity',
-                value=st.session_state.viscosity[tank],
-                key=f'viscosity_{tank}',
-                step=0.1
-            )
-            st.session_state.sulfur[tank] = st.number_input(
-                f'{tank} Sulfur (%)',
-                value=st.session_state.sulfur[tank],
-                key=f'sulfur_{tank}',
-                min_value=0.0,
-                max_value=100.0,
-                step=0.01
-            )
+# Update session state with edited values
+st.session_state.viscosity = edited_df.iloc[0].to_dict()
+st.session_state.sulfur = edited_df.iloc[1].to_dict()
+st.session_state.consumption_data = edited_df.iloc[2:]
 
-    if st.button('Save Data'):
-        st.success('Data saved successfully!')
-
-with tab2:
-    st.subheader('Fuel Consumption and Property Table')
-    
-    # Create the table header
-    header = ['Consumer'] + [f'{tank}\nViscosity: {st.session_state.viscosity[tank]:.1f}\nSulfur: {st.session_state.sulfur[tank]:.2f}%' for tank in st.session_state.tanks]
-    
-    # Create the table data
-    table_data = [header]
-    for consumer in st.session_state.consumers:
-        row = [consumer] + [f'{st.session_state.consumption_data.at[consumer, tank]:.1f}' for tank in st.session_state.tanks]
-        table_data.append(row)
-    
-    # Display the table
-    df = pd.DataFrame(table_data[1:], columns=table_data[0])
-    st.dataframe(df.style.set_properties(**{'text-align': 'center'}))
-
-# Display total consumption
+# Calculate and display total consumption
 total_consumption = st.session_state.consumption_data.sum().sum()
 st.metric('Total Fuel Consumed', f'{total_consumption:.2f} units')
 
