@@ -20,6 +20,7 @@ def display_base_report_form():
     sections = [
         "Vessel Information",
         "Voyage Information",
+        "Special Events",
         "Speed, Position and Navigation",
         "Weather and Sea Conditions",
         "Cargo and Stability",
@@ -44,6 +45,7 @@ def display_custom_report_form(noon_report_type):
     sections = [
         "Vessel Information",
         "Voyage Information",
+        "Special Events",
         "Speed, Position and Navigation",
         "Weather and Sea Conditions",
         "Cargo and Stability",
@@ -108,6 +110,9 @@ def display_voyage_information():
     with col3:
        
         st.text_input("Speed Order", key="speed_order")
+        idl_crossing = st.checkbox("IDL Crossing", key="idl_crossing")
+        if idl_crossing:
+            st.selectbox("IDL Direction", ["East", "West"], key="idl_direction")
     
     with col4:
         offhire = st.checkbox("Off-hire", key="offhire")
@@ -257,6 +262,35 @@ def display_voyage_information():
             st.text_input("Exit Special Area Position Longitude", key="exit_special_area_lon")
             st.text_area("Special Area Comments", key="special_area_comments")
 
+def display_special_events():
+    st.subheader("Special Events")
+    
+    events = [
+        "Off-hire", "ECA Transit", "Fuel Changeover", "Stoppage", "Deviation", "Transiting Special Area"
+    ]
+    
+    # Create a DataFrame to hold the event data
+    df = pd.DataFrame(index=events, columns=[
+        "Start Date Time (LT)", "Start Lat", "Start Long",
+        "End Date Time (LT)", "End Lat", "End Long",
+        "Distance", "Consumption", "Tank Name"
+    ])
+    
+    # Fill the DataFrame with input widgets
+    for event in events:
+        df.loc[event, "Start Date Time (LT)"] = st.text_input(f"{event} Start Date Time (LT)", key=f"{event}_start_dt")
+        df.loc[event, "Start Lat"] = st.text_input(f"{event} Start Lat", key=f"{event}_start_lat")
+        df.loc[event, "Start Long"] = st.text_input(f"{event} Start Long", key=f"{event}_start_long")
+        df.loc[event, "End Date Time (LT)"] = st.text_input(f"{event} End Date Time (LT)", key=f"{event}_end_dt")
+        df.loc[event, "End Lat"] = st.text_input(f"{event} End Lat", key=f"{event}_end_lat")
+        df.loc[event, "End Long"] = st.text_input(f"{event} End Long", key=f"{event}_end_long")
+        df.loc[event, "Distance"] = st.number_input(f"{event} Distance", key=f"{event}_distance", step=0.1)
+        df.loc[event, "Consumption"] = st.number_input(f"{event} Consumption", key=f"{event}_consumption", step=0.1)
+        df.loc[event, "Tank Name"] = st.selectbox(f"{event} Tank Name", options=[f"Tank {i}" for i in range(1, 9)], key=f"{event}_tank")
+    
+    # Display the DataFrame
+    st.table(df)
+    
 def display_custom_voyage_details(noon_report_type):
 
     col1, col2, col3, col4 = st.columns(4)
