@@ -22,10 +22,15 @@ def display_fuel_consumption():
         st.session_state.sulfur = {tank: np.random.uniform(0.05, 0.49) for tank in st.session_state.tanks}
     if 'previous_rob' not in st.session_state:
         st.session_state.previous_rob = pd.Series({tank: np.random.uniform(100, 1000) for tank in st.session_state.tanks})
+    if 'bunkered_qty' not in st.session_state:
+        st.session_state.bunkered_qty = pd.Series({tank: 0 for tank in st.session_state.tanks})
     if 'bunkering_entries' not in st.session_state:
-        st.session_state.bunkering_entries = [{}]
+        st.session_state.bunkering_entries = []
 
     st.title('Fuel Consumption Tracker')
+
+    # Bunkering checkbox at the top
+    bunkering_happened = st.checkbox("Bunkering Happened")
 
     # Function to create a formatted column header
     def format_column_header(tank):
@@ -33,13 +38,22 @@ def display_fuel_consumption():
 
     # Function to create an editable dataframe
     def create_editable_dataframe():
-        df = pd.DataFrame(index=['Previous ROB'] + st.session_state.consumers + ['Current ROB'], columns=st.session_state.tanks)
+        index = ['Previous ROB'] + st.session_state.consumers
+        if bunkering_happened:
+            index += ['Bunkered Qty']
+        index += ['Current ROB']
+        
+        df = pd.DataFrame(index=index, columns=st.session_state.tanks)
         df.loc['Previous ROB'] = st.session_state.previous_rob
         df.loc[st.session_state.consumers] = st.session_state.consumption_data
+        if bunkering_happened:
+            df.loc['Bunkered Qty'] = st.session_state.bunkered_qty
         
         # Calculate Current ROB
         total_consumption = df.loc[st.session_state.consumers].sum()
         df.loc['Current ROB'] = df.loc['Previous ROB'] - total_consumption
+        if bunkering_happened:
+            df.loc['Current ROB'] += df.loc['Bunkered Qty']
         
         # Format column headers
         df.columns = [format_column_header(tank) for tank in st.session_state.tanks]
@@ -69,6 +83,8 @@ def display_fuel_consumption():
     # Update session state with edited values
     st.session_state.previous_rob = edited_df.loc['Previous ROB']
     st.session_state.consumption_data = edited_df.loc[st.session_state.consumers]
+    if bunkering_happened:
+        st.session_state.bunkered_qty = edited_df.loc['Bunkered Qty']
 
     # Function to edit tank properties
     def edit_tank_properties():
@@ -114,8 +130,7 @@ def display_fuel_consumption():
     total_consumption = st.session_state.consumption_data.sum().sum()
     st.metric('Total Fuel Consumed', f'{total_consumption:.2f} units')
 
-    # Bunkering section
-    bunkering_happened = st.checkbox("Bunkering Happened")
+    # Bunkering details section
     if bunkering_happened:
         st.markdown("<h4 style='font-size: 18px;'>Bunkering Details</h4>", unsafe_allow_html=True)
         
@@ -128,57 +143,17 @@ def display_fuel_consumption():
                                               ["VLSFO", "HFO", "MGO", "LSMGO", "LNG"], 
                                               key=f"grade_{i}")
                 entry['grade_bdn'] = st.text_input("Grade as per BDN", key=f"grade_bdn_{i}")
-                entry['qty_bdn'] = st.number_input("Total Quantity as per BDN (mt)", 
-                                                   min_value=0.0, step=0.1, key=f"qty_bdn_{i}")
             with col2:
                 entry['density'] = st.number_input("Density (kg/m³)", 
                                                    min_value=0.0, step=0.1, key=f"density_{i}")
                 entry['viscosity'] = st.number_input("Viscosity (cSt)", 
                                                      min_value=0.0, step=0.1, key=f"viscosity_{i}")
+            with col3:
                 entry['lcv'] = st.number_input("LCV (MJ/kg)", 
                                                min_value=0.0, step=0.1, key=f"lcv_{i}")
-            with col3:
                 entry['bdn_file'] = st.file_uploader("Upload BDN", 
                                                      type=['pdf', 'jpg', 'png'], 
                                                      key=f"bdn_file_{i}")
-
-            # Tank allocation section
-            st.markdown("<h6 style='font-size: 14px;'>Allocate Bunkered Fuel to Tanks</h6>", unsafe_allow_html=True)
-            if 'tank_allocation' not in entry:
-                entry['tank_allocation'] = []
-
-            # Display current allocations
-            total_allocated = sum(alloc['quantity'] for alloc in entry['tank_allocation'])
-            remaining_to_allocate = entry['qty_bdn'] - total_allocated
-
-            if entry['tank_allocation']:
-                st.markdown("**Current Allocations:**")
-                for alloc in entry['tank_allocation']:
-                    st.markdown(f"- {alloc['tank']}: {alloc['quantity']:.2f} mt")
-                st.markdown(f"**Remaining to allocate: {remaining_to_allocate:.2f} mt**")
-
-            # New allocation input
-            if remaining_to_allocate > 0:
-                col1, col2, col3 = st.columns(3)
-                with col1:
-                    new_tank = st.selectbox("Select Tank", 
-                                            [tank for tank in st.session_state.tanks if tank not in [alloc['tank'] for alloc in entry['tank_allocation']]], 
-                                            key=f"new_tank_{i}")
-                with col2:
-                    new_quantity = st.number_input("Quantity (mt)", 
-                                                   min_value=0.0, 
-                                                   max_value=remaining_to_allocate, 
-                                                   step=0.1, 
-                                                   key=f"new_quantity_{i}")
-                with col3:
-                    if st.button("Add Allocation", key=f"add_allocation_{i}"):
-                        entry['tank_allocation'].append({'tank': new_tank, 'quantity': new_quantity})
-                        st.experimental_rerun()
-
-            # Option to clear allocations
-            if entry['tank_allocation'] and st.button("Clear All Allocations", key=f"clear_allocations_{i}"):
-                entry['tank_allocation'] = []
-                st.experimental_rerun()
 
         # Button to add new bunkering entry
         if st.button("➕ Add Bunkering Entry"):
