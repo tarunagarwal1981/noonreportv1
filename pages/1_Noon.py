@@ -117,9 +117,6 @@ def display_voyage_information():
     
     
 
-import streamlit as st
-import pandas as pd
-from datetime import datetime
 
 def display_special_events():
     st.subheader("Special Events")
@@ -210,7 +207,7 @@ def display_special_events():
 
 
 
-def display_custom_voyage_details(noon_report_type):
+def display_custom_voyage_information(noon_report_type):
 
     col1, col2, col3, col4 = st.columns(4)
     with col1:
@@ -228,74 +225,90 @@ def display_custom_voyage_details(noon_report_type):
         st.selectbox("Vessel Condition", ["", "Laden", "Ballast"], key=f"vessel_condition_{uuid.uuid4()}")
     
     with col4:
-        offhire = st.checkbox("Off-hire", key="offhire")
-        eca_transit = st.checkbox("ECA Transit", key="eca_transit")
-        fuel_changeover = st.checkbox("Fuel Changeover", key="fuel_changeover")
+        
         drydock = st.checkbox("Drydock", key="drydock")
                 
-    if offhire:
-        st.subheader("Off-hire Details")
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.date_input("Off-hire Start Date (LT)", key="offhire_start_date_lt")
-            st.time_input("Off-hire Start Time (LT)", key="offhire_start_time_lt")
-            st.date_input("Off-hire Start Date (UTC)", key="offhire_start_date_utc")
-            st.time_input("Off-hire Start Time (UTC)", key="offhire_start_time_utc")
-        with col2:
-            st.text_input("Start Off-hire Position Latitude", key="start_offhire_lat")
-            st.text_input("Start Off-hire Position Longitude", key="start_offhire_lon")
-            st.date_input("Off-hire End Date (LT)", key="offhire_end_date_lt")
-            st.time_input("Off-hire End Time (LT)", key="offhire_end_time_lt")
-        with col3:
-            st.date_input("Off-hire End Date (UTC)", key="offhire_end_date_utc")
-            st.time_input("Off-hire End Time (UTC)", key="offhire_end_time_utc")
-            st.text_input("End Off-hire Position Latitude", key="end_offhire_lat")
-            st.text_input("End Off-hire Position Longitude", key="end_offhire_lon")
-        with col4:
-            st.text_area("Off-hire Reason", key="offhire_reason")
     
-    if eca_transit:
-        st.subheader("ECA Transit Details")
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.date_input("ECA Entry Date", key="eca_entry_date")
-            st.time_input("ECA Entry Time", key="eca_entry_time")
-        with col2:
-            st.text_input("ECA Entry Latitude", key="eca_entry_lat")
-            st.text_input("ECA Entry Longitude", key="eca_entry_lon")
-        with col3:
-            st.date_input("ECA Exit Date", key="eca_exit_date")
-            st.time_input("ECA Exit Time", key="eca_exit_time")
-        with col4:
-            st.text_input("ECA Exit Latitude", key="eca_exit_lat")
-            st.text_input("ECA Exit Longitude", key="eca_exit_lon")
-        st.text_input("ECA Name", key="eca_name")
+ def display_custom__special_events():
+    st.subheader("Special Events")
     
-    if fuel_changeover:
-        st.subheader("Fuel Changeover Details")
-        st.subheader("Start of Changeover")
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.date_input("Changeover Start Date", key="changeover_start_date")
-            st.time_input("Changeover Start Time", key="changeover_start_time")
-        with col2:
-            st.text_input("Changeover Start Latitude", key="changeover_start_lat")
-            st.text_input("Changeover Start Longitude", key="changeover_start_lon")
-        with col3:
-            st.number_input("VLSFO ROB at Start (MT)", min_value=0.0, step=0.1, key="vlsfo_rob_start")
-            st.number_input("LSMGO ROB at Start (MT)", min_value=0.0, step=0.1, key="lsmgo_rob_start")
-        
-        st.subheader("End of Changeover")
-        with col1:
-            st.date_input("Changeover End Date", key="changeover_end_date")
-            st.time_input("Changeover End Time", key="changeover_end_time")
-        with col2:
-            st.text_input("Changeover End Latitude", key="changeover_end_lat")
-            st.text_input("Changeover End Longitude", key="changeover_end_lon")
-        with col3:
-            st.number_input("VLSFO ROB at End (MT)", min_value=0.0, step=0.1, key="vlsfo_rob_end")
-            st.number_input("LSMGO ROB at End (MT)", min_value=0.0, step=0.1, key="lsmgo_rob_end")
+    # Define the columns for the DataFrame
+    columns = [
+        "Event",
+        "Start Date Time",
+        "Start Lat",
+        "Start Long",
+        "End Date Time",
+        "End Lat",
+        "End Long",
+        "Distance Travelled",
+        "Total Consumption",
+        "Consumption Tank Name"
+    ]
     
+    # Initialize the DataFrame in session state if it doesn't exist
+    if 'special_events_df' not in st.session_state:
+        default_row = {
+            "Event": "Off-hire",
+            "Start Date Time": datetime.now(),
+            "Start Lat": "0.0",
+            "Start Long": "0.0",
+            "End Date Time": datetime.now(),
+            "End Lat": "0.0",
+            "End Long": "0.0",
+            "Distance Travelled": 0.0,
+            "Total Consumption": 0.0,
+            "Consumption Tank Name": "Tank 1"
+        }
+        st.session_state.special_events_df = pd.DataFrame([default_row])
+
+    # Display the editable DataFrame
+    edited_df = st.data_editor(
+        st.session_state.special_events_df,
+        num_rows="dynamic",
+        use_container_width=True,
+        column_config={
+            "Event": st.column_config.SelectboxColumn(
+                "Event",
+                width="medium",
+                options=[
+                    "Off-hire", "ECA Transit", "Fuel Changeover"
+                ],
+            ),
+            "Start Date Time": st.column_config.DatetimeColumn(
+                "Start Date Time",
+                format="DD/MM/YYYY HH:mm",
+                step=60,
+            ),
+            "End Date Time": st.column_config.DatetimeColumn(
+                "End Date Time",
+                format="DD/MM/YYYY HH:mm",
+                step=60,
+            ),
+            "Distance Travelled": st.column_config.NumberColumn(
+                "Distance Travelled",
+                min_value=0,
+                max_value=1000,
+                step=0.1,
+                format="%.1f"
+            ),
+            "Total Consumption": st.column_config.NumberColumn(
+                "Total Consumption",
+                min_value=0,
+                max_value=1000,
+                step=0.1,
+                format="%.1f"
+            ),
+            "Consumption Tank Name": st.column_config.SelectboxColumn(
+                "Consumption Tank Name",
+                options=[f"Tank {i}" for i in range(1, 9)],
+            ),
+        }
+    )
+
+    # Update the session state with the edited DataFrame
+    st.session_state.special_events_df = edited_df
+   
     
                                                                                 
 def display_speed_position_and_navigation():
