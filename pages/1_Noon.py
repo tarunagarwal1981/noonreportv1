@@ -116,6 +116,9 @@ def display_voyage_information():
             st.selectbox("IDL Direction", ["East", "West"], key="idl_direction")
     
     
+import streamlit as st
+import pandas as pd
+
 def display_special_events():
     st.subheader("Special Events")
     
@@ -137,52 +140,57 @@ def display_special_events():
         "    HRA"
     ]
     
+    columns = [
+        "Event",
+        "Start Date Time",
+        "Start Lat",
+        "Start Long",
+        "End Date Time",
+        "End Lat",
+        "End Long",
+        "Distance Travelled",
+        "Total Consumption",
+        "Consumption Tank Name"
+    ]
+    
     # Create a DataFrame to hold the event data
-    df = pd.DataFrame(index=events, columns=[
-        "Start Date Time (LT)", "Start Lat", "Start Long",
-        "End Date Time (LT)", "End Lat", "End Long",
-        "Distance", "Consumption", "Tank Name"
-    ])
+    df = pd.DataFrame(columns=columns)
+    df['Event'] = events
     
-    # Fill the DataFrame with input widgets
-    for event in events:
-        if not event.startswith("    "):  # Main events
-            st.markdown(f"### {event}")
+    # Function to create an editable cell
+    def make_editable(val, key):
+        if 'Date Time' in key:
+            return st.text_input('', val, key=key)
+        elif 'Lat' in key or 'Long' in key:
+            return st.text_input('', val, key=key)
+        elif 'Distance' in key or 'Consumption' in key:
+            return st.number_input('', value=float(val) if val else 0.0, step=0.1, format="%.1f", key=key)
+        elif 'Tank Name' in key:
+            return st.selectbox('', options=[f"Tank {i}" for i in range(1, 9)], key=key)
         else:
-            st.markdown(f"#### {event.strip()}")
-        
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            df.loc[event, "Start Date Time (LT)"] = st.text_input(f"{event} Start Date Time (LT)", key=f"{event}_start_dt")
-            df.loc[event, "Start Lat"] = st.text_input(f"{event} Start Lat", key=f"{event}_start_lat")
-            df.loc[event, "Start Long"] = st.text_input(f"{event} Start Long", key=f"{event}_start_long")
-        with col2:
-            df.loc[event, "End Date Time (LT)"] = st.text_input(f"{event} End Date Time (LT)", key=f"{event}_end_dt")
-            df.loc[event, "End Lat"] = st.text_input(f"{event} End Lat", key=f"{event}_end_lat")
-            df.loc[event, "End Long"] = st.text_input(f"{event} End Long", key=f"{event}_end_long")
-        with col3:
-            df.loc[event, "Distance"] = st.number_input(f"{event} Distance", key=f"{event}_distance", step=0.1, format="%.1f")
-            df.loc[event, "Consumption"] = st.number_input(f"{event} Consumption", key=f"{event}_consumption", step=0.1, format="%.1f")
-            df.loc[event, "Tank Name"] = st.selectbox(
-                f"{event} Tank Name",
-                options=[f"Tank {i}" for i in range(1, 9)],
-                key=f"{event}_tank"
-            )
-        
-        st.markdown("---")  # Add a separator line after each event
-    
+            return val
+
+    # Display the editable table
+    st.write("Enter Special Events Details:")
+    for index, row in df.iterrows():
+        cols = st.columns(len(columns))
+        new_row = {}
+        for col, (column_name, val) in zip(cols, row.items()):
+            with col:
+                if column_name == 'Event':
+                    st.write(("&nbsp;" * 4 + val) if val.startswith("    ") else f"**{val}**")
+                    new_row[column_name] = val
+                else:
+                    new_row[column_name] = make_editable(val, f"{index}_{column_name}")
+        df.loc[index] = new_row
+        st.write("---")
+
     # Display the DataFrame
     st.subheader("Special Events Summary")
     st.dataframe(df)
 
-    # Add a download button for the DataFrame
-    csv = df.to_csv(index=True)
-    st.download_button(
-        label="Download Special Events Data",
-        data=csv,
-        file_name="special_events.csv",
-        mime="text/csv",
-    )
+    
+
 
 def display_custom_voyage_details(noon_report_type):
 
