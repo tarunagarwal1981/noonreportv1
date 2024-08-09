@@ -136,6 +136,46 @@ def display_fuel_consumption():
     # Display the styled dataframe
     st.markdown(df_html, unsafe_allow_html=True)
 
+    # Function to create and display the additional table
+    def display_additional_table():
+        st.write("Additional Consumption Data:")
+        
+        # Create the dataframe for the additional table
+        additional_data = pd.DataFrame({
+            'Work': [0, 0, 0, 0],
+            'SFOC': [0, 0, 0, ''],
+            'Tank Name': ['', '', '', '']
+        }, index=['Reefer container', 'Cargo cooling', 'Heating/Discharge pump', 'Shore-Side Electricity'])
+        
+        # Custom CSS for the additional table
+        custom_css = """
+        <style>
+            .additional-table th {
+                text-align: center !important;
+            }
+            .additional-table td {
+                text-align: center !important;
+            }
+            .grey-out {
+                background-color: #f0f0f0 !important;
+                color: #888 !important;
+            }
+        </style>
+        """
+        st.markdown(custom_css, unsafe_allow_html=True)
+        
+        # Convert dataframe to HTML and apply custom styling
+        table_html = additional_data.to_html(classes='additional-table', escape=False)
+        table_html = table_html.replace('<td></td>', '<td>-</td>')  # Replace empty cells with '-'
+        table_html = table_html.replace('<td>Shore-Side Electricity</td><td>0</td><td></td><td></td>', 
+                                        '<td>Shore-Side Electricity</td><td>0</td><td class="grey-out">-</td><td class="grey-out">-</td>')
+        
+        # Display the styled table
+        st.markdown(table_html, unsafe_allow_html=True)
+
+    # Display the additional table
+    display_additional_table()
+
     # Function to edit tank properties
     def edit_tank_properties():
         st.write("Edit tank properties:")
