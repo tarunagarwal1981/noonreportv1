@@ -32,6 +32,46 @@ def display_fuel_consumption():
     # Bunkering checkbox at the top
     bunkering_happened = st.checkbox("Bunkering Happened")
 
+    # Bunkering details section
+    if bunkering_happened:
+        st.markdown("<h4 style='font-size: 18px;'>Bunkering Details</h4>", unsafe_allow_html=True)
+        
+        # Display each bunkering entry
+        for i, entry in enumerate(st.session_state.bunkering_entries):
+            st.markdown(f"<h5 style='font-size: 16px;'>Bunkering Entry {i+1}</h5>", unsafe_allow_html=True)
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                entry['grade'] = st.selectbox("Grade of Fuel Bunkered", 
+                                              ["VLSFO", "HFO", "MGO", "LSMGO", "LNG"], 
+                                              key=f"grade_{i}")
+                entry['grade_bdn'] = st.text_input("Grade as per BDN", key=f"grade_bdn_{i}")
+            with col2:
+                entry['density'] = st.number_input("Density (kg/m³)", 
+                                                   min_value=0.0, step=0.1, key=f"density_{i}")
+                entry['viscosity'] = st.number_input("Viscosity (cSt)", 
+                                                     min_value=0.0, step=0.1, key=f"viscosity_{i}")
+            with col3:
+                entry['lcv'] = st.number_input("LCV (MJ/kg)", 
+                                               min_value=0.0, step=0.1, key=f"lcv_{i}")
+                entry['bdn_file'] = st.file_uploader("Upload BDN", 
+                                                     type=['pdf', 'jpg', 'png'], 
+                                                     key=f"bdn_file_{i}")
+
+            # Tank allocation for this bunkering entry
+            st.markdown("<h6 style='font-size: 14px;'>Allocate Bunkered Fuel to Tanks</h6>", unsafe_allow_html=True)
+            for tank in st.session_state.tanks:
+                entry[f'qty_{tank}'] = st.number_input(f"Quantity for {tank} (mt)", 
+                                                       min_value=0.0, step=0.1, key=f"qty_{tank}_{i}")
+                
+            # Update bunkered_qty in session state
+            for tank in st.session_state.tanks:
+                st.session_state.bunkered_qty[tank] += entry[f'qty_{tank}']
+
+        # Button to add new bunkering entry
+        if st.button("➕ Add Bunkering Entry"):
+            st.session_state.bunkering_entries.append({})
+            st.experimental_rerun()
+
     # Function to create a formatted column header
     def format_column_header(tank):
         return f"{tank}\nVisc: {st.session_state.viscosity[tank]:.1f}\nSulfur: {st.session_state.sulfur[tank]:.2f}%"
@@ -63,11 +103,11 @@ def display_fuel_consumption():
     df = create_editable_dataframe()
 
     # Display the editable table
-    st.write("Edit the consumption data below:")
+    st.write("Fuel Consumption Data:")
     edited_df = st.data_editor(
         df,
         use_container_width=True,
-        disabled=['Current ROB'],
+        disabled=['Current ROB', 'Bunkered Qty'] if bunkering_happened else ['Current ROB'],
         column_config={
             column: st.column_config.NumberColumn(
                 column,
@@ -83,8 +123,6 @@ def display_fuel_consumption():
     # Update session state with edited values
     st.session_state.previous_rob = edited_df.loc['Previous ROB']
     st.session_state.consumption_data = edited_df.loc[st.session_state.consumers]
-    if bunkering_happened:
-        st.session_state.bunkered_qty = edited_df.loc['Bunkered Qty']
 
     # Function to edit tank properties
     def edit_tank_properties():
@@ -129,36 +167,6 @@ def display_fuel_consumption():
     # Calculate and display total consumption
     total_consumption = st.session_state.consumption_data.sum().sum()
     st.metric('Total Fuel Consumed', f'{total_consumption:.2f} units')
-
-    # Bunkering details section
-    if bunkering_happened:
-        st.markdown("<h4 style='font-size: 18px;'>Bunkering Details</h4>", unsafe_allow_html=True)
-        
-        # Display each bunkering entry
-        for i, entry in enumerate(st.session_state.bunkering_entries):
-            st.markdown(f"<h5 style='font-size: 16px;'>Bunkering Entry {i+1}</h5>", unsafe_allow_html=True)
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                entry['grade'] = st.selectbox("Grade of Fuel Bunkered", 
-                                              ["VLSFO", "HFO", "MGO", "LSMGO", "LNG"], 
-                                              key=f"grade_{i}")
-                entry['grade_bdn'] = st.text_input("Grade as per BDN", key=f"grade_bdn_{i}")
-            with col2:
-                entry['density'] = st.number_input("Density (kg/m³)", 
-                                                   min_value=0.0, step=0.1, key=f"density_{i}")
-                entry['viscosity'] = st.number_input("Viscosity (cSt)", 
-                                                     min_value=0.0, step=0.1, key=f"viscosity_{i}")
-            with col3:
-                entry['lcv'] = st.number_input("LCV (MJ/kg)", 
-                                               min_value=0.0, step=0.1, key=f"lcv_{i}")
-                entry['bdn_file'] = st.file_uploader("Upload BDN", 
-                                                     type=['pdf', 'jpg', 'png'], 
-                                                     key=f"bdn_file_{i}")
-
-        # Button to add new bunkering entry
-        if st.button("➕ Add Bunkering Entry"):
-            st.session_state.bunkering_entries.append({})
-            st.experimental_rerun()
 
     # Footer
     st.markdown('---')
