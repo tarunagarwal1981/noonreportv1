@@ -70,26 +70,38 @@ st.session_state.consumption_data = edited_df.loc[st.session_state.consumers]
 # Function to edit tank properties
 def edit_tank_properties():
     st.write("Edit tank properties:")
-    cols = st.columns(len(st.session_state.tanks))
-    for i, tank in enumerate(st.session_state.tanks):
-        with cols[i]:
-            st.session_state.viscosity[tank] = st.number_input(
-                f"{tank} Viscosity",
+    
+    # Create a dataframe for tank properties
+    tank_props = pd.DataFrame({
+        'Viscosity': st.session_state.viscosity,
+        'Sulfur (%)': st.session_state.sulfur
+    })
+    
+    # Display editable dataframe for tank properties
+    edited_props = st.data_editor(
+        tank_props,
+        use_container_width=True,
+        column_config={
+            'Viscosity': st.column_config.NumberColumn(
+                'Viscosity',
                 min_value=20.0,
                 max_value=100.0,
-                value=st.session_state.viscosity[tank],
                 step=0.1,
-                key=f"visc_{tank}"
-            )
-            st.session_state.sulfur[tank] = st.number_input(
-                f"{tank} Sulfur (%)",
+                format="%.1f"
+            ),
+            'Sulfur (%)': st.column_config.NumberColumn(
+                'Sulfur (%)',
                 min_value=0.05,
                 max_value=0.49,
-                value=st.session_state.sulfur[tank],
                 step=0.01,
-                format="%.2f",
-                key=f"sulfur_{tank}"
+                format="%.2f"
             )
+        }
+    )
+    
+    # Update session state with edited values
+    st.session_state.viscosity = edited_props['Viscosity'].to_dict()
+    st.session_state.sulfur = edited_props['Sulfur (%)'].to_dict()
 
 # Add a section to edit tank properties
 if st.checkbox("Edit Tank Properties"):
