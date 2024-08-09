@@ -229,7 +229,7 @@ def display_custom_voyage_information(noon_report_type):
         drydock = st.checkbox("Drydock", key="drydock")
                 
     
-def display_custom__special_events(noon_report_type):
+def display_custom_special_events(noon_report_type):
     st.subheader("Special Events")
     
     # Define the columns for the DataFrame
@@ -308,8 +308,6 @@ def display_custom__special_events(noon_report_type):
 
     # Update the session state with the edited DataFrame
     st.session_state.special_events_df = edited_df
-   
-    
                                                                                 
 def display_speed_position_and_navigation():
     st.subheader("Speed, Position and Navigation")
