@@ -534,9 +534,7 @@ def display_custom_cargo_and_stability(noon_report_type):
 
 
 def display_fuel_consumption():
-    # Set page to wide mode
-    st.set_page_config(layout="wide")
-
+    
     # Initialize session state variables
     if 'consumers' not in st.session_state:
         st.session_state.consumers = [
