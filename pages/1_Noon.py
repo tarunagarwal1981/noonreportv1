@@ -24,7 +24,6 @@ def display_base_report_form():
         "Weather and Sea Conditions",
         "Cargo and Stability",
         "Fuel Consumption",
-        "Fuel Allocation",
         "Machinery",
         "Environmental Compliance",
         "Miscellaneous Consumables",
@@ -49,7 +48,6 @@ def display_custom_report_form(noon_report_type):
         "Weather and Sea Conditions",
         "Cargo and Stability",
         "Fuel Consumption",
-        "Fuel Allocation",
         "Machinery",
         "Environmental Compliance",
         "Miscellaneous Consumables",
@@ -956,115 +954,6 @@ def display_custom_fuel_consumption(noon_report_type):
         edit_tank_properties()
    
 
-def display_fuel_allocation():
-    st.subheader("Fuel Allocation")
-    
-    fuel_types = [
-        "Heavy Fuel Oil RME-RMK >80cSt",
-        "Heavy Fuel Oil RMA-RMD <80cSt",
-        "VLSFO RME-RMK Visc >80cSt 0.5%S Max",
-        "VLSFO RMA-RMD Visc <80cSt 0.5%S Max",
-        "ULSFO RME-RMK <80cSt 0.1%S Max",
-        "ULSFO RMA-RMD <80cSt 0.1%S Max",
-        "VLSMGO 0.5%S Max",
-        "ULSMGO 0.1%S Max",
-        "Biofuel - 30",
-        "Biofuel Distillate FO",
-        "LPG - Propane",
-        "LPG - Butane",
-        "LNG Boil Off",
-        "LNG (Bunkered)"
-    ]
-
-    columns = ["Oil Type", "Cargo cooling", "Cargo heating", "Cargo discharging", "DPP Cargo pump consumption"]
-
-    df = pd.DataFrame(columns=columns)
-    df['Oil Type'] = fuel_types
-    edited_df = st.data_editor(df, num_rows="dynamic", key=f"fuel_allocation_table_{uuid.uuid4()}")
-
-    st.subheader("Additional Allocation Details")
-    
-    col1, col2, col3, col4 = st.columns(4)
-    
-    with col1:
-        st.subheader("Reefer container")
-        st.number_input("Work", key=f"reefer_work_{uuid.uuid4()}", step=0.1)
-        st.number_input("SFOC", key=f"reefer_sfoc_{uuid.uuid4()}", step=0.1)
-        st.text_input("Fuel type", key=f"reefer_fuel_type_{uuid.uuid4()}")
-        st.text_input("Fuel BDN", key=f"reefer_fuel_bdn_{uuid.uuid4()}")
-
-    with col2:
-        st.subheader("Cargo cooling")
-        st.number_input("Work", key=f"cargo_cooling_work_{uuid.uuid4()}", step=0.1)
-        st.number_input("SFOC", key=f"cargo_cooling_sfoc_{uuid.uuid4()}", step=0.1)
-        st.text_input("Fuel type", key=f"cargo_cooling_fuel_type_{uuid.uuid4()}")
-        st.text_input("Fuel BDN", key=f"cargo_cooling_fuel_bdn_{uuid.uuid4()}")
-
-    with col3:
-        st.subheader("Heating/Discharge pump")
-        st.number_input("Work", key=f"heating_discharge_work_{uuid.uuid4()}", step=0.1)
-        st.number_input("SFOC", key=f"heating_discharge_sfoc_{uuid.uuid4()}", step=0.1)
-        st.text_input("Fuel type", key=f"heating_discharge_fuel_type_{uuid.uuid4()}")
-        st.text_input("Fuel BDN", key=f"heating_discharge_fuel_bdn_{uuid.uuid4()}")
-
-    with col4:
-        st.subheader("Shore-Side Electricity")
-        st.number_input("Work", key=f"shore_side_work_{uuid.uuid4()}", step=0.1)
-
-def display_custom_fuel_allocation(noon_report_type):
-    st.subheader("Fuel Allocation")
-    
-    fuel_types = [
-        "Heavy Fuel Oil RME-RMK >80cSt",
-        "Heavy Fuel Oil RMA-RMD <80cSt",
-        "VLSFO RME-RMK Visc >80cSt 0.5%S Max",
-        "VLSFO RMA-RMD Visc <80cSt 0.5%S Max",
-        "ULSFO RME-RMK <80cSt 0.1%S Max",
-        "ULSFO RMA-RMD <80cSt 0.1%S Max",
-        "VLSMGO 0.5%S Max",
-        "ULSMGO 0.1%S Max",
-        "Biofuel - 30",
-        "Biofuel Distillate FO",
-        "LPG - Propane",
-        "LPG - Butane",
-        "LNG Boil Off",
-        "LNG (Bunkered)"
-    ]
-
-    columns = ["Oil Type", "Cargo cooling", "Cargo heating", "Cargo discharging", "DPP Cargo pump consumption"]
-
-    df = pd.DataFrame(columns=columns)
-    df['Oil Type'] = fuel_types
-    edited_df = st.data_editor(df, num_rows="dynamic", key=f"fuel_allocation_table_{uuid.uuid4()}")
-
-    st.subheader("Additional Allocation Details")
-    
-    col1, col2, col3, col4 = st.columns(4)
-    
-    with col1:
-        st.subheader("Reefer container")
-        st.number_input("Work", key=f"reefer_work_{uuid.uuid4()}", step=0.1)
-        st.number_input("SFOC", key=f"reefer_sfoc_{uuid.uuid4()}", step=0.1)
-        st.text_input("Fuel type", key=f"reefer_fuel_type_{uuid.uuid4()}")
-        st.text_input("Fuel BDN", key=f"reefer_fuel_bdn_{uuid.uuid4()}")
-
-    with col2:
-        st.subheader("Cargo cooling")
-        st.number_input("Work", key=f"cargo_cooling_work_{uuid.uuid4()}", step=0.1)
-        st.number_input("SFOC", key=f"cargo_cooling_sfoc_{uuid.uuid4()}", step=0.1)
-        st.text_input("Fuel type", key=f"cargo_cooling_fuel_type_{uuid.uuid4()}")
-        st.text_input("Fuel BDN", key=f"cargo_cooling_fuel_bdn_{uuid.uuid4()}")
-
-    with col3:
-        st.subheader("Heating/Discharge pump")
-        st.number_input("Work", key=f"heating_discharge_work_{uuid.uuid4()}", step=0.1)
-        st.number_input("SFOC", key=f"heating_discharge_sfoc_{uuid.uuid4()}", step=0.1)
-        st.text_input("Fuel type", key=f"heating_discharge_fuel_type_{uuid.uuid4()}")
-        st.text_input("Fuel BDN", key=f"heating_discharge_fuel_bdn_{uuid.uuid4()}")
-
-    with col4:
-        st.subheader("Shore-Side Electricity")
-        st.number_input("Work", key=f"shore_side_work_{uuid.uuid4()}", step=0.1)
 
 def display_machinery():
     st.subheader("Machinery")
