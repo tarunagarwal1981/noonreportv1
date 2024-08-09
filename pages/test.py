@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+from datetime import date
 
 def display_fuel_consumption():
     # Set page to wide mode
@@ -31,13 +32,21 @@ def display_fuel_consumption():
         st.session_state.previous_rob = pd.Series({tank: np.random.uniform(100, 1000) for tank in st.session_state.tanks})
     if 'bunkered_qty' not in st.session_state:
         st.session_state.bunkered_qty = pd.Series({tank: 0 for tank in st.session_state.tanks})
+    if 'debunkered_qty' not in st.session_state:
+        st.session_state.debunkered_qty = pd.Series({tank: 0 for tank in st.session_state.tanks})
     if 'bunkering_entries' not in st.session_state:
         st.session_state.bunkering_entries = []
+    if 'debunkering_entries' not in st.session_state:
+        st.session_state.debunkering_entries = []
 
     st.title('Fuel Consumption Tracker')
 
-    # Bunkering checkbox at the top
-    bunkering_happened = st.checkbox("Bunkering Happened")
+    # Bunkering and Debunkering checkboxes
+    col1, col2 = st.columns(2)
+    with col1:
+        bunkering_happened = st.checkbox("Bunkering Happened")
+    with col2:
+        debunkering_happened = st.checkbox("Debunkering Happened")
 
     # Bunkering details section
     if bunkering_happened:
@@ -48,13 +57,14 @@ def display_fuel_consumption():
             st.markdown(f"<h5 style='font-size: 16px;'>Bunkering Entry {i+1}</h5>", unsafe_allow_html=True)
             col1, col2, col3 = st.columns(3)
             with col1:
+                entry['date'] = st.date_input("Date of Bunkering", key=f"bunker_date_{i}")
                 entry['grade'] = st.selectbox("Grade of Fuel Bunkered", 
                                               ["VLSFO", "HFO", "MGO", "LSMGO", "LNG"], 
                                               key=f"grade_{i}")
                 entry['grade_bdn'] = st.text_input("Grade as per BDN", key=f"grade_bdn_{i}")
+            with col2:
                 entry['total_qty'] = st.number_input("Total Quantity Bunkered (mt)", 
                                                      min_value=0.0, step=0.1, key=f"total_qty_{i}")
-            with col2:
                 entry['density'] = st.number_input("Density (kg/m³)", 
                                                    min_value=0.0, step=0.1, key=f"density_{i}")
                 entry['viscosity'] = st.number_input("Viscosity (cSt)", 
@@ -62,6 +72,7 @@ def display_fuel_consumption():
             with col3:
                 entry['lcv'] = st.number_input("LCV (MJ/kg)", 
                                                min_value=0.0, step=0.1, key=f"lcv_{i}")
+                entry['bdn_number'] = st.text_input("BDN Number", key=f"bdn_number_{i}")
                 entry['bdn_file'] = st.file_uploader("Upload BDN", 
                                                      type=['pdf', 'jpg', 'png'], 
                                                      key=f"bdn_file_{i}")
@@ -69,6 +80,26 @@ def display_fuel_consumption():
         # Button to add new bunkering entry
         if st.button("➕ Add Bunkering Entry"):
             st.session_state.bunkering_entries.append({})
+            st.experimental_rerun()
+
+    # Debunkering details section
+    if debunkering_happened:
+        st.markdown("<h4 style='font-size: 18px;'>Debunkering Details</h4>", unsafe_allow_html=True)
+        
+        # Display each debunkering entry
+        for i, entry in enumerate(st.session_state.debunkering_entries):
+            st.markdown(f"<h5 style='font-size: 16px;'>Debunkering Entry {i+1}</h5>", unsafe_allow_html=True)
+            col1, col2 = st.columns(2)
+            with col1:
+                entry['date'] = st.date_input("Date of Debunkering", key=f"debunker_date_{i}")
+                entry['quantity'] = st.number_input("Quantity Debunkered (mt)", 
+                                                    min_value=0.0, step=0.1, key=f"debunker_qty_{i}")
+            with col2:
+                entry['bdn_number'] = st.text_input("BDN Number of Debunkered Oil", key=f"debunker_bdn_{i}")
+
+        # Button to add new debunkering entry
+        if st.button("➕ Add Debunkering Entry"):
+            st.session_state.debunkering_entries.append({})
             st.experimental_rerun()
 
     # Function to create a formatted column header
@@ -80,6 +111,8 @@ def display_fuel_consumption():
         index = ['Previous ROB'] + st.session_state.consumers
         if bunkering_happened:
             index += ['Bunkered Qty']
+        if debunkering_happened:
+            index += ['Debunkered Qty']
         index += ['Current ROB']
         
         df = pd.DataFrame(index=index, columns=st.session_state.tanks)
@@ -88,12 +121,17 @@ def display_fuel_consumption():
         if bunkering_happened:
             total_bunkered = sum(entry.get('total_qty', 0) for entry in st.session_state.bunkering_entries)
             df.loc['Bunkered Qty'] = [total_bunkered] + [0] * (len(st.session_state.tanks) - 1)
+        if debunkering_happened:
+            total_debunkered = sum(entry.get('quantity', 0) for entry in st.session_state.debunkering_entries)
+            df.loc['Debunkered Qty'] = [total_debunkered] + [0] * (len(st.session_state.tanks) - 1)
         
         # Calculate Current ROB
         total_consumption = df.loc[st.session_state.consumers].sum()
         df.loc['Current ROB'] = df.loc['Previous ROB'] - total_consumption
         if bunkering_happened:
             df.loc['Current ROB'] += df.loc['Bunkered Qty']
+        if debunkering_happened:
+            df.loc['Current ROB'] -= df.loc['Debunkered Qty']
         
         # Format column headers
         df.columns = [format_column_header(tank) for tank in st.session_state.tanks]
