@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
+import numpy as np
 import uuid
 
 st.set_page_config(layout="wide", page_title="Noon Reporting Portal")
@@ -111,17 +112,20 @@ def display_voyage_information():
     with col1:
         st.text_input("Departure Port", key="voyage_from")
         st.text_input("UNLOCODE", key="voyage_fromunlo")
+        st.selectbox("Vessel Condition", ["", "Laden", "Ballast"], key=f"vessel_condition_{uuid.uuid4()}")
+        
+    with col2:
         st.text_input("Arrival Port", key="voyage_to")
         st.text_input("UNLOCODE", key="voyage_tounlo")
-        st.text_input("Voyage ID", key=f"voyage_id_{uuid.uuid4()}")
-    with col2:
-        st.selectbox("Voyage Type", ["", "One-way", "Round trip", "STS"], key="voyage_type")
-        st.selectbox("Vessel Condition", ["", "Laden", "Ballast"], key=f"vessel_condition_{uuid.uuid4()}")
-        st.date_input("ETA", value=datetime.now(), key="eta")
-        st.text_input("Charter Type", key="charter_type")
-        st.text_input("Segment ID", key=f"segment_id_{uuid.uuid4()}")
+        st.selectbox("Voyage Type", ["", "One-way", "Round trip", "STS"], key="voyage_type") 
+        
     with col3:
-        st.text_input("Speed Order", key="speed_order")
+        st.text_input("Voyage ID", key=f"voyage_id_{uuid.uuid4()}")
+        st.text_input("Segment ID", key=f"segment_id_{uuid.uuid4()}")
+        st.date_input("ETA (Date/Time)", value=datetime.now(), key="eta")
+    with col4:
+        st.text_input("Speed Order (CP)", key="speed_order")
+        st.text_input("Charter Type", key="charter_type")
         idl_crossing = st.checkbox("IDL Crossing", key="idl_crossing")
         if idl_crossing:
             st.selectbox("IDL Direction", ["East", "West"], key="idl_direction")
@@ -134,9 +138,10 @@ def display_custom_voyage_information(noon_report_type):
     with col2:
         st.selectbox("Voyage Type", ["", "One-way", "Round trip", "STS"], key="voyage_type")
         st.date_input("ETA", value=datetime.now(), key="eta")
-        st.text_input("Charter Type", key="charter_type")
+        
     with col3:
         st.selectbox("Vessel Condition", ["", "Laden", "Ballast"], key=f"vessel_condition_{uuid.uuid4()}")
+        st.text_input("Charter Type", key="charter_type")
     with col4:
         drydock = st.checkbox("Drydock", key="drydock")
 
