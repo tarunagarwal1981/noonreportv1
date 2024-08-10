@@ -1,27 +1,62 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-import numpy as np
 import uuid
 
 st.set_page_config(layout="wide", page_title="Noon Reporting Portal")
 
 def main():
-    st.title("Noon Reporting Portal")
+    # Display vessel information at the top of the page
+    st.markdown("<h2 style='text-align: center;'>Vessel Information</h2>", unsafe_allow_html=True)
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.text("IMO Number: 1234567")  # Random value
+    with col2:
+        st.text("Vessel Name: Ocean Explorer")  # Random value
+    with col3:
+        st.text("Vessel Type: Tanker")  # Random value
 
-    noon_report_type = st.selectbox("Select Noon Report Type", [
-        "Noon at Sea", "Noon at Port", "Noon at Anchor", 
-        "Noon at Drifting", "Noon at STS", "Noon at Canal/River Passage"
-    ])
+    st.markdown("<h2 style='text-align: center;'>Noon Report Selection</h2>", unsafe_allow_html=True)
+    
+    # Arrange the noon report checkboxes in rows of three
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        noon_at_sea = st.checkbox("Noon at Sea")
+    with col2:
+        noon_at_port = st.checkbox("Noon at Port")
+    with col3:
+        noon_at_anchor = st.checkbox("Noon at Anchor")
+    
+    col4, col5, col6 = st.columns(3)
+    with col4:
+        noon_at_drifting = st.checkbox("Noon at Drifting")
+    with col5:
+        noon_at_sts = st.checkbox("Noon at STS")
+    with col6:
+        noon_at_canal = st.checkbox("Noon at Canal/River Passage")
 
-    if noon_report_type in ["Noon at Sea", "Noon at Drifting", "Noon at Canal/River Passage"]:
+    # Display the relevant form based on the selected checkbox
+    if noon_at_sea:
+        st.markdown("### Noon at Sea Report")
         display_base_report_form()
-    else:
-        display_custom_report_form(noon_report_type)
+    if noon_at_port:
+        st.markdown("### Noon at Port Report")
+        display_custom_report_form("Noon at Port")
+    if noon_at_anchor:
+        st.markdown("### Noon at Anchor Report")
+        display_custom_report_form("Noon at Anchor")
+    if noon_at_drifting:
+        st.markdown("### Noon at Drifting Report")
+        display_base_report_form()
+    if noon_at_sts:
+        st.markdown("### Noon at STS Report")
+        display_custom_report_form("Noon at STS")
+    if noon_at_canal:
+        st.markdown("### Noon at Canal/River Passage Report")
+        display_base_report_form()
 
 def display_base_report_form():
     sections = [
-        "Vessel Information",
         "Voyage Information",
         "Special Events",
         "Speed, Position and Navigation",
@@ -34,19 +69,18 @@ def display_base_report_form():
     ]
 
     for section in sections:
-        with st.expander(section, expanded=False):
-            function_name = f"display_{section.lower().replace(' ', '_').replace(',', '')}"
-            if function_name in globals():
-                globals()[function_name]()
-            else:
-                st.write(f"Function {function_name} not found.")
+        st.markdown(f"#### {section}")
+        function_name = f"display_{section.lower().replace(' ', '_').replace(',', '')}"
+        if function_name in globals():
+            globals()[function_name]()
+        else:
+            st.write(f"Function {function_name} not found.")
 
     if st.button("Submit Report", type="primary", key=f"submit_report_{uuid.uuid4()}"):
         st.success("Report submitted successfully!")
 
 def display_custom_report_form(noon_report_type):
     sections = [
-        "Vessel Information",
         "Voyage Information",
         "Special Events",
         "Speed, Position and Navigation",
@@ -59,50 +93,38 @@ def display_custom_report_form(noon_report_type):
     ]
 
     for section in sections:
-        with st.expander(section, expanded=False):
-            function_name = f"display_custom_{section.lower().replace(' ', '_').replace(',', '')}"
-            if function_name in globals():
-                globals()[function_name](noon_report_type)
-            else:
-                st.write(f"Function {function_name} not found.")
+        st.markdown(f"#### {section}")
+        function_name = f"display_custom_{section.lower().replace(' ', '_').replace(',', '')}"
+        if function_name in globals():
+            globals()[function_name](noon_report_type)
+        else:
+            st.write(f"Function {function_name} not found.")
 
     if st.button("Submit Report", type="primary", key=f"submit_report_{uuid.uuid4()}"):
         st.success("Report submitted successfully!")
 
-def display_vessel_information():
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        st.text_input("IMO Number", key=f"imo_number_{uuid.uuid4()}")
-    with col2:
-        st.text_input("Vessel Name", key=f"vessel_name_{uuid.uuid4()}")
-    with col3:
-        st.text_input("Vessel Type", key=f"vessel_type_{uuid.uuid4()}")
+# Example display functions (You will need to define all similar
 
-def display_custom_vessel_information(noon_report_type):
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        st.text_input("IMO Number", key=f"imo_number_{uuid.uuid4()}")
-    with col2:
-        st.text_input("Vessel Name", key=f"vessel_name_{uuid.uuid4()}")
-    with col3:
-        st.text_input("Vessel Type", key=f"vessel_type_{uuid.uuid4()}")
 
 def display_voyage_information():
     col1, col2, col3, col4 = st.columns(4)
     with col1:
         st.text_input("Departure Port", key="voyage_from")
         st.text_input("UNLOCODE", key="voyage_fromunlo")
+        st.selectbox("Vessel Condition", ["", "Laden", "Ballast"], key=f"vessel_condition_{uuid.uuid4()}")
+        
+    with col2:
         st.text_input("Arrival Port", key="voyage_to")
         st.text_input("UNLOCODE", key="voyage_tounlo")
-        st.text_input("Voyage ID", key=f"voyage_id_{uuid.uuid4()}")
-    with col2:
-        st.selectbox("Voyage Type", ["", "One-way", "Round trip", "STS"], key="voyage_type")
-        st.selectbox("Vessel Condition", ["", "Laden", "Ballast"], key=f"vessel_condition_{uuid.uuid4()}")
-        st.date_input("ETA", value=datetime.now(), key="eta")
-        st.text_input("Charter Type", key="charter_type")
-        st.text_input("Segment ID", key=f"segment_id_{uuid.uuid4()}")
+        st.selectbox("Voyage Type", ["", "One-way", "Round trip", "STS"], key="voyage_type") 
+        
     with col3:
-        st.text_input("Speed Order", key="speed_order")
+        st.text_input("Voyage ID", key=f"voyage_id_{uuid.uuid4()}")
+        st.text_input("Segment ID", key=f"segment_id_{uuid.uuid4()}")
+        st.date_input("ETA (Date/Time)", value=datetime.now(), key="eta")
+    with col4:
+        st.text_input("Speed Order (CP)", key="speed_order")
+        st.text_input("Charter Type", key="charter_type")
         idl_crossing = st.checkbox("IDL Crossing", key="idl_crossing")
         if idl_crossing:
             st.selectbox("IDL Direction", ["East", "West"], key="idl_direction")
@@ -115,9 +137,10 @@ def display_custom_voyage_information(noon_report_type):
     with col2:
         st.selectbox("Voyage Type", ["", "One-way", "Round trip", "STS"], key="voyage_type")
         st.date_input("ETA", value=datetime.now(), key="eta")
-        st.text_input("Charter Type", key="charter_type")
+        
     with col3:
         st.selectbox("Vessel Condition", ["", "Laden", "Ballast"], key=f"vessel_condition_{uuid.uuid4()}")
+        st.text_input("Charter Type", key="charter_type")
     with col4:
         drydock = st.checkbox("Drydock", key="drydock")
 
