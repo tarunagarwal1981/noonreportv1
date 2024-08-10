@@ -252,7 +252,7 @@ def display_speed_position_and_navigation():
         st.number_input("Time Since Last Report (hours)", min_value=0.0, step=0.1, key="time_since_last_report")
         st.selectbox("Clocks Advanced/Retarded", ["", "Advanced", "Retarded"], key="clocks_change")
         st.number_input("Clocks Changed By (minutes)", min_value=0, step=1, key="clocks_change_minutes")
-        st.time_input("Date Time (Local)", value=datetime.now().time(), key=f"local_time_{uuid.uuid4()}")
+        st.time_input("FWE Date Time (Local)", value=datetime.now().time(), key=f"local_time_{uuid.uuid4()}")
     with col2:
         st.number_input("Distance Observed (nm)", min_value=0.0, step=0.1, value=0.00, key=f"distance_observed_{uuid.uuid4()}")
         st.number_input("Distance To Go (nm)", min_value=0.0, step=0.1, value=0.00, key=f"distance_togo_{uuid.uuid4()}")
@@ -272,6 +272,7 @@ def display_speed_position_and_navigation():
         st.text_input("Ordered Speed", key=f"speed_order_{uuid.uuid4()}")
         st.text_input("True Slip", key="true_slip")
         st.text_input("Observed Slip", key="obs_slip")
+        st.time_input("FWE Date Time (UTC)", value=datetime.now().time(), key=f"local_time_{uuid.uuid4()}")
 
 def display_custom_speed_position_and_navigation(noon_report_type):
     st.subheader("Speed, Position and Navigation")
