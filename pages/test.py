@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
-from datetime import datetime, time
-import numpy as np
+from datetime import datetime
 import uuid
 
 st.set_page_config(layout="wide", page_title="Noon Reporting Portal")
@@ -19,13 +18,22 @@ def main():
 
     st.markdown("<h2 style='text-align: center;'>Noon Report Selection</h2>", unsafe_allow_html=True)
     
-    # Noon report type checkboxes
-    noon_at_sea = st.checkbox("Noon at Sea")
-    noon_at_port = st.checkbox("Noon at Port")
-    noon_at_anchor = st.checkbox("Noon at Anchor")
-    noon_at_drifting = st.checkbox("Noon at Drifting")
-    noon_at_sts = st.checkbox("Noon at STS")
-    noon_at_canal = st.checkbox("Noon at Canal/River Passage")
+    # Arrange the noon report checkboxes in rows of three
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        noon_at_sea = st.checkbox("Noon at Sea")
+    with col2:
+        noon_at_port = st.checkbox("Noon at Port")
+    with col3:
+        noon_at_anchor = st.checkbox("Noon at Anchor")
+    
+    col4, col5, col6 = st.columns(3)
+    with col4:
+        noon_at_drifting = st.checkbox("Noon at Drifting")
+    with col5:
+        noon_at_sts = st.checkbox("Noon at STS")
+    with col6:
+        noon_at_canal = st.checkbox("Noon at Canal/River Passage")
 
     # Display the relevant form based on the selected checkbox
     if noon_at_sea:
@@ -94,6 +102,8 @@ def display_custom_report_form(noon_report_type):
 
     if st.button("Submit Report", type="primary", key=f"submit_report_{uuid.uuid4()}"):
         st.success("Report submitted successfully!")
+
+# Example display functions (You will need to define all similar
 
 
 def display_voyage_information():
