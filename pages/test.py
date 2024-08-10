@@ -7,85 +7,83 @@ import uuid
 st.set_page_config(layout="wide", page_title="Noon Reporting Portal")
 
 def main():
-    st.title("Noon Reporting Portal")
+    # Display vessel information subtly at the top
+    display_vessel_information()
 
-    noon_report_type = st.selectbox("Select Noon Report Type", [
-        "Noon at Sea", "Noon at Port", "Noon at Anchor", 
-        "Noon at Drifting", "Noon at STS", "Noon at Canal/River Passage"
-    ])
-
-    if noon_report_type in ["Noon at Sea", "Noon at Drifting", "Noon at Canal/River Passage"]:
-        display_base_report_form()
-    else:
-        display_custom_report_form(noon_report_type)
-
-def display_base_report_form():
-    sections = [
-        "Vessel Information",
-        "Voyage Information",
-        "Special Events",
-        "Speed, Position and Navigation",
-        "Weather and Sea Conditions",
-        "Cargo and Stability",
-        "Fuel Consumption",
-        "Machinery",
-        "Environmental Compliance",
-        "Miscellaneous Consumables",
+    # Noon report type selection using checkboxes
+    noon_report_types = [
+        "Noon at Sea", 
+        "Noon at Port", 
+        "Noon at Anchor", 
+        "Noon at Drifting", 
+        "Noon at STS", 
+        "Noon at Canal/River Passage"
     ]
 
-    for section in sections:
-        with st.expander(section, expanded=False):
-            function_name = f"display_{section.lower().replace(' ', '_').replace(',', '')}"
-            if function_name in globals():
-                globals()[function_name]()
-            else:
-                st.write(f"Function {function_name} not found.")
+    selected_reports = st.multiselect(
+        "Select Noon Report Type(s)",
+        noon_report_types
+    )
 
-    if st.button("Submit Report", type="primary", key=f"submit_report_{uuid.uuid4()}"):
-        st.success("Report submitted successfully!")
-
-def display_custom_report_form(noon_report_type):
-    sections = [
-        "Vessel Information",
-        "Voyage Information",
-        "Special Events",
-        "Speed, Position and Navigation",
-        "Weather and Sea Conditions",
-        "Cargo and Stability",
-        "Fuel Consumption",
-        "Machinery",
-        "Environmental Compliance",
-        "Miscellaneous Consumables",
-    ]
-
-    for section in sections:
-        with st.expander(section, expanded=False):
-            function_name = f"display_custom_{section.lower().replace(' ', '_').replace(',', '')}"
-            if function_name in globals():
-                globals()[function_name](noon_report_type)
-            else:
-                st.write(f"Function {function_name} not found.")
+    # Display the relevant report forms based on user selection
+    for report_type in selected_reports:
+        st.markdown(f"### {report_type} Report")
+        if report_type in ["Noon at Sea", "Noon at Drifting", "Noon at Canal/River Passage"]:
+            display_base_report_form()
+        else:
+            display_custom_report_form(report_type)
 
     if st.button("Submit Report", type="primary", key=f"submit_report_{uuid.uuid4()}"):
         st.success("Report submitted successfully!")
 
 def display_vessel_information():
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        st.text_input("IMO Number", key=f"imo_number_{uuid.uuid4()}")
-    with col2:
-        st.text_input("Vessel Name", key=f"vessel_name_{uuid.uuid4()}")
-    with col3:
-        st.text_input("Vessel Type", key=f"vessel_type_{uuid.uuid4()}")
+    st.markdown("""
+        <div style="text-align: center; font-size: 18px; font-weight: bold;">
+            Vessel Name: Random Vessel | IMO Number: 1234567 | Vessel Type: Bulk Carrier
+        </div>
+    """, unsafe_allow_html=True)
 
-def display_custom_vessel_information(noon_report_type):
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        st.text_input("IMO Number", key=f"imo_number_{uuid.uuid4()}")
-    with col2:
-        st.text_input("Vessel Name", key=f"vessel_name_{uuid.uuid4()}")
-    with col3:
-        st.text_input("Vessel Type", key=f"vessel_type_{uuid.uuid4()}")
+def display_base_report_form():
+    sections = [
+        "Voyage Information",
+        "Special Events",
+        "Speed, Position and Navigation",
+        "Weather and Sea Conditions",
+        "Cargo and Stability",
+        "Fuel Consumption",
+        "Machinery",
+        "Environmental Compliance",
+        "Miscellaneous Consumables",
+    ]
+
+    for section in sections:
+        st.markdown(f"#### {section}")
+        function_name = f"display_{section.lower().replace(' ', '_').replace(',', '')}"
+        if function_name in globals():
+            globals()[function_name]()
+        else:
+            st.write(f"Function {function_name} not found.")
+
+def display_custom_report_form(noon_report_type):
+    sections = [
+        "Voyage Information",
+        "Special Events",
+        "Speed, Position and Navigation",
+        "Weather and Sea Conditions",
+        "Cargo and Stability",
+        "Fuel Consumption",
+        "Machinery",
+        "Environmental Compliance",
+        "Miscellaneous Consumables",
+    ]
+
+    for section in sections:
+        st.markdown(f"#### {section}")
+        function_name = f"display_custom_{section.lower().replace(' ', '_').replace(',', '')}"
+        if function_name in globals():
+            globals()[function_name](noon_report_type)
+        else:
+            st.write(f"Function {function_name} not found.")
 
 def display_voyage_information():
     col1, col2, col3, col4 = st.columns(4)
