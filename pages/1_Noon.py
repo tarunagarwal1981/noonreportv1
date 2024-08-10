@@ -111,6 +111,8 @@ def display_voyage_information():
     with col3:
        
         st.text_input("Speed Order", key="speed_order")
+        st.text_input("True Slip", key="true_slip")
+        st.text_input("Observed Slip", key="obs_slip")
         idl_crossing = st.checkbox("IDL Crossing", key="idl_crossing")
         if idl_crossing:
             st.selectbox("IDL Direction", ["East", "West"], key="idl_direction")
