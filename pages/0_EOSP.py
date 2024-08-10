@@ -82,15 +82,16 @@ def display_custom_report_form(noon_report_type):
     ]
 
     for section in sections:
-        st.markdown(f"#### {section}")
-        function_name = f"display_custom_{section.lower().replace(' ', '_').replace(',', '')}"
-        if function_name in globals():
-            globals()[function_name](noon_report_type)
-        else:
-            st.write(f"Function {function_name} not found.")
+        with st.expander(f"#### {section}"):
+            function_name = f"display_{section.lower().replace(' ', '_').replace(',', '')}"
+            if function_name in globals():
+                globals()[function_name]()
+            else:
+                st.write(f"Function {function_name} not found.")
 
     if st.button("Submit Report", type="primary", key=f"submit_report_{uuid.uuid4()}"):
         st.success("Report submitted successfully!")
+
 
 # Example display functions (You will need to define all similar
 
