@@ -17,44 +17,33 @@ def main():
     with col3:
         st.text("Vessel Type: Tanker")  # Random value
 
-    st.markdown("<h2 style='text-align: center;'>Noon Report Selection</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align: center;'>Arrival Report Selection</h2>", unsafe_allow_html=True)
     
     # Arrange the noon report checkboxes in rows of three
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
     with col1:
-        noon_at_sea = st.checkbox("Noon at Sea")
+        noon_at_port = st.checkbox("Arrival at Port")
     with col2:
-        noon_at_port = st.checkbox("Noon at Port")
+        noon_at_anchor = st.checkbox("Arrival at Anchor")
     with col3:
-        noon_at_anchor = st.checkbox("Noon at Anchor")
-    
-    col4, col5, col6 = st.columns(3)
+        noon_at_drifting = st.checkbox("Arrival for Drifting")  
     with col4:
-        noon_at_drifting = st.checkbox("Noon at Drifting")
-    with col5:
-        noon_at_sts = st.checkbox("Noon at STS")
-    with col6:
-        noon_at_canal = st.checkbox("Noon at Canal/River Passage")
-
+        noon_at_sts = st.checkbox("Arrival at STS")    
+    
     # Display the relevant form based on the selected checkbox
-    if noon_at_sea:
-        st.markdown("### Noon at Sea Report")
-        display_base_report_form()
     if noon_at_port:
-        st.markdown("### Noon at Port Report")
-        display_custom_report_form("Noon at Port")
+        st.markdown("### Arrival at Port Report")
+        display_base_report_form()
     if noon_at_anchor:
-        st.markdown("### Noon at Anchor Report")
-        display_custom_report_form("Noon at Anchor")
+        st.markdown("### Arrival at Anchor Report")
+        display_base_report_form()
     if noon_at_drifting:
-        st.markdown("### Noon at Drifting Report")
+        st.markdown("### Arrival for Drifting Report")
         display_base_report_form()
     if noon_at_sts:
-        st.markdown("### Noon at STS Report")
-        display_custom_report_form("Noon at STS")
-    if noon_at_canal:
-        st.markdown("### Noon at Canal/River Passage Report")
+        st.markdown("### Arrival at STS Report")
         display_base_report_form()
+    
 
 def display_base_report_form():
     sections = [
