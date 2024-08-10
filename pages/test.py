@@ -1,47 +1,51 @@
 import streamlit as st
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, time
 import numpy as np
 import uuid
 
 st.set_page_config(layout="wide", page_title="Noon Reporting Portal")
 
 def main():
-    # Display vessel information subtly at the top
-    display_vessel_information()
+    # Display vessel information at the top of the page
+    st.markdown("<h2 style='text-align: center;'>Vessel Information</h2>", unsafe_allow_html=True)
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.text("IMO Number: 1234567")  # Random value
+    with col2:
+        st.text("Vessel Name: Ocean Explorer")  # Random value
+    with col3:
+        st.text("Vessel Type: Tanker")  # Random value
 
-    # Noon report type selection using checkboxes
-    noon_report_types = [
-        "Noon at Sea", 
-        "Noon at Port", 
-        "Noon at Anchor", 
-        "Noon at Drifting", 
-        "Noon at STS", 
-        "Noon at Canal/River Passage"
-    ]
+    st.markdown("<h2 style='text-align: center;'>Noon Report Selection</h2>", unsafe_allow_html=True)
+    
+    # Noon report type checkboxes
+    noon_at_sea = st.checkbox("Noon at Sea")
+    noon_at_port = st.checkbox("Noon at Port")
+    noon_at_anchor = st.checkbox("Noon at Anchor")
+    noon_at_drifting = st.checkbox("Noon at Drifting")
+    noon_at_sts = st.checkbox("Noon at STS")
+    noon_at_canal = st.checkbox("Noon at Canal/River Passage")
 
-    selected_reports = st.multiselect(
-        "Select Noon Report Type(s)",
-        noon_report_types
-    )
-
-    # Display the relevant report forms based on user selection
-    for report_type in selected_reports:
-        st.markdown(f"### {report_type} Report")
-        if report_type in ["Noon at Sea", "Noon at Drifting", "Noon at Canal/River Passage"]:
-            display_base_report_form()
-        else:
-            display_custom_report_form(report_type)
-
-    if st.button("Submit Report", type="primary", key=f"submit_report_{uuid.uuid4()}"):
-        st.success("Report submitted successfully!")
-
-def display_vessel_information():
-    st.markdown("""
-        <div style="text-align: center; font-size: 18px; font-weight: bold;">
-            Vessel Name: Random Vessel | IMO Number: 1234567 | Vessel Type: Bulk Carrier
-        </div>
-    """, unsafe_allow_html=True)
+    # Display the relevant form based on the selected checkbox
+    if noon_at_sea:
+        st.markdown("### Noon at Sea Report")
+        display_base_report_form()
+    if noon_at_port:
+        st.markdown("### Noon at Port Report")
+        display_custom_report_form("Noon at Port")
+    if noon_at_anchor:
+        st.markdown("### Noon at Anchor Report")
+        display_custom_report_form("Noon at Anchor")
+    if noon_at_drifting:
+        st.markdown("### Noon at Drifting Report")
+        display_base_report_form()
+    if noon_at_sts:
+        st.markdown("### Noon at STS Report")
+        display_custom_report_form("Noon at STS")
+    if noon_at_canal:
+        st.markdown("### Noon at Canal/River Passage Report")
+        display_base_report_form()
 
 def display_base_report_form():
     sections = [
@@ -64,6 +68,9 @@ def display_base_report_form():
         else:
             st.write(f"Function {function_name} not found.")
 
+    if st.button("Submit Report", type="primary", key=f"submit_report_{uuid.uuid4()}"):
+        st.success("Report submitted successfully!")
+
 def display_custom_report_form(noon_report_type):
     sections = [
         "Voyage Information",
@@ -84,6 +91,10 @@ def display_custom_report_form(noon_report_type):
             globals()[function_name](noon_report_type)
         else:
             st.write(f"Function {function_name} not found.")
+
+    if st.button("Submit Report", type="primary", key=f"submit_report_{uuid.uuid4()}"):
+        st.success("Report submitted successfully!")
+
 
 def display_voyage_information():
     col1, col2, col3, col4 = st.columns(4)
