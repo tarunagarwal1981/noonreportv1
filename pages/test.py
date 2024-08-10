@@ -17,7 +17,7 @@ def main():
     with col3:
         st.text("Vessel Type: Tanker")  # Random value
 
-    st.markdown("<h2 style='text-align: center;'>Arrival Report Selection</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align: center;'>EOSP Report Selection</h2>", unsafe_allow_html=True)
     
     # Arrange the noon report checkboxes in rows of three
     col1, col2, col3, col4 = st.columns(4)
