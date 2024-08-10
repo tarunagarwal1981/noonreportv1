@@ -17,7 +17,7 @@ def main():
     with col3:
         st.text("Vessel Type: Tanker")  # Random value
 
-    st.markdown("<h2 style='text-align: center;'>Arrival Report Selection</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align: center;'>Noon Report Selection</h2>", unsafe_allow_html=True)
     
     # Arrange the noon report checkboxes in rows of three
     col1, col2, col3, col4 = st.columns(4)
@@ -26,7 +26,7 @@ def main():
     with col2:
         noon_at_anchor = st.checkbox("Arrival at Anchor")
     with col3:
-        noon_at_drifting = st.checkbox("Arrival for Drifting")  
+        noon_at_drifting = st.checkbox("Entering Canal/River")  
     with col4:
         noon_at_sts = st.checkbox("Arrival at STS")    
     
@@ -38,13 +38,12 @@ def main():
         st.markdown("### Arrival at Anchor Report")
         display_base_report_form()
     if noon_at_drifting:
-        st.markdown("### Arrival for Drifting Report")
+        st.markdown("### Entering Canal/River")
         display_base_report_form()
     if noon_at_sts:
         st.markdown("### Arrival at STS Report")
         display_base_report_form()
-    
-
+        
 def display_base_report_form():
     sections = [
         "Voyage Information",
@@ -252,7 +251,7 @@ def display_speed_position_and_navigation():
         st.number_input("Time Since Last Report (hours)", min_value=0.0, step=0.1, key="time_since_last_report")
         st.selectbox("Clocks Advanced/Retarded", ["", "Advanced", "Retarded"], key="clocks_change")
         st.number_input("Clocks Changed By (minutes)", min_value=0, step=1, key="clocks_change_minutes")
-        st.time_input("Date Time (Local)", value=datetime.now().time(), key=f"local_time_{uuid.uuid4()}")
+        st.time_input(" EOSP Date Time (Local)", value=datetime.now().time(), key=f"local_time_{uuid.uuid4()}")
     with col2:
         st.number_input("Distance Observed (nm)", min_value=0.0, step=0.1, value=0.00, key=f"distance_observed_{uuid.uuid4()}")
         st.number_input("Distance To Go (nm)", min_value=0.0, step=0.1, value=0.00, key=f"distance_togo_{uuid.uuid4()}")
@@ -272,6 +271,7 @@ def display_speed_position_and_navigation():
         st.text_input("Ordered Speed", key=f"speed_order_{uuid.uuid4()}")
         st.text_input("True Slip", key="true_slip")
         st.text_input("Observed Slip", key="obs_slip")
+        st.time_input(" EOSP Date Time (UTC)", value=datetime.now().time(), key=f"local_time_{uuid.uuid4()}")
 
 def display_custom_speed_position_and_navigation(noon_report_type):
     st.subheader("Speed, Position and Navigation")
