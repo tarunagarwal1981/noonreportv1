@@ -715,35 +715,30 @@ def display_custom_fuel_consumption(noon_report_type):
     if bunkering_happened:
         st.markdown("<h4 style='font-size: 18px;'>Bunkering Details</h4>", unsafe_allow_html=True)
         
-        # Display each bunkering entry
+        # Display each bunkering entry with only the specified fields
         for i, entry in enumerate(st.session_state.bunkering_entries):
             st.markdown(f"<h5 style='font-size: 16px;'>Bunkering Entry {i+1}</h5>", unsafe_allow_html=True)
             col1, col2, col3 = st.columns(3)
             with col1:
-                entry['date'] = st.date_input("Date of Bunkering", key=f"bunker_date_{i}")
-                entry['grade'] = st.selectbox("Grade of Fuel Bunkered", 
-                                              ["VLSFO", "HFO", "MGO", "LSMGO", "LNG"], 
-                                              key=f"grade_{i}")
-                entry['grade_bdn'] = st.text_input("Grade as per BDN", key=f"grade_bdn_{i}")
+                entry['bdn_number'] = st.text_input("Bunker Delivery Note Number", key=f"bdn_number_{i}")
+                entry['delivery_date'] = st.date_input("Bunker Delivery Date", key=f"delivery_date_{i}")
+                entry['delivery_time'] = st.time_input("Bunker Delivery Time", key=f"delivery_time_{i}")
             with col2:
-                entry['total_qty'] = st.number_input("Total Quantity Bunkered (mt)", 
-                                                     min_value=0.0, step=0.1, key=f"total_qty_{i}")
-                entry['density'] = st.number_input("Density (kg/m³)", 
-                                                   min_value=0.0, step=0.1, key=f"density_{i}")
-                entry['viscosity'] = st.number_input("Viscosity (cSt)", 
-                                                     min_value=0.0, step=0.1, key=f"viscosity_{i}")
+                entry['imo_number'] = st.text_input("IMO number", key=f"imo_number_{i}")
+                entry['fuel_type'] = st.text_input("Fuel Type", key=f"fuel_type_{i}")
+                entry['mass'] = st.number_input("Mass (mt)", min_value=0.0, step=0.1, key=f"mass_{i}")
             with col3:
-                entry['lcv'] = st.number_input("LCV (MJ/kg)", 
-                                               min_value=0.0, step=0.1, key=f"lcv_{i}")
-                entry['bdn_number'] = st.text_input("BDN Number", key=f"bdn_number_{i}")
-                entry['bdn_file'] = st.file_uploader("Upload BDN", 
-                                                     type=['pdf', 'jpg', 'png'], 
-                                                     key=f"bdn_file_{i}")
+                entry['lower_heating_value'] = st.number_input("Lower heating value (MJ/kg)", min_value=0.0, step=0.1, key=f"lower_heating_value_{i}")
+                entry['eu_ghg_intensity'] = st.number_input("EU GHG emission intensity (gCO2eq/MJ)", min_value=0.0, step=0.1, key=f"eu_ghg_intensity_{i}")
+                entry['imo_ghg_intensity'] = st.number_input("IMO GHG emission intensity (gCO2eq/MJ)", min_value=0.0, step=0.1, key=f"imo_ghg_intensity_{i}")
+                entry['lcv_eu'] = st.number_input("Lower Calorific Value (EU) (MJ/kg)", min_value=0.0, step=0.1, key=f"lcv_eu_{i}")
+                entry['sustainability'] = st.text_input("Sustainability", key=f"sustainability_{i}")
 
         # Button to add new bunkering entry
         if st.button("➕ Add Bunkering Entry"):
             st.session_state.bunkering_entries.append({})
             st.experimental_rerun()
+
 
     # Debunkering details section
     if debunkering_happened:
