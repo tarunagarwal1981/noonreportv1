@@ -111,8 +111,6 @@ def display_voyage_information():
     with col3:
        
         st.text_input("Speed Order", key="speed_order")
-        st.text_input("True Slip", key="true_slip")
-        st.text_input("Observed Slip", key="obs_slip")
         idl_crossing = st.checkbox("IDL Crossing", key="idl_crossing")
         if idl_crossing:
             st.selectbox("IDL Direction", ["East", "West"], key="idl_direction")
@@ -321,11 +319,13 @@ def display_speed_position_and_navigation():
         st.time_input("Date Time (Local)", value=datetime.now().time(), key=f"local_time_{uuid.uuid4()}")
         st.time_input("Vessel Timezone", value=datetime.now().time(), key=f"local_timezone_{uuid.uuid4()}")
         st.date_input("Date Time (UTC)", value=datetime.now(), key=f"utc_date_{uuid.uuid4()}")
+        
                
     with col2:
         st.number_input("Distance Observed (nm)", min_value=0.0, step=0.1, value=0.00, key=f"distance_observed_{uuid.uuid4()}")
         st.number_input("Distance To Go (nm)", min_value=0.0, step=0.1, value=0.00, key=f"distance_togo_{uuid.uuid4()}")    
         st.number_input("Distance Through Water (nm)", min_value=0.0, step=0.1, key=f"distance_through_water_{uuid.uuid4()}")
+        st.number_input("Engine Distance (nm)", min_value=0.0, step=0.1, key=f"engine_distance_{uuid.uuid4()}")
         st.number_input("Distance Adjusted (nm)", min_value=0.0, step=0.1, value=0.00, key=f"distance_adj_{uuid.uuid4()}")
         st.number_input("Obs Speed (SOG) (kts)", min_value=0.0, step=0.1, key=f"obs_speed_sog_{uuid.uuid4()}")
         st.number_input("EM Log Speed (LOG) (kts)", min_value=0.0, step=0.1, key=f"em_log_speed_{uuid.uuid4()}")
@@ -342,7 +342,8 @@ def display_speed_position_and_navigation():
         
     with col4:
         st.text_input("Ordered Speed", key=f"speed_order_{uuid.uuid4()}")
-        
+        st.text_input("True Slip", key="true_slip")
+        st.text_input("Observed Slip", key="obs_slip")
         
 
 def display_custom_speed_position_and_navigation(noon_report_type):
