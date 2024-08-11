@@ -36,7 +36,7 @@ def main():
         display_base_report_form()
     elif noon_at_anchor:
         st.markdown("### Arrival at Anchor Report")
-        display_custom_report_form("Arrival at Anchor")
+        display_custom_report_form("Noon at Anchor")
     elif noon_at_drifting:
         st.markdown("### Arrival for Drifting Report")
         display_base_report_form()
