@@ -281,7 +281,7 @@ def display_speed_position_and_navigation():
 
 def display_custom_speed_position_and_navigation(noon_report_type):
     st.subheader("Speed, Position and Navigation")
-    col1, col2, col3, col4, col4 = st.columns(4)
+    col1, col2, col3, col4 = st.columns(4)
     with col1:
         st.date_input("FWE Date Time (Local)", value=datetime.now(), key=f"local_date_{uuid.uuid4()}")
         st.number_input("Anchor Pos. Longitude", min_value=-180, max_value=180, step=1, key=f"lon_degree_{uuid.uuid4()}")
