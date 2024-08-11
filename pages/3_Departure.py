@@ -41,7 +41,7 @@ def main():
         display_base_report_form()
     if noon_at_anchor:
         st.markdown("### Departure Anchor")
-        display_base_report_form()
+        display_custom_report_form("Departure Anchor")
     if noon_at_drifting:
         st.markdown("### Departure Drifting")
         display_base_report_form()
@@ -75,6 +75,8 @@ def display_base_report_form():
 
 
 def display_custom_report_form(noon_report_type):
+    st.write(f"Displaying custom form for: {noon_report_type}")
+    
     sections = [
         "Voyage Information",
         "Special Events",
@@ -89,11 +91,12 @@ def display_custom_report_form(noon_report_type):
 
     for section in sections:
         with st.expander(f"#### {section}"):
-            function_name = f"display_{section.lower().replace(' ', '_').replace(',', '')}"
+            function_name = f"display_custom_{section.lower().replace(' ', '_').replace(',', '')}"
             if function_name in globals():
-                globals()[function_name]()
+                globals()[function_name](noon_report_type)
             else:
-                st.write(f"Function {function_name} not found.")
+                st.write(f"Custom function {function_name} not found. Displaying default section.")
+                display_default_section(section)
 
     if st.button("Submit Report", type="primary", key=f"submit_report_{uuid.uuid4()}"):
         st.success("Report submitted successfully!")
@@ -126,16 +129,22 @@ def display_voyage_information():
 def display_custom_voyage_information(noon_report_type):
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.text_input("Port Name", key=f"port_name_{uuid.uuid4()}")
-        st.text_input("Port UNLOCODE", key=f"port_unlo_{uuid.uuid4()}")
+        st.text_input("Departure Port", key="voyage_from")
+        st.text_input("UNLOCODE", key="voyage_fromunlo")
+        st.selectbox("Vessel Condition", ["", "Laden", "Ballast"], key=f"vessel_condition_{uuid.uuid4()}")
+        
     with col2:
-        st.selectbox("Voyage Type", ["", "One-way", "Round trip", "STS"], key="voyage_type")
-        st.date_input("ETA", value=datetime.now(), key="eta")
+        st.text_input("Arrival Port", key="voyage_to")
+        st.text_input("UNLOCODE", key="voyage_tounlo")
+        st.selectbox("Voyage Type", ["", "One-way", "Round trip", "STS"], key="voyage_type") 
         
     with col3:
-        st.selectbox("Vessel Condition", ["", "Laden", "Ballast"], key=f"vessel_condition_{uuid.uuid4()}")
-        st.text_input("Charter Type", key="charter_type")
+        st.text_input("Voyage ID", key=f"voyage_id_{uuid.uuid4()}")
+        st.text_input("Segment ID", key=f"segment_id_{uuid.uuid4()}")
+        st.date_input("ETA (Date/Time)", value=datetime.now(), key="eta")
     with col4:
+        st.text_input("Speed Order (CP)", key="speed_order")
+        st.text_input("Charter Type", key="charter_type")
         drydock = st.checkbox("Drydock", key="drydock")
 
 def display_special_events():
@@ -204,7 +213,7 @@ def display_custom_special_events(noon_report_type):
         "Event", "Start Date Time", "Start Lat", "Start Long", "End Date Time",
         "End Lat", "End Long", "Distance Travelled", "Total Consumption", "Consumption Tank Name"
     ]
-
+    
     if 'special_events_df' not in st.session_state:
         default_row = {
             "Event": "Off-hire",
@@ -227,7 +236,14 @@ def display_custom_special_events(noon_report_type):
         column_config={
             "Event": st.column_config.SelectboxColumn(
                 "Event", width="medium",
-                options=["Off-hire", "ECA Transit", "Fuel Changeover"]
+                options=[
+                    "Off-hire", "ECA Transit", "Fuel Changeover", "Stoppage",
+                    "Deviation - Heavy weather", "Deviation - SAR operation",
+                    "Deviation - Navigational area Warning", "Deviation - Med-evac",
+                    "Deviation - Others", "Transiting Special Area - JWC area",
+                    "Transiting Special Area - IWL", "Transiting Special Area - ICE regions",
+                    "Transiting Special Area - HRA"
+                ],
             ),
             "Start Date Time": st.column_config.DatetimeColumn(
                 "Start Date Time", format="DD/MM/YYYY HH:mm", step=60
@@ -280,21 +296,28 @@ def display_speed_position_and_navigation():
 
 def display_custom_speed_position_and_navigation(noon_report_type):
     st.subheader("Speed, Position and Navigation")
-    col1, col2, col3, col4, col5 = st.columns(5)
+    col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.number_input("Latitude", min_value=-90, max_value=90, step=1, key=f"lat_degree_{uuid.uuid4()}")
-        st.date_input("Date (Local)", value=datetime.now(), key=f"local_date_{uuid.uuid4()}")
+        st.date_input("SBE Date Time (Local)", value=datetime.now(), key=f"local_date_{uuid.uuid4()}")
+        st.number_input("Anchor Pos. Longitude", min_value=-180, max_value=180, step=1, key=f"lon_degree_{uuid.uuid4()}")
+        st.number_input("Water Depth (m)", min_value=0, max_value=359, step=1, key=f"depth_{uuid.uuid4()}")
+        
     with col2:
-        st.selectbox("Latitude N/S", ["N", "S"], key=f"lat_ns_{uuid.uuid4()}")
-        st.number_input("Longitude", min_value=-180, max_value=180, step=1, key=f"lon_degree_{uuid.uuid4()}")
+        st.date_input("SBE Date Time (UTC)", value=datetime.now(), key=f"utc_date_{uuid.uuid4()}")
+        st.number_input("Anchor Pos. Latitude", min_value=-90, max_value=90, step=1, key=f"lat_degree_{uuid.uuid4()}")
+        st.number_input("Heading (°)", min_value=0, max_value=359, step=1, key=f"heading_{uuid.uuid4()}")
+       
+                
     with col3:
-        st.selectbox("Longitude E/W", ["E", "W"], key=f"lon_ew_{uuid.uuid4()}")
-        st.time_input("Time (UTC)", value=datetime.now().time(), key=f"utc_time_{uuid.uuid4()}")
+        st.time_input("Anchor Aweigh (UTC)", value=datetime.now().time(), key=f"local_time_{uuid.uuid4()}")
+        st.selectbox("Anchor Pos. Longitude E/W", ["E", "W"], key=f"lon_ew_{uuid.uuid4()}")
+        
+        
     with col4:
-        st.time_input("Time (Local)", value=datetime.now().time(), key=f"local_time_{uuid.uuid4()}")
-    with col5:
-        st.date_input("Date (UTC)", value=datetime.now(), key=f"utc_date_{uuid.uuid4()}")
-
+        st.time_input("Anchor Aweigh (LT)", value=datetime.now().time(), key=f"local_time_{uuid.uuid4()}")
+        st.selectbox("Anchor Pos. Latitude N/S", ["N", "S"], key=f"lat_ns_{uuid.uuid4()}")
+        st.text_input("Anchor Location", key="anchor_loc")
+        
 def display_weather_and_sea_conditions():
     st.subheader("Weather and Sea Conditions")
     col1, col2, col3, col4, col5 = st.columns(5)
