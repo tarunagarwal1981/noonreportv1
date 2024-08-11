@@ -81,6 +81,8 @@ def display_base_report_form():
         st.success("Report submitted successfully!")
 
 def display_custom_report_form(noon_report_type):
+    st.write(f"Displaying custom form for: {noon_report_type}")
+    
     sections = [
         "Voyage Information",
         "Special Events",
@@ -95,11 +97,12 @@ def display_custom_report_form(noon_report_type):
 
     for section in sections:
         with st.expander(f"#### {section}"):
-            function_name = f"display_{section.lower().replace(' ', '_').replace(',', '')}"
+            function_name = f"display_custom_{section.lower().replace(' ', '_').replace(',', '')}"
             if function_name in globals():
-                globals()[function_name]()
+                globals()[function_name](noon_report_type)
             else:
-                st.write(f"Function {function_name} not found.")
+                st.write(f"Custom function {function_name} not found. Displaying default section.")
+                display_default_section(section)
 
     if st.button("Submit Report", type="primary", key=f"submit_report_{uuid.uuid4()}"):
         st.success("Report submitted successfully!")
