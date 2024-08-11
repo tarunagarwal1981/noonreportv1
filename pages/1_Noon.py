@@ -40,19 +40,19 @@ def main():
     if noon_at_sea:
         st.markdown("### Noon at Sea Report")
         display_base_report_form()
-    if noon_at_port:
+    elif noon_at_port:
         st.markdown("### Noon at Port Report")
         display_custom_report_form("Noon at Port")
-    if noon_at_anchor:
+    elif noon_at_anchor:
         st.markdown("### Noon at Anchor Report")
         display_custom_report_form("Noon at Anchor")
-    if noon_at_drifting:
+    elif noon_at_drifting:
         st.markdown("### Noon at Drifting Report")
         display_base_report_form()
-    if noon_at_sts:
+    elif noon_at_sts:
         st.markdown("### Noon at STS Report")
         display_custom_report_form("Noon at STS")
-    if noon_at_canal:
+    elif noon_at_canal:
         st.markdown("### Noon at Canal/River Passage Report")
         display_base_report_form()
 
