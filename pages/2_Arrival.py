@@ -34,13 +34,13 @@ def main():
     if noon_at_port:
         st.markdown("### Arrival at Port Report")
         display_base_report_form()
-    if noon_at_anchor:
+    elif noon_at_anchor:
         st.markdown("### Arrival at Anchor Report")
         display_custom_report_form("Arrival at Anchor")
-    if noon_at_drifting:
+    elif noon_at_drifting:
         st.markdown("### Arrival for Drifting Report")
         display_base_report_form()
-    if noon_at_sts:
+    elif noon_at_sts:
         st.markdown("### Arrival at STS Report")
         display_base_report_form()
     
