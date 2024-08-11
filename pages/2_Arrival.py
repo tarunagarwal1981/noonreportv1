@@ -36,7 +36,7 @@ def main():
         display_base_report_form()
     if noon_at_anchor:
         st.markdown("### Arrival at Anchor Report")
-        display_base_report_form()
+        display_custom_base_report_form(Arrival at Anchor)
     if noon_at_drifting:
         st.markdown("### Arrival for Drifting Report")
         display_base_report_form()
@@ -268,28 +268,38 @@ def display_speed_position_and_navigation():
         st.number_input("Heading (°)", min_value=0, max_value=359, step=1, key=f"heading_{uuid.uuid4()}")
         st.number_input("Obs Speed (SOG) (kts)", min_value=0.0, step=0.1, key=f"obs_speed_sog_{uuid.uuid4()}")
         st.number_input("EM Log Speed (LOG) (kts)", min_value=0.0, step=0.1, key=f"em_log_speed_{uuid.uuid4()}")
+        
     with col5:
         st.text_input("Ordered Speed", key=f"speed_order_{uuid.uuid4()}")
         st.text_input("True Slip", key="true_slip")
         st.text_input("Observed Slip", key="obs_slip")
         st.time_input("FWE Date Time (UTC)", value=datetime.now().time(), key=f"local_time_{uuid.uuid4()}")
+        
 
 def display_custom_speed_position_and_navigation(noon_report_type):
     st.subheader("Speed, Position and Navigation")
-    col1, col2, col3, col4, col5 = st.columns(5)
+    col1, col2, col3, col4, col4 = st.columns(4)
     with col1:
-        st.number_input("Latitude", min_value=-90, max_value=90, step=1, key=f"lat_degree_{uuid.uuid4()}")
-        st.date_input("Date (Local)", value=datetime.now(), key=f"local_date_{uuid.uuid4()}")
+        st.date_input("FWE Date Time (Local)", value=datetime.now(), key=f"local_date_{uuid.uuid4()}")
+        st.number_input("Anchor Pos. Longitude", min_value=-180, max_value=180, step=1, key=f"lon_degree_{uuid.uuid4()}")
+        st.number_input("Water Depth (m)", min_value=0, max_value=359, step=1, key=f"depth_{uuid.uuid4()}")
+        
     with col2:
-        st.selectbox("Latitude N/S", ["N", "S"], key=f"lat_ns_{uuid.uuid4()}")
-        st.number_input("Longitude", min_value=-180, max_value=180, step=1, key=f"lon_degree_{uuid.uuid4()}")
+        st.date_input("FWE Date Time (UTC)", value=datetime.now(), key=f"utc_date_{uuid.uuid4()}")
+        st.number_input("Anchor Pos. Latitude", min_value=-90, max_value=90, step=1, key=f"lat_degree_{uuid.uuid4()}")
+        st.number_input("Heading (°)", min_value=0, max_value=359, step=1, key=f"heading_{uuid.uuid4()}")
+       
+                
     with col3:
-        st.selectbox("Longitude E/W", ["E", "W"], key=f"lon_ew_{uuid.uuid4()}")
-        st.time_input("Time (UTC)", value=datetime.now().time(), key=f"utc_time_{uuid.uuid4()}")
+        st.time_input("Let Go Anchor (LGA) (UTC)", value=datetime.now().time(), key=f"local_time_{uuid.uuid4()}")
+        st.selectbox("Anchor Pos. Longitude E/W", ["E", "W"], key=f"lon_ew_{uuid.uuid4()}")
+        st.number_input("No. Of schckles on deck", min_value=0, max_value=359, step=1, key=f"shackles_{uuid.uuid4()}")    
+        
     with col4:
-        st.time_input("Time (Local)", value=datetime.now().time(), key=f"local_time_{uuid.uuid4()}")
-    with col5:
-        st.date_input("Date (UTC)", value=datetime.now(), key=f"utc_date_{uuid.uuid4()}")
+        st.time_input("Let Go Anchor (LGA) (LT)", value=datetime.now().time(), key=f"local_time_{uuid.uuid4()}")
+        st.selectbox("Anchor Pos. Latitude N/S", ["N", "S"], key=f"lat_ns_{uuid.uuid4()}")
+        st.text_input("Anchor Location", key="anchor_loc")
+        
 
 def display_weather_and_sea_conditions():
     st.subheader("Weather and Sea Conditions")
