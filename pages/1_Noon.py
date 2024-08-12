@@ -130,9 +130,7 @@ def display_voyage_information():
     with col4:
         st.text_input("Speed Order (CP)", key="speed_order")
         st.text_input("Charter Type", key="charter_type")
-        idl_crossing = st.checkbox("IDL Crossing", key="idl_crossing")
-        if idl_crossing:
-            st.selectbox("IDL Direction", ["East", "West"], key="idl_direction")
+        
 
 def display_custom_voyage_information(noon_report_type):
     col1, col2, col3, col4 = st.columns(4)
@@ -288,6 +286,9 @@ def display_speed_position_and_navigation():
         st.text_input("True Slip", key="true_slip")
         st.text_input("Observed Slip", key="obs_slip")
         st.time_input("Date Time (UTC)", value=datetime.now().time(), key=f"local_time_{uuid.uuid4()}")
+        idl_crossing = st.checkbox("IDL Crossing", key="idl_crossing")
+        if idl_crossing:
+            st.selectbox("IDL Direction", ["East", "West"], key="idl_direction")
 
 def display_custom_speed_position_and_navigation(noon_report_type):
     st.subheader("Speed, Position and Navigation")
