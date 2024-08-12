@@ -4,6 +4,7 @@ from datetime import datetime
 import numpy as np
 import uuid
 
+
 st.set_page_config(layout="wide", page_title="Maritime Reporting Portal")
 
 def main():
@@ -11,19 +12,33 @@ def main():
     st.markdown("<h2 style='text-align: center;'>Vessel and Voyage Information</h2>", unsafe_allow_html=True)
     
     # Display vessel and voyage information at the top of the page
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
     with col1:
         st.text("IMO Number: 1234567")
-        st.text("Departure Port: Rotterdam")
-        st.text("Arrival Port: Singapore")
-    with col2:
         st.text("Vessel Name: Ocean Explorer")
-        st.text("UNLOCODE Departure: NLRTM")
-        st.text("UNLOCODE Arrival: SGSIN")
-    with col3:
         st.text("Vessel Type: Tanker")
+        st.text("Departure Port: Rotterdam")
+        st.text("UNLOCODE: NLRTM")
+        st.text("Vessel Condition: Laden")
+    with col2:
+        st.text("Arrival Port: New York")
+        st.text("UNLOCODE: USNYC")
         st.text("Voyage Type: One-way")
-        st.text(f"ETA: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
+        st.text("Voyage ID: VOY123456")
+        st.text("Segment ID: SEG001")
+        st.text("ETA: " + datetime.now().strftime("%Y-%m-%d %H:%M"))
+    with col3:
+        st.text("Speed Order (CP): 12.5 knots")
+        st.text("Charter Type: Time Charter")
+        st.text("Vessel Condition: Laden")
+        st.text("Voyage Type: One-way")
+    with col4:
+        st.text("Voyage ID: VOY123456")
+        st.text("Segment ID: SEG001")
+        st.text("ETA: " + datetime.now().strftime("%Y-%m-%d %H:%M"))
+        st.text("Speed Order (CP): 12.5 knots")
+        st.text("Charter Type: Time Charter")
+        
     # Departure Report Selection
     st.markdown("<h2 style='text-align: center;'>Departure Report Selection</h2>", unsafe_allow_html=True)
     
