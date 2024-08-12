@@ -4,7 +4,7 @@ from datetime import datetime
 import numpy as np
 import uuid
 
-st.set_page_config(layout="wide", page_title="Noon Reporting Portal")
+st.set_page_config(layout="wide", page_title="Maritime Reporting Portal")
 
 def main():
     # Display vessel information at the top of the page
@@ -17,38 +17,66 @@ def main():
     with col3:
         st.text("Vessel Type: Tanker")  # Random value
 
-    st.markdown("<h2 style='text-align: center;'>COSP Report Selection</h2>", unsafe_allow_html=True)
+    # Voyage Information section
+    st.markdown("<h2 style='text-align: center;'>Voyage Information</h2>", unsafe_allow_html=True)
     
-    # Arrange the noon report checkboxes in rows of three
-    col1, col2, col3, col4 = st.columns(4)
+    # New checkboxes for voyage initiation and edit
+    col1, col2 = st.columns(2)
     with col1:
-        noon_at_port = st.checkbox("Departure Port")
+        voyage_initiation = st.checkbox("Voyage Initiation Report")
     with col2:
-        noon_at_anchor = st.checkbox("Departure from Anchor")
+        edit_voyage = st.checkbox("Edit Voyage")
+
+    # Display voyage information based on checkbox states
+    if voyage_initiation or edit_voyage:
+        display_voyage_information(editable=True)
+    else:
+        display_voyage_information(editable=False)
+
+    # Departure Report Selection
+    st.markdown("<h2 style='text-align: center;'>Departure Report Selection</h2>", unsafe_allow_html=True)
+    
+    # Arrange the departure report checkboxes in rows of three
+    col1, col2, col3, col4, col5 = st.columns(5)
+    with col1:
+        noon_at_portshift = st.checkbox("Departure for Berth Shifting")
+    with col2:
+        noon_at_port = st.checkbox("Departure Port")
     with col3:
-        noon_at_drifting = st.checkbox("Departure Canal/River")  
+        noon_at_anchor = st.checkbox("Departure Anchor")
     with col4:
+        noon_at_drifting = st.checkbox("Departure Drifting")  
+    with col5:
         noon_at_sts = st.checkbox("Departure STS")    
     
     # Display the relevant form based on the selected checkbox
-    if noon_at_port:
-        st.markdown("### Departure Port Report")
-        display_base_report_form()
-    if noon_at_anchor:
-        st.markdown("### Departure from Anchor Report")
-        display_base_report_form()
-    if noon_at_drifting:
-        st.markdown("### Departure Canal/River")
-        display_base_report_form()
-    if noon_at_sts:
-        st.markdown("### Departure STS Report")
-        display_base_report_form()
+    if any([noon_at_portshift, noon_at_port, noon_at_anchor, noon_at_drifting, noon_at_sts]):
+        display_departure_form()
+
+def display_voyage_information(editable):
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.text_input("Departure Port", key="voyage_from", disabled=not editable)
+        st.text_input("UNLOCODE", key="voyage_fromunlo", disabled=not editable)
+        st.selectbox("Vessel Condition", ["", "Laden", "Ballast"], key=f"vessel_condition_{uuid.uuid4()}", disabled=not editable)
         
-def display_base_report_form():
+    with col2:
+        st.text_input("Arrival Port", key="voyage_to", disabled=not editable)
+        st.text_input("UNLOCODE", key="voyage_tounlo", disabled=not editable)
+        st.selectbox("Voyage Type", ["", "One-way", "Round trip", "STS"], key="voyage_type", disabled=not editable) 
+        
+    with col3:
+        st.text_input("Voyage ID", key=f"voyage_id_{uuid.uuid4()}", disabled=not editable)
+        st.text_input("Segment ID", key=f"segment_id_{uuid.uuid4()}", disabled=not editable)
+        st.date_input("ETA (Date/Time)", value=datetime.now(), key="eta", disabled=not editable)
+    with col4:
+        st.text_input("Speed Order (CP)", key="speed_order", disabled=not editable)
+        st.text_input("Charter Type", key="charter_type", disabled=not editable)
+
+def display_departure_form():
     sections = [
-        "Voyage Information",
-        "Special Events",
         "Speed, Position and Navigation",
+        "Special Events",
         "Weather and Sea Conditions",
         "Cargo and Stability",
         "Fuel Consumption",
@@ -58,81 +86,37 @@ def display_base_report_form():
     ]
 
     for section in sections:
-        st.markdown(f"#### {section}")
-        function_name = f"display_{section.lower().replace(' ', '_').replace(',', '')}"
-        if function_name in globals():
-            globals()[function_name]()
-        else:
-            st.write(f"Function {function_name} not found.")
+        with st.expander(f"#### {section}"):
+            function_name = f"display_{section.lower().replace(' ', '_').replace(',', '')}"
+            if function_name in globals():
+                globals()[function_name]()
+            else:
+                st.write(f"Function {function_name} not found.")
 
     if st.button("Submit Report", type="primary", key=f"submit_report_{uuid.uuid4()}"):
         st.success("Report submitted successfully!")
 
-def display_custom_report_form(noon_report_type):
-    sections = [
-        "Voyage Information",
-        "Special Events",
-        "Speed, Position and Navigation",
-        "Weather and Sea Conditions",
-        "Cargo and Stability",
-        "Fuel Consumption",
-        "Machinery",
-        "Environmental Compliance",
-        "Miscellaneous Consumables",
-    ]
-
-    for section in sections:
-        st.markdown(f"#### {section}")
-        function_name = f"display_custom_{section.lower().replace(' ', '_').replace(',', '')}"
-        if function_name in globals():
-            globals()[function_name](noon_report_type)
-        else:
-            st.write(f"Function {function_name} not found.")
-
-    if st.button("Submit Report", type="primary", key=f"submit_report_{uuid.uuid4()}"):
-        st.success("Report submitted successfully!")
-
-# Example display functions (You will need to define all similar
-
-
-def display_voyage_information():
-    col1, col2, col3, col4 = st.columns(4)
+def display_speed_position_and_navigation():
+    st.subheader("Speed, Position and Navigation")
+    col1, col2, col3, col4, col5 = st.columns(5)
     with col1:
-        st.text_input("Departure Port", key="voyage_from")
-        st.text_input("UNLOCODE", key="voyage_fromunlo")
-        st.selectbox("Vessel Condition", ["", "Laden", "Ballast"], key=f"vessel_condition_{uuid.uuid4()}")
-        
+        st.number_input("Time Since Last Report (hours)", min_value=0.0, step=0.1, key="time_since_last_report")
+        st.selectbox("Clocks Advanced/Retarded", ["", "Advanced", "Retarded"], key="clocks_change")
+        st.number_input("Clocks Changed By (minutes)", min_value=0, step=1, key="clocks_change_minutes")
+        st.time_input("SBE Date Time (Local)", value=datetime.now().time(), key=f"local_time_{uuid.uuid4()}")
     with col2:
-        st.text_input("Arrival Port", key="voyage_to")
-        st.text_input("UNLOCODE", key="voyage_tounlo")
-        st.selectbox("Voyage Type", ["", "One-way", "Round trip", "STS"], key="voyage_type") 
-        
+        st.number_input("Distance To Go (nm)", min_value=0.0, step=0.1, value=0.00, key=f"distance_togo_{uuid.uuid4()}")
+        st.number_input("Distance Through Water (nm)", min_value=0.0, step=0.1, key=f"distance_through_water_{uuid.uuid4()}")
     with col3:
-        st.text_input("Voyage ID", key=f"voyage_id_{uuid.uuid4()}")
-        st.text_input("Segment ID", key=f"segment_id_{uuid.uuid4()}")
-        st.date_input("ETA (Date/Time)", value=datetime.now(), key="eta")
+        st.number_input("Latitude", min_value=-90, max_value=90, step=1, key=f"lat_degree_{uuid.uuid4()}")
+        st.selectbox("Latitude N/S", ["N", "S"], key=f"lat_ns_{uuid.uuid4()}")
+        st.number_input("Longitude", min_value=-180, max_value=180, step=1, key=f"lon_degree_{uuid.uuid4()}")
+        st.selectbox("Longitude E/W", ["E", "W"], key=f"lon_ew_{uuid.uuid4()}")
     with col4:
-        st.text_input("Speed Order (CP)", key="speed_order")
-        st.text_input("Charter Type", key="charter_type")
-        idl_crossing = st.checkbox("IDL Crossing", key="idl_crossing")
-        if idl_crossing:
-            st.selectbox("IDL Direction", ["East", "West"], key="idl_direction")
-
-def display_custom_voyage_information(noon_report_type):
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        st.text_input("Port Name", key=f"port_name_{uuid.uuid4()}")
-        st.text_input("Port UNLOCODE", key=f"port_unlo_{uuid.uuid4()}")
-    with col2:
-        st.selectbox("Voyage Type", ["", "One-way", "Round trip", "STS"], key="voyage_type")
-        st.date_input("ETA", value=datetime.now(), key="eta")
-        
-    with col3:
-        st.selectbox("Vessel Condition", ["", "Laden", "Ballast"], key=f"vessel_condition_{uuid.uuid4()}")
-        st.text_input("Charter Type", key="charter_type")
-    with col4:
-        drydock = st.checkbox("Drydock", key="drydock")
-
+        st.number_input("Course (°)", min_value=0, max_value=359, step=1, key=f"course_{uuid.uuid4()}")
+        st.number_input("Heading (°)", min_value=0, max_value=359, step=1, key=f"heading_{uuid.uuid4()}")
+    with col5:
+        st.time_input(" SBE Date Time (UTC)", value=datetime.now().time(), key=f"local_time_{uuid.uuid4()}")
 def display_special_events():
     st.subheader("Special Events")
 
@@ -199,7 +183,7 @@ def display_custom_special_events(noon_report_type):
         "Event", "Start Date Time", "Start Lat", "Start Long", "End Date Time",
         "End Lat", "End Long", "Distance Travelled", "Total Consumption", "Consumption Tank Name"
     ]
-
+    
     if 'special_events_df' not in st.session_state:
         default_row = {
             "Event": "Off-hire",
@@ -222,7 +206,14 @@ def display_custom_special_events(noon_report_type):
         column_config={
             "Event": st.column_config.SelectboxColumn(
                 "Event", width="medium",
-                options=["Off-hire", "ECA Transit", "Fuel Changeover"]
+                options=[
+                    "Off-hire", "ECA Transit", "Fuel Changeover", "Stoppage",
+                    "Deviation - Heavy weather", "Deviation - SAR operation",
+                    "Deviation - Navigational area Warning", "Deviation - Med-evac",
+                    "Deviation - Others", "Transiting Special Area - JWC area",
+                    "Transiting Special Area - IWL", "Transiting Special Area - ICE regions",
+                    "Transiting Special Area - HRA"
+                ],
             ),
             "Start Date Time": st.column_config.DatetimeColumn(
                 "Start Date Time", format="DD/MM/YYYY HH:mm", step=60
@@ -251,12 +242,12 @@ def display_speed_position_and_navigation():
         st.number_input("Time Since Last Report (hours)", min_value=0.0, step=0.1, key="time_since_last_report")
         st.selectbox("Clocks Advanced/Retarded", ["", "Advanced", "Retarded"], key="clocks_change")
         st.number_input("Clocks Changed By (minutes)", min_value=0, step=1, key="clocks_change_minutes")
-        st.time_input(" COSP Date Time (Local)", value=datetime.now().time(), key=f"local_time_{uuid.uuid4()}")
+        st.time_input("SBE Date Time (Local)", value=datetime.now().time(), key=f"local_time_{uuid.uuid4()}")
     with col2:
-        st.number_input("Distance Observed (nm)", min_value=0.0, step=0.1, value=0.00, key=f"distance_observed_{uuid.uuid4()}")
+        #st.number_input("Distance Observed (nm)", min_value=0.0, step=0.1, value=0.00, key=f"distance_observed_{uuid.uuid4()}")
         st.number_input("Distance To Go (nm)", min_value=0.0, step=0.1, value=0.00, key=f"distance_togo_{uuid.uuid4()}")
         st.number_input("Distance Through Water (nm)", min_value=0.0, step=0.1, key=f"distance_through_water_{uuid.uuid4()}")
-        st.number_input("Engine Distance (nm)", min_value=0.0, step=0.1, key=f"engine_distance_{uuid.uuid4()}")
+       # st.number_input("Engine Distance (nm)", min_value=0.0, step=0.1, key=f"engine_distance_{uuid.uuid4()}")
     with col3:
         st.number_input("Latitude", min_value=-90, max_value=90, step=1, key=f"lat_degree_{uuid.uuid4()}")
         st.selectbox("Latitude N/S", ["N", "S"], key=f"lat_ns_{uuid.uuid4()}")
@@ -265,31 +256,38 @@ def display_speed_position_and_navigation():
     with col4:
         st.number_input("Course (°)", min_value=0, max_value=359, step=1, key=f"course_{uuid.uuid4()}")
         st.number_input("Heading (°)", min_value=0, max_value=359, step=1, key=f"heading_{uuid.uuid4()}")
-        st.number_input("Obs Speed (SOG) (kts)", min_value=0.0, step=0.1, key=f"obs_speed_sog_{uuid.uuid4()}")
-        st.number_input("EM Log Speed (LOG) (kts)", min_value=0.0, step=0.1, key=f"em_log_speed_{uuid.uuid4()}")
+        #st.number_input("Obs Speed (SOG) (kts)", min_value=0.0, step=0.1, key=f"obs_speed_sog_{uuid.uuid4()}")
+        #st.number_input("EM Log Speed (LOG) (kts)", min_value=0.0, step=0.1, key=f"em_log_speed_{uuid.uuid4()}")
     with col5:
-        st.text_input("Ordered Speed", key=f"speed_order_{uuid.uuid4()}")
-        st.text_input("True Slip", key="true_slip")
-        st.text_input("Observed Slip", key="obs_slip")
-        st.time_input("COSP Date Time (UTC)", value=datetime.now().time(), key=f"local_time_{uuid.uuid4()}")
+        #st.text_input("Ordered Speed", key=f"speed_order_{uuid.uuid4()}")
+        #st.text_input("True Slip", key="true_slip")
+        #st.text_input("Observed Slip", key="obs_slip")
+        st.time_input(" SBE Date Time (UTC)", value=datetime.now().time(), key=f"local_time_{uuid.uuid4()}")
 
 def display_custom_speed_position_and_navigation(noon_report_type):
     st.subheader("Speed, Position and Navigation")
-    col1, col2, col3, col4, col5 = st.columns(5)
+    col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.number_input("Latitude", min_value=-90, max_value=90, step=1, key=f"lat_degree_{uuid.uuid4()}")
-        st.date_input("Date (Local)", value=datetime.now(), key=f"local_date_{uuid.uuid4()}")
+        st.date_input("SBE Date Time (Local)", value=datetime.now(), key=f"local_date_{uuid.uuid4()}")
+        st.number_input("Anchor Pos. Longitude", min_value=-180, max_value=180, step=1, key=f"lon_degree_{uuid.uuid4()}")
+        st.number_input("Water Depth (m)", min_value=0, max_value=359, step=1, key=f"depth_{uuid.uuid4()}")
+        
     with col2:
-        st.selectbox("Latitude N/S", ["N", "S"], key=f"lat_ns_{uuid.uuid4()}")
-        st.number_input("Longitude", min_value=-180, max_value=180, step=1, key=f"lon_degree_{uuid.uuid4()}")
+        st.date_input("SBE Date Time (UTC)", value=datetime.now(), key=f"utc_date_{uuid.uuid4()}")
+        st.number_input("Anchor Pos. Latitude", min_value=-90, max_value=90, step=1, key=f"lat_degree_{uuid.uuid4()}")
+        st.number_input("Heading (°)", min_value=0, max_value=359, step=1, key=f"heading_{uuid.uuid4()}")
+       
+                
     with col3:
-        st.selectbox("Longitude E/W", ["E", "W"], key=f"lon_ew_{uuid.uuid4()}")
-        st.time_input("Time (UTC)", value=datetime.now().time(), key=f"utc_time_{uuid.uuid4()}")
+        st.time_input("Anchor Aweigh (UTC)", value=datetime.now().time(), key=f"local_time_{uuid.uuid4()}")
+        st.selectbox("Anchor Pos. Longitude E/W", ["E", "W"], key=f"lon_ew_{uuid.uuid4()}")
+        
+        
     with col4:
-        st.time_input("Time (Local)", value=datetime.now().time(), key=f"local_time_{uuid.uuid4()}")
-    with col5:
-        st.date_input("Date (UTC)", value=datetime.now(), key=f"utc_date_{uuid.uuid4()}")
-
+        st.time_input("Anchor Aweigh (LT)", value=datetime.now().time(), key=f"local_time_{uuid.uuid4()}")
+        st.selectbox("Anchor Pos. Latitude N/S", ["N", "S"], key=f"lat_ns_{uuid.uuid4()}")
+        st.text_input("Anchor Location", key="anchor_loc")
+        
 def display_weather_and_sea_conditions():
     st.subheader("Weather and Sea Conditions")
     col1, col2, col3, col4, col5 = st.columns(5)
@@ -301,6 +299,7 @@ def display_weather_and_sea_conditions():
         st.number_input("Sea Water Temp (°C)", min_value=-2.0, max_value=35.0, step=0.1, key=f"sea_water_temp_{uuid.uuid4()}")
     with col3:
         st.number_input("Significant Wave Height (m)", min_value=0.0, step=0.1, key=f"sig_wave_height_{uuid.uuid4()}")
+        st.number_input("Wave Direction (°)", min_value=0, max_value=359, step=1, key=f"wave_direction_{uuid.uuid4()}")
         st.selectbox("Sea State (Douglas)", range(10), key=f"douglas_sea_state_{uuid.uuid4()}")
     with col4:
         st.number_input("Sea Height (m)", min_value=0.0, step=0.1, key=f"sea_height_{uuid.uuid4()}")
@@ -321,6 +320,7 @@ def display_custom_weather_and_sea_conditions(noon_report_type):
         st.number_input("Sea Water Temp (°C)", min_value=-2.0, max_value=35.0, step=0.1, key=f"sea_water_temp_{uuid.uuid4()}")
     with col3:
         st.number_input("Significant Wave Height (m)", min_value=0.0, step=0.1, key=f"sig_wave_height_{uuid.uuid4()}")
+        st.number_input("Wave Direction (°)", min_value=0, max_value=359, step=1, key=f"wave_direction_{uuid.uuid4()}")
         st.selectbox("Sea State (Douglas)", range(10), key=f"douglas_sea_state_{uuid.uuid4()}")
     with col4:
         st.number_input("Sea Height (m)", min_value=0.0, step=0.1, key=f"sea_height_{uuid.uuid4()}")
@@ -393,19 +393,86 @@ def display_fuel_consumption():
         st.session_state.sulfur = {tank: np.random.uniform(0.05, 0.49) for tank in st.session_state.tanks}
     if 'previous_rob' not in st.session_state:
         st.session_state.previous_rob = pd.Series({tank: np.random.uniform(100, 1000) for tank in st.session_state.tanks})
+    if 'bunkered_qty' not in st.session_state:
+        st.session_state.bunkered_qty = pd.Series({tank: 0 for tank in st.session_state.tanks})
+    if 'debunkered_qty' not in st.session_state:
+        st.session_state.debunkered_qty = pd.Series({tank: 0 for tank in st.session_state.tanks})
+    if 'bunkering_entries' not in st.session_state:
+        st.session_state.bunkering_entries = []
+    if 'debunkering_entries' not in st.session_state:
+        st.session_state.debunkering_entries = []
 
     st.title('Fuel Consumption Tracker')
+
+    col1, col2 = st.columns(2)
+    with col1:
+        bunkering_happened = st.checkbox("Bunkering Happened")
+    with col2:
+        debunkering_happened = st.checkbox("Debunkering Happened")
+
+    if bunkering_happened:
+        st.markdown("<h4 style='font-size: 18px;'>Bunkering Details</h4>", unsafe_allow_html=True)
+        for i, entry in enumerate(st.session_state.bunkering_entries):
+            st.markdown(f"<h5 style='font-size: 16px;'>Bunkering Entry {i+1}</h5>", unsafe_allow_html=True)
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                entry['bdn_number'] = st.text_input("Bunker Delivery Note Number", key=f"bdn_number_{i}")
+                entry['delivery_date'] = st.date_input("Bunker Delivery Date", key=f"delivery_date_{i}")
+                entry['delivery_time'] = st.time_input("Bunker Delivery Time", key=f"delivery_time_{i}")
+            with col2:
+                entry['imo_number'] = st.text_input("IMO number", key=f"imo_number_{i}")
+                entry['fuel_type'] = st.text_input("Fuel Type", key=f"fuel_type_{i}")
+                entry['mass'] = st.number_input("Mass (mt)", min_value=0.0, step=0.1, key=f"mass_{i}")
+            with col3:
+                entry['lower_heating_value'] = st.number_input("Lower heating value (MJ/kg)", min_value=0.0, step=0.1, key=f"lower_heating_value_{i}")
+                entry['eu_ghg_intensity'] = st.number_input("EU GHG emission intensity (gCO2eq/MJ)", min_value=0.0, step=0.1, key=f"eu_ghg_intensity_{i}")
+                entry['imo_ghg_intensity'] = st.number_input("IMO GHG emission intensity (gCO2eq/MJ)", min_value=0.0, step=0.1, key=f"imo_ghg_intensity_{i}")
+                entry['lcv_eu'] = st.number_input("Lower Calorific Value (EU) (MJ/kg)", min_value=0.0, step=0.1, key=f"lcv_eu_{i}")
+                entry['sustainability'] = st.text_input("Sustainability", key=f"sustainability_{i}")
+        if st.button("➕ Add Bunkering Entry"):
+            st.session_state.bunkering_entries.append({})
+            st.experimental_rerun()
+
+    if debunkering_happened:
+        st.markdown("<h4 style='font-size: 18px;'>Debunkering Details</h4>", unsafe_allow_html=True)
+        for i, entry in enumerate(st.session_state.debunkering_entries):
+            st.markdown(f"<h5 style='font-size: 16px;'>Debunkering Entry {i+1}</h5>", unsafe_allow_html=True)
+            col1, col2 = st.columns(2)
+            with col1:
+                entry['date'] = st.date_input("Date of Debunkering", key=f"debunker_date_{i}")
+                entry['quantity'] = st.number_input("Quantity Debunkered (mt)", min_value=0.0, step=0.1, key=f"debunker_qty_{i}")
+            with col2:
+                entry['bdn_number'] = st.text_input("BDN Number of Debunkered Oil", key=f"debunker_bdn_{i}")
+                entry['receipt_file'] = st.file_uploader("Upload Receipt", type=['pdf', 'jpg', 'png'], key=f"receipt_file_{i}")
+        if st.button("➕ Add Debunkering Entry"):
+            st.session_state.debunkering_entries.append({})
+            st.experimental_rerun()
 
     def format_column_header(tank):
         return f"{tank}\nVisc: {st.session_state.viscosity[tank]:.1f}\nSulfur: {st.session_state.sulfur[tank]:.2f}%"
 
     def create_editable_dataframe():
-        index = ['Previous ROB'] + st.session_state.consumers + ['Current ROB']
+        index = ['Previous ROB'] + st.session_state.consumers
+        if bunkering_happened:
+            index += ['Bunkered Qty']
+        if debunkering_happened:
+            index += ['Debunkered Qty']
+        index += ['Current ROB']
         df = pd.DataFrame(index=index, columns=st.session_state.tanks)
         df.loc['Previous ROB'] = st.session_state.previous_rob
         df.loc[st.session_state.consumers] = st.session_state.consumption_data
+        if bunkering_happened:
+            total_bunkered = sum(entry.get('total_qty', 0) for entry in st.session_state.bunkering_entries)
+            df.loc['Bunkered Qty'] = [total_bunkered] + [0] * (len(st.session_state.tanks) - 1)
+        if debunkering_happened:
+            total_debunkered = sum(entry.get('quantity', 0) for entry in st.session_state.debunkering_entries)
+            df.loc['Debunkered Qty'] = [total_debunkered] + [0] * (len(st.session_state.tanks) - 1)
         total_consumption = df.loc[st.session_state.consumers].sum()
         df.loc['Current ROB'] = df.loc['Previous ROB'] - total_consumption
+        if bunkering_happened:
+            df.loc['Current ROB'] += df.loc['Bunkered Qty']
+        if debunkering_happened:
+            df.loc['Current ROB'] -= df.loc['Debunkered Qty']
         df.columns = [format_column_header(tank) for tank in st.session_state.tanks]
         return df
 
@@ -490,6 +557,7 @@ def display_fuel_consumption():
 
     if st.checkbox("Edit Tank Properties"):
         edit_tank_properties()
+
 
 def display_custom_fuel_consumption(noon_report_type):
     if 'consumers' not in st.session_state:
