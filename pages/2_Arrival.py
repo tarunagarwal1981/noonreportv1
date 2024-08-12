@@ -309,7 +309,7 @@ def display_custom_speed_position_and_navigation(noon_report_type):
     with col3:
         st.time_input("Let Go Anchor (LGA) (UTC)", value=datetime.now().time(), key=f"local_time_{uuid.uuid4()}")
         st.selectbox("Anchor Pos. Longitude E/W", ["E", "W"], key=f"lon_ew_{uuid.uuid4()}")
-        st.number_input("No. Of schckles on deck", min_value=0, max_value=359, step=1, key=f"shackles_{uuid.uuid4()}")    
+        st.number_input("No. Of shackles on deck", min_value=0, max_value=359, step=1, key=f"shackles_{uuid.uuid4()}")    
         
     with col4:
         st.time_input("Let Go Anchor (LGA) (LT)", value=datetime.now().time(), key=f"local_time_{uuid.uuid4()}")
