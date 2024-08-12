@@ -287,6 +287,7 @@ def display_speed_position_and_navigation():
         st.text_input("Ordered Speed", key=f"speed_order_{uuid.uuid4()}")
         st.text_input("True Slip", key="true_slip")
         st.text_input("Observed Slip", key="obs_slip")
+        st.time_input("Date Time (UTC)", value=datetime.now().time(), key=f"local_time_{uuid.uuid4()}")
 
 def display_custom_speed_position_and_navigation(noon_report_type):
     st.subheader("Speed, Position and Navigation")
