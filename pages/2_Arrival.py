@@ -328,6 +328,7 @@ def display_weather_and_sea_conditions():
         st.number_input("Sea Water Temp (°C)", min_value=-2.0, max_value=35.0, step=0.1, key=f"sea_water_temp_{uuid.uuid4()}")
     with col3:
         st.number_input("Significant Wave Height (m)", min_value=0.0, step=0.1, key=f"sig_wave_height_{uuid.uuid4()}")
+        st.number_input("Wave Direction (°)", min_value=0, max_value=359, step=1, key=f"wave_direction_{uuid.uuid4()}")
         st.selectbox("Sea State (Douglas)", range(10), key=f"douglas_sea_state_{uuid.uuid4()}")
     with col4:
         st.number_input("Sea Height (m)", min_value=0.0, step=0.1, key=f"sea_height_{uuid.uuid4()}")
@@ -348,6 +349,7 @@ def display_custom_weather_and_sea_conditions(noon_report_type):
         st.number_input("Sea Water Temp (°C)", min_value=-2.0, max_value=35.0, step=0.1, key=f"sea_water_temp_{uuid.uuid4()}")
     with col3:
         st.number_input("Significant Wave Height (m)", min_value=0.0, step=0.1, key=f"sig_wave_height_{uuid.uuid4()}")
+        st.number_input("Wave Direction (°)", min_value=0, max_value=359, step=1, key=f"wave_direction_{uuid.uuid4()}")
         st.selectbox("Sea State (Douglas)", range(10), key=f"douglas_sea_state_{uuid.uuid4()}")
     with col4:
         st.number_input("Sea Height (m)", min_value=0.0, step=0.1, key=f"sea_height_{uuid.uuid4()}")
