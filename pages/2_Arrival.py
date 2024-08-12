@@ -118,9 +118,7 @@ def display_voyage_information():
     with col4:
         st.text_input("Speed Order (CP)", key="speed_order")
         st.text_input("Charter Type", key="charter_type")
-        idl_crossing = st.checkbox("IDL Crossing", key="idl_crossing")
-        if idl_crossing:
-            st.selectbox("IDL Direction", ["East", "West"], key="idl_direction")
+        
 
 def display_custom_voyage_information(noon_report_type):
     col1, col2, col3, col4 = st.columns(4)
