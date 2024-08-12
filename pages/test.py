@@ -7,29 +7,23 @@ import uuid
 st.set_page_config(layout="wide", page_title="Maritime Reporting Portal")
 
 def main():
+    # Combine Vessel and Voyage Information
+    st.markdown("<h2 style='text-align: center;'>Vessel and Voyage Information</h2>", unsafe_allow_html=True)
+    
     # Display vessel and voyage information at the top of the page
-    st.markdown("<h2 style='text-align: center;'>Vessel and Voyage Info</h2>", unsafe_allow_html=True)
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.text("IMO Number: 1234567")  # Random value
-        st.text_input("Departure Port", "Singapore", key="voyage_from", disabled=True)
-        st.text_input("UNLOCODE", "SGSIN", key="voyage_fromunlo", disabled=True)
-        st.selectbox("Vessel Condition", ["Laden", "Ballast"], index=0, key=f"vessel_condition_{uuid.uuid4()}", disabled=True)
-        
+        st.text("IMO Number: 1234567")
+        st.text("Departure Port: Rotterdam")
+        st.text("Arrival Port: Singapore")
     with col2:
-        st.text("Vessel Name: Ocean Explorer")  # Random value
-        st.text_input("Arrival Port", "Rotterdam", key="voyage_to", disabled=True)
-        st.text_input("UNLOCODE", "NLRTM", key="voyage_tounlo", disabled=True)
-        st.selectbox("Voyage Type", ["One-way", "Round trip", "STS"], index=0, key="voyage_type", disabled=True) 
-        
+        st.text("Vessel Name: Ocean Explorer")
+        st.text("UNLOCODE Departure: NLRTM")
+        st.text("UNLOCODE Arrival: SGSIN")
     with col3:
-        st.text("Vessel Type: Tanker")  # Random value
-        st.text_input("Voyage ID", "VOY123456", key=f"voyage_id_{uuid.uuid4()}", disabled=True)
-        st.text_input("Segment ID", "SEG001", key=f"segment_id_{uuid.uuid4()}", disabled=True)
-        st.date_input("ETA (Date/Time)", value=datetime.now(), key="eta", disabled=True)
-
-
-
+        st.text("Vessel Type: Tanker")
+        st.text("Voyage Type: One-way")
+        st.text(f"ETA: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
     # Departure Report Selection
     st.markdown("<h2 style='text-align: center;'>Departure Report Selection</h2>", unsafe_allow_html=True)
     
