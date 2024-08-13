@@ -6,35 +6,81 @@ import uuid
 
 st.set_page_config(layout="wide", page_title="Maritime Reporting Portal")
 
-def main():
-    # Display static vessel information at the top of the page
-    st.markdown("<h2 style='text-align: center;'>Vessel Information</h2>", unsafe_allow_html=True)
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.text("IMO Number: 1234567")  # Random value
-    with col2:
-        st.text("Vessel Name: Ocean Explorer")  # Random value
-    with col3:
-        st.text("Vessel Type: Tanker")  # Random value
+def create_voyage_timeline(vessel_info, voyage_info):
+    st.markdown("""
+    <style>
+    .voyage-timeline {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px;
+        background-color: #f0f0f0;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+    .port-info {
+        text-align: center;
+        padding: 10px;
+        background-color: white;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .vessel-info {
+        text-align: center;
+        padding: 10px;
+        background-color: #e6f2ff;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
-    # Display static voyage information at the top of the page
-    st.markdown("<h2 style='text-align: center;'>Voyage Information</h2>", unsafe_allow_html=True)
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        st.text("Departure Port: Rotterdam")
-        st.text("UNLOCODE: NLRTM")
-        st.text("Vessel Condition: Laden")
-    with col2:
-        st.text("Arrival Port: New York")
-        st.text("UNLOCODE: USNYC")
-        st.text("Voyage Type: One-way")
-    with col3:
-        st.text("Voyage ID: VOY123456")
-        st.text("Segment ID: SEG001")
-        st.text("ETA: " + datetime.now().strftime("%Y-%m-%d %H:%M"))
-    with col4:
-        st.text("Speed Order (CP): 12.5 knots")
-        st.text("Charter Type: Time Charter")
+    st.markdown(f"""
+    <div class="voyage-timeline">
+        <div class="port-info">
+            <h3>{voyage_info['departurePort']}</h3>
+            <p>{voyage_info['departureUnlocode']}</p>
+            <p>{voyage_info['departureDate']}</p>
+        </div>
+        <div class="vessel-info">
+            <h3>{vessel_info['name']}</h3>
+            <p>IMO: {vessel_info['imo']}</p>
+            <p>Type: {vessel_info['type']}</p>
+            <p>Voyage ID: {voyage_info['voyageId']}</p>
+            <p>Condition: {voyage_info['vesselCondition']}</p>
+        </div>
+        <div class="port-info">
+            <h3>{voyage_info['arrivalPort']}</h3>
+            <p>{voyage_info['arrivalUnlocode']}</p>
+            <p>ETA: {voyage_info['eta']}</p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+def main():
+    # Vessel and voyage information
+    vessel_info = {
+        "name": "Ocean Explorer",
+        "imo": "1234567",
+        "type": "Tanker"
+    }
+    voyage_info = {
+        "voyageId": "VOY123456",
+        "segmentId": "SEG001",
+        "departurePort": "Rotterdam",
+        "departureUnlocode": "NLRTM",
+        "departureDate": "2023-08-13",
+        "arrivalPort": "New York",
+        "arrivalUnlocode": "USNYC",
+        "eta": "2023-08-20",
+        "vesselCondition": "Laden",
+        "voyageType": "One-way",
+        "speedOrder": "12.5",
+        "charterType": "Time Charter"
+    }
+
+    # Create voyage timeline
+    create_voyage_timeline(vessel_info, voyage_info)
 
     # Departure Report Selection
     st.markdown("<h2 style='text-align: center;'>Departure Report Selection</h2>", unsafe_allow_html=True)
