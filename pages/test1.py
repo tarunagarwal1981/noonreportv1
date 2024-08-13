@@ -16,7 +16,7 @@ def create_voyage_timeline(vessel_info, voyage_info, segment_info):
 
     # Voyage Info
     st.write(f"**Voyage ID:** {voyage_info['voyageId']} | **{segment_info['vesselCondition']}** | "
-             f"**{segment_info['voyageType']}** | **CP Speed:** {segment_info['speedOrder']} knots | "
+             **CP Speed:** {segment_info['speedOrder']} knots | "
              f"**CP Consumption:** {segment_info['cpConsumption']} mT/day")
 
     # Timeline
@@ -66,7 +66,7 @@ def create_voyage_timeline(vessel_info, voyage_info, segment_info):
         .segment-id {
             position: absolute;
             top: 75%;
-            font-size: 10px;
+            font-size: 11px;
             transform: translate(-50%, -50%);
         }
     </style>
