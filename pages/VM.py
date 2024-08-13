@@ -1,24 +1,32 @@
 import streamlit as st
 import datetime
 import pandas as pd
+import random
+import string
 
 st.set_page_config(layout="wide", page_title="Voyage Manifest")
 
 # Initialize session state variables
 if 'voyage_status' not in st.session_state:
-    st.session_state.voyage_status = 'Draft'
+    st.session_state.voyage_status = None
+if 'voyage_id' not in st.session_state:
+    st.session_state.voyage_id = None
 if 'itinerary' not in st.session_state:
     st.session_state.itinerary = pd.DataFrame(columns=["Segment ID", "Port Code", "Port Name", "Transit Port", "Time Zone", "ETA", "ETB", "ETD", "Actual Arrival(EOSP)", "Arrival Date(AB)", "Departure Date(DB)", "Actual Departure(COSP)"])
+
+def generate_voyage_id():
+    return f"VI-{''.join(random.choices(string.ascii_uppercase + string.digits, k=8))}"
 
 def main():
     st.title("Voyage Manifest")
 
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3, col4, col5 = st.columns(5)
     with col1:
         if st.button("Start New Voyage Manifest"):
-            if st.session_state.voyage_status == 'Closed':
+            if st.session_state.voyage_status is None or st.session_state.voyage_status == 'Closed':
                 st.session_state.voyage_status = 'Draft'
-                st.success("New Voyage Manifest started in Draft mode!")
+                st.session_state.voyage_id = generate_voyage_id()
+                st.success(f"New Voyage Manifest started in Draft mode! Voyage ID: {st.session_state.voyage_id}")
             else:
                 st.error("Cannot start a new voyage. Current voyage is not closed.")
     with col2:
@@ -37,33 +45,38 @@ def main():
                 st.success("Voyage closed successfully!")
             else:
                 st.error("Can only close an open voyage.")
+    with col5:
+        if st.button("Save Draft"):
+            if st.session_state.voyage_status == 'Draft':
+                st.success("Draft saved successfully!")
+            else:
+                st.error("Can only save drafts for voyages in Draft status.")
 
-    st.write(f"Current Voyage Status: {st.session_state.voyage_status}")
+    if st.session_state.voyage_id:
+        st.write(f"Voyage ID: {st.session_state.voyage_id}")
+        st.write(f"Current Voyage Status: {st.session_state.voyage_status}")
 
-    voyage_id = st.text_input("Voyage ID", value="VI-KYJO23000006", disabled=st.session_state.voyage_status == 'Closed')
-    
-    with st.expander("General Information", expanded=False):
-        general_info(edit_mode)
+        with st.expander("General Information", expanded=False):
+            general_info(edit_mode)
 
-    with st.expander("Voyage Itinerary", expanded=False):
-        voyage_itinerary(edit_mode)
+        with st.expander("Voyage Itinerary", expanded=False):
+            voyage_itinerary(edit_mode)
 
-    with st.expander("Charterer Info", expanded=False):
-        charterer_info(edit_mode)
+        with st.expander("Charterer Info", expanded=False):
+            charterer_info(edit_mode)
 
-    with st.expander("Agent Info", expanded=False):
-        agent_info(edit_mode)
+        with st.expander("Agent Info", expanded=False):
+            agent_info(edit_mode)
 
-    with st.expander("Zones", expanded=False):
-        zones(edit_mode)
+        with st.expander("Zones", expanded=False):
+            zones(edit_mode)
 
-    with st.expander("Log", expanded=False):
-        log(edit_mode)
+        with st.expander("Log", expanded=False):
+            log(edit_mode)
 
 def general_info(edit_mode):
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.text_input("No", value="VI-KYJO23000006", disabled=not edit_mode or st.session_state.voyage_status == 'Closed')
         st.text_input("Vessel Code", value="KYJO", disabled=not edit_mode or st.session_state.voyage_status == 'Closed')
         st.date_input("Voyage Start", value=datetime.date(2023, 4, 11), disabled=not edit_mode or st.session_state.voyage_status == 'Closed')
         st.text_input("From Port", value="", disabled=not edit_mode or st.session_state.voyage_status == 'Closed')
