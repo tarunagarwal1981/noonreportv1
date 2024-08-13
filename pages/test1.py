@@ -79,8 +79,6 @@ def create_voyage_timeline(voyage_info):
     st.markdown(html_content, unsafe_allow_html=True)
 
 def main():
-    st.set_page_config(layout="wide", page_title="Maritime Reporting Portal")
-
     # Vessel information
     vessel_info = {
         "name": "Ocean Explorer",
@@ -112,6 +110,9 @@ def main():
 
     # Create voyage timeline
     create_voyage_timeline(voyage_info)
+
+    # Rest of your application...
+    st.title("Maritime Reporting Portal")
 
     # Departure Report Selection
     st.markdown("<h2 style='text-align: center;'>Departure Report Selection</h2>", unsafe_allow_html=True)
