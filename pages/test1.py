@@ -6,81 +6,112 @@ import uuid
 
 st.set_page_config(layout="wide", page_title="Maritime Reporting Portal")
 
-def create_voyage_timeline(vessel_info, voyage_info):
+def create_voyage_timeline(voyage_info):
     st.markdown("""
     <style>
     .voyage-timeline {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 20px;
-        background-color: #f0f0f0;
+        position: relative;
+        width: 100%;
+        height: 100px;
+        background-color: #1e2130;
         border-radius: 10px;
+        padding: 10px;
         margin-bottom: 20px;
     }
-    .port-info {
-        text-align: center;
-        padding: 10px;
-        background-color: white;
-        border-radius: 5px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    .timeline-line {
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background-color: #4a90e2;
     }
-    .vessel-info {
+    .port-marker {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background-color: #4a90e2;
+    }
+    .port-info {
+        position: absolute;
+        top: 70%;
+        transform: translateX(-50%);
         text-align: center;
-        padding: 10px;
-        background-color: #e6f2ff;
-        border-radius: 5px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        color: white;
+        font-size: 12px;
+    }
+    .voyage-info {
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        text-align: center;
+        color: white;
+        font-size: 14px;
     }
     </style>
     """, unsafe_allow_html=True)
 
-    st.markdown(f"""
+    html_content = f"""
     <div class="voyage-timeline">
-        <div class="port-info">
-            <h3>{voyage_info['departurePort']}</h3>
-            <p>{voyage_info['departureUnlocode']}</p>
-            <p>{voyage_info['departureDate']}</p>
+        <div class="timeline-line"></div>
+        <div class="port-marker" style="left: 0%;"></div>
+        <div class="port-info" style="left: 0%;">
+            <div>{voyage_info['departurePort']}</div>
+            <div>{voyage_info['departureUnlocode']}</div>
+            <div>ATD: {voyage_info['departureDate']}</div>
         </div>
-        <div class="vessel-info">
-            <h3>{vessel_info['name']}</h3>
-            <p>IMO: {vessel_info['imo']}</p>
-            <p>Type: {vessel_info['type']}</p>
-            <p>Voyage ID: {voyage_info['voyageId']}</p>
-            <p>Condition: {voyage_info['vesselCondition']}</p>
+        <div class="port-marker" style="right: 0%;"></div>
+        <div class="port-info" style="right: 0%;">
+            <div>{voyage_info['arrivalPort']}</div>
+            <div>{voyage_info['arrivalUnlocode']}</div>
+            <div>ETA: {voyage_info['eta']}</div>
         </div>
-        <div class="port-info">
-            <h3>{voyage_info['arrivalPort']}</h3>
-            <p>{voyage_info['arrivalUnlocode']}</p>
-            <p>ETA: {voyage_info['eta']}</p>
+        <div class="voyage-info">
+            <div>Voyage ID: {voyage_info['voyageId']} | Segment ID: {voyage_info['segmentId']}</div>
+            <div>{voyage_info['vesselCondition']} | {voyage_info['voyageType']} | Speed Order: {voyage_info['speedOrder']} knots</div>
         </div>
     </div>
-    """, unsafe_allow_html=True)
+    """
+    st.markdown(html_content, unsafe_allow_html=True)
 
 def main():
-    # Vessel and voyage information
+    st.set_page_config(layout="wide", page_title="Maritime Reporting Portal")
+
+    # Vessel information
     vessel_info = {
         "name": "Ocean Explorer",
         "imo": "1234567",
         "type": "Tanker"
     }
+
+    # Voyage information
     voyage_info = {
         "voyageId": "VOY123456",
         "segmentId": "SEG001",
-        "departurePort": "Rotterdam",
-        "departureUnlocode": "NLRTM",
-        "departureDate": "2023-08-13",
-        "arrivalPort": "New York",
-        "arrivalUnlocode": "USNYC",
-        "eta": "2023-08-20",
+        "departurePort": "Singapore",
+        "departureUnlocode": "SGSIN",
+        "departureDate": "22/05/2024",
+        "arrivalPort": "Lagos",
+        "arrivalUnlocode": "NGLOS",
+        "eta": "22/05/2024",
         "vesselCondition": "Laden",
         "voyageType": "One-way",
         "speedOrder": "12.5",
         "charterType": "Time Charter"
     }
 
+    # Display vessel information
+    st.sidebar.title("Vessel Information")
+    st.sidebar.write(f"Name: {vessel_info['name']}")
+    st.sidebar.write(f"IMO: {vessel_info['imo']}")
+    st.sidebar.write(f"Type: {vessel_info['type']}")
+
     # Create voyage timeline
-    create_voyage_timeline(vessel_info, voyage_info)
+    create_voyage_timeline(voyage_info)
 
     # Departure Report Selection
     st.markdown("<h2 style='text-align: center;'>Departure Report Selection</h2>", unsafe_allow_html=True)
