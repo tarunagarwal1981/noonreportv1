@@ -29,13 +29,30 @@ def create_voyage_timeline(vessel_info, voyage_info, segment_info):
         {"name": "Lagos", "unlocode": "NGLOS", "date": "22/07/2024"}
     ]
 
-    # Display ports
+     # Custom CSS for port information
+    st.markdown("""
+    <style>
+    .port-info {
+        font-size: 12px;
+    }
+    .port-info strong {
+        font-size: 12px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    # Display ports with custom CSS class
     cols = st.columns(len(ports))
     for i, port in enumerate(ports):
         with cols[i]:
-            st.write(f"**{port['name']}**")
-            st.write(f"{port['unlocode']}")
-            st.write(f"{port['date']}")
+            st.markdown(f"""
+            <div class="port-info">
+                <strong>{port['name']}</strong><br>
+                {port['unlocode']}<br>
+                {port['date']}
+            </div>
+            """, unsafe_allow_html=True)
+
 
     # Custom HTML for timeline line with segment IDs
     timeline_html = """
