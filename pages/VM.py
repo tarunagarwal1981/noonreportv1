@@ -42,7 +42,7 @@ def main():
 
     if st.button("Close this Voyage"):
         st.success("Voyage closed successfully!")
-
+        
 def general_info(edit_mode):
     col1, col2, col3, col4 = st.columns(4)
     with col1:
@@ -86,47 +86,53 @@ def voyage_itinerary(edit_mode):
 
 def charterer_info(edit_mode):
     st.subheader("Charterer Information")
-    charterer_data = st.session_state.get('charterer_data', [{}])
-    for i, charterer in enumerate(charterer_data):
-        with st.expander(f"Charterer {i+1}", expanded=True):
-            col1, col2, col3, col4 = st.columns(4)
-            with col1:
-                charterer['Type'] = st.text_input("Type", value=charterer.get('Type', ''), key=f"charterer_type_{i}", disabled=not edit_mode)
-                charterer['Address 1'] = st.text_input("Address 1", value=charterer.get('Address 1', ''), key=f"charterer_address1_{i}", disabled=not edit_mode)
-            with col2:
-                charterer['Name'] = st.text_input("Name", value=charterer.get('Name', ''), key=f"charterer_name_{i}", disabled=not edit_mode)
-                charterer['Address 2'] = st.text_input("Address 2", value=charterer.get('Address 2', ''), key=f"charterer_address2_{i}", disabled=not edit_mode)
-            with col3:
-                charterer['Phone No'] = st.text_input("Phone No", value=charterer.get('Phone No', ''), key=f"charterer_phone_{i}", disabled=not edit_mode)
-                charterer['Mobile No'] = st.text_input("Mobile No", value=charterer.get('Mobile No', ''), key=f"charterer_mobile_{i}", disabled=not edit_mode)
-            with col4:
-                charterer['Email Id'] = st.text_input("Email Id", value=charterer.get('Email Id', ''), key=f"charterer_email_{i}", disabled=not edit_mode)
-    if edit_mode:
-        if st.button("Add Charterer"):
-            charterer_data.append({})
-    st.session_state['charterer_data'] = charterer_data
+    if 'charterer_count' not in st.session_state:
+        st.session_state.charterer_count = 1
+
+    for i in range(st.session_state.charterer_count):
+        st.markdown(f"**Charterer {i+1}**")
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.text_input("Type", key=f"charterer_type_{i}", disabled=not edit_mode)
+            st.text_input("Address 1", key=f"charterer_address1_{i}", disabled=not edit_mode)
+        with col2:
+            st.text_input("Name", key=f"charterer_name_{i}", disabled=not edit_mode)
+            st.text_input("Address 2", key=f"charterer_address2_{i}", disabled=not edit_mode)
+        with col3:
+            st.text_input("Phone No", key=f"charterer_phone_{i}", disabled=not edit_mode)
+            st.text_input("Mobile No", key=f"charterer_mobile_{i}", disabled=not edit_mode)
+        with col4:
+            st.text_input("Email Id", key=f"charterer_email_{i}", disabled=not edit_mode)
+        st.markdown("---")
+
+    if edit_mode and st.button("Add Charterer"):
+        st.session_state.charterer_count += 1
+        st.experimental_rerun()
 
 def agent_info(edit_mode):
     st.subheader("Agent Information")
-    agent_data = st.session_state.get('agent_data', [{}])
-    for i, agent in enumerate(agent_data):
-        with st.expander(f"Agent {i+1}", expanded=True):
-            col1, col2, col3, col4 = st.columns(4)
-            with col1:
-                agent['Type'] = st.text_input("Type", value=agent.get('Type', ''), key=f"agent_type_{i}", disabled=not edit_mode)
-                agent['Address 1'] = st.text_input("Address 1", value=agent.get('Address 1', ''), key=f"agent_address1_{i}", disabled=not edit_mode)
-            with col2:
-                agent['Name'] = st.text_input("Name", value=agent.get('Name', ''), key=f"agent_name_{i}", disabled=not edit_mode)
-                agent['Address 2'] = st.text_input("Address 2", value=agent.get('Address 2', ''), key=f"agent_address2_{i}", disabled=not edit_mode)
-            with col3:
-                agent['Phone No'] = st.text_input("Phone No", value=agent.get('Phone No', ''), key=f"agent_phone_{i}", disabled=not edit_mode)
-                agent['Mobile No'] = st.text_input("Mobile No", value=agent.get('Mobile No', ''), key=f"agent_mobile_{i}", disabled=not edit_mode)
-            with col4:
-                agent['Email Id'] = st.text_input("Email Id", value=agent.get('Email Id', ''), key=f"agent_email_{i}", disabled=not edit_mode)
-    if edit_mode:
-        if st.button("Add Agent"):
-            agent_data.append({})
-    st.session_state['agent_data'] = agent_data
+    if 'agent_count' not in st.session_state:
+        st.session_state.agent_count = 1
+
+    for i in range(st.session_state.agent_count):
+        st.markdown(f"**Agent {i+1}**")
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.text_input("Type", key=f"agent_type_{i}", disabled=not edit_mode)
+            st.text_input("Address 1", key=f"agent_address1_{i}", disabled=not edit_mode)
+        with col2:
+            st.text_input("Name", key=f"agent_name_{i}", disabled=not edit_mode)
+            st.text_input("Address 2", key=f"agent_address2_{i}", disabled=not edit_mode)
+        with col3:
+            st.text_input("Phone No", key=f"agent_phone_{i}", disabled=not edit_mode)
+            st.text_input("Mobile No", key=f"agent_mobile_{i}", disabled=not edit_mode)
+        with col4:
+            st.text_input("Email Id", key=f"agent_email_{i}", disabled=not edit_mode)
+        st.markdown("---")
+
+    if edit_mode and st.button("Add Agent"):
+        st.session_state.agent_count += 1
+        st.experimental_rerun()
 
 def zones(edit_mode):
     col1, col2, col3, col4 = st.columns(4)
