@@ -15,9 +15,8 @@ def create_voyage_timeline(vessel_info, voyage_info, segment_info):
     col3.write(f"**Type:** {vessel_info['type']}")
 
     # Voyage Info
-    st.write(f"**Voyage ID:** {voyage_info['voyageId']} | **Segment ID:** {segment_info['segmentId']} | "
-             f"**{segment_info['vesselCondition']}** | **{segment_info['voyageType']}** | "
-             f"**CP Speed:** {segment_info['speedOrder']} knots | "
+    st.write(f"**Voyage ID:** {voyage_info['voyageId']} | **{segment_info['vesselCondition']}** | "
+             f"**{segment_info['voyageType']}** | **CP Speed:** {segment_info['speedOrder']} knots | "
              f"**CP Consumption:** {segment_info['cpConsumption']} mT/day")
 
     # Timeline
@@ -38,18 +37,18 @@ def create_voyage_timeline(vessel_info, voyage_info, segment_info):
             st.write(f"{port['unlocode']}")
             st.write(f"{port['date']}")
 
-    # Custom HTML for timeline line
+    # Custom HTML for timeline line with segment IDs
     timeline_html = """
     <style>
         .timeline-container {
             position: relative;
             width: 100%;
-            height: 20px;
+            height: 40px;
             margin-top: 10px;
         }
         .timeline-line {
             position: absolute;
-            top: 50%;
+            top: 25%;
             left: 0;
             right: 0;
             height: 2px;
@@ -57,11 +56,17 @@ def create_voyage_timeline(vessel_info, voyage_info, segment_info):
         }
         .timeline-dot {
             position: absolute;
-            top: 50%;
+            top: 25%;
             width: 10px;
             height: 10px;
             background-color: #000;
             border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .segment-id {
+            position: absolute;
+            top: 75%;
+            font-size: 10px;
             transform: translate(-50%, -50%);
         }
     </style>
@@ -72,16 +77,13 @@ def create_voyage_timeline(vessel_info, voyage_info, segment_info):
     for i in range(len(ports)):
         position = i * (100 / (len(ports) - 1))
         timeline_html += f'<div class="timeline-dot" style="left: {position}%;"></div>'
+        if i < len(ports) - 1:
+            segment_position = (i + 0.5) * (100 / (len(ports) - 1))
+            timeline_html += f'<div class="segment-id" style="left: {segment_position}%;">SEG00{i+1}</div>'
 
     timeline_html += "</div>"
 
     st.markdown(timeline_html, unsafe_allow_html=True)
-
-    # Display segment information
-    st.write("---")
-    st.write("**Segment Details:**")
-    for i in range(len(ports) - 1):
-        st.write(f"Segment {i+1}: {ports[i]['name']} to {ports[i+1]['name']}")
 
 def main():
     vessel_info = {
@@ -95,7 +97,6 @@ def main():
     }
 
     segment_info = {
-        "segmentId": "SEG001",
         "vesselCondition": "Laden",
         "voyageType": "One-way",
         "speedOrder": "12.5",
@@ -105,6 +106,8 @@ def main():
     create_voyage_timeline(vessel_info, voyage_info, segment_info)
 
     st.title("Maritime Reporting Portal")
+
+    
     # Departure Report Selection
     st.markdown("<h2 style='text-align: center;'>Departure Report Selection</h2>", unsafe_allow_html=True)
     
