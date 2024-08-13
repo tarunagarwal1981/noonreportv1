@@ -42,7 +42,7 @@ def create_voyage_timeline(vessel_info, voyage_info, segment_info):
     <style>
         .timeline-container {
             position: relative;
-            width: 100%;
+            width: 95%;
             height: 40px;
             margin-top: 10px;
         }
@@ -66,7 +66,7 @@ def create_voyage_timeline(vessel_info, voyage_info, segment_info):
         .segment-id {
             position: absolute;
             top: 75%;
-            font-size: 11px;
+            font-size: 12px;
             transform: translate(-50%, -50%);
         }
     </style>
