@@ -7,15 +7,84 @@ import uuid
 st.set_page_config(layout="wide", page_title="Maritime Reporting Portal")
 
 def main():
-    # Display static vessel information at the top of the page
-    st.markdown("<h2 style='text-align: center;'>Vessel Information</h2>", unsafe_allow_html=True)
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.text("IMO Number: 1234567")  # Random value
-    with col2:
-        st.text("Vessel Name: Ocean Explorer")  # Random value
-    with col3:
-        st.text("Vessel Type: Tanker")  # Random value
+    # Combine Vessel and Voyage Information
+    st.markdown("<h2 style='text-align: center;'>Vessel and Voyage Information</h2>", unsafe_allow_html=True)
+    
+    # Example of a graphical timeline for voyage information
+    st.markdown("""
+    <style>
+        .timeline {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0;
+        }
+        .timeline .event {
+            flex: 1;
+            text-align: center;
+            position: relative;
+            padding: 10px;
+        }
+        .timeline .event:before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: #ddd;
+            z-index: -1;
+        }
+        .timeline .event:first-child:before {
+            width: 50%;
+            left: 50%;
+        }
+        .timeline .event:last-child:before {
+            width: 50%;
+        }
+        .timeline .event h4 {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        .timeline .event p {
+            margin: 0;
+            font-size: 12px;
+            color: #666;
+        }
+        .circle {
+            width: 15px;
+            height: 15px;
+            background-color: #4CAF50;
+            border-radius: 50%;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+    </style>
+    
+    <div class="timeline">
+        <div class="event">
+            <div class="circle"></div>
+            <h4>Departure Port</h4>
+            <p>Rotterdam</p>
+            <p>UNLOCODE: NLRTM</p>
+            <p>2024-08-09</p>
+        </div>
+        <div class="event">
+            <div class="circle"></div>
+            <h4>Voyage ID</h4>
+            <p>VOY123456</p>
+            <p>Segment ID: SEG001</p>
+            <p>Speed Order: 12.5 knots</p>
+        </div>
+        <div class="event">
+            <div class="circle"></div>
+            <h4>Arrival Port</h4>
+            <p>New York</p>
+            <p>UNLOCODE: USNYC</p>
+            <p>ETA: """ + datetime.now().strftime("%Y-%m-%d %H:%M") + """</p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
     # Display static voyage information at the top of the page
     st.markdown("<h2 style='text-align: center;'>Voyage Information</h2>", unsafe_allow_html=True)
