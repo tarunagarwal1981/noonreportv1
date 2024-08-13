@@ -6,15 +6,26 @@ import uuid
 
 st.set_page_config(layout="wide", page_title="Maritime Reporting Portal")
 
-def create_voyage_timeline(voyage_info):
+def create_voyage_timeline(vessel_info, voyage_info):
     st.markdown("""
     <style>
+    .vessel-info {
+        display: flex;
+        justify-content: space-between;
+        padding: 5px 10px;
+        background-color: #2c3e50;
+        color: white;
+        font-size: 12px;
+        border-top-left-radius: 10px;
+        border-top-right-radius: 10px;
+    }
     .voyage-timeline {
         position: relative;
         width: 100%;
         height: 100px;
         background-color: #1e2130;
-        border-radius: 10px;
+        border-bottom-left-radius: 10px;
+        border-bottom-right-radius: 10px;
         padding: 10px;
         margin-bottom: 20px;
     }
@@ -56,6 +67,11 @@ def create_voyage_timeline(voyage_info):
     """, unsafe_allow_html=True)
 
     html_content = f"""
+    <div class="vessel-info">
+        <span>Vessel: {vessel_info['name']}</span>
+        <span>IMO: {vessel_info['imo']}</span>
+        <span>Type: {vessel_info['type']}</span>
+    </div>
     <div class="voyage-timeline">
         <div class="timeline-line"></div>
         <div class="port-marker" style="left: 0%;"></div>
@@ -102,17 +118,12 @@ def main():
         "charterType": "Time Charter"
     }
 
-    # Display vessel information
-    st.sidebar.title("Vessel Information")
-    st.sidebar.write(f"Name: {vessel_info['name']}")
-    st.sidebar.write(f"IMO: {vessel_info['imo']}")
-    st.sidebar.write(f"Type: {vessel_info['type']}")
-
-    # Create voyage timeline
-    create_voyage_timeline(voyage_info)
+    # Create voyage timeline with vessel info
+    create_voyage_timeline(vessel_info, voyage_info)
 
     # Rest of your application...
     st.title("Maritime Reporting Portal")
+
 
     # Departure Report Selection
     st.markdown("<h2 style='text-align: center;'>Departure Report Selection</h2>", unsafe_allow_html=True)
