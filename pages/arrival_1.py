@@ -152,9 +152,8 @@ def main():
 
 def display_base_report_form():
     sections = [
-        "Voyage Information",
-        "Special Events",
         "Speed, Position and Navigation",
+        "Special Events",
         "Weather and Sea Conditions",
         "Cargo and Stability",
         "Fuel Consumption",
@@ -179,9 +178,8 @@ def display_custom_report_form(noon_report_type):
     st.write(f"Displaying custom form for: {noon_report_type}")
     
     sections = [
-        "Voyage Information",
-        "Special Events",
         "Speed, Position and Navigation",
+        "Special Events",
         "Weather and Sea Conditions",
         "Cargo and Stability",
         "Fuel Consumption",
@@ -205,47 +203,7 @@ def display_custom_report_form(noon_report_type):
 
 
 
-def display_voyage_information():
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        st.text_input("Departure Port", key="voyage_from")
-        st.text_input("UNLOCODE", key="voyage_fromunlo")
-        st.selectbox("Vessel Condition", ["", "Laden", "Ballast"], key=f"vessel_condition_{uuid.uuid4()}")
-        
-    with col2:
-        st.text_input("Arrival Port", key="voyage_to")
-        st.text_input("UNLOCODE", key="voyage_tounlo")
-        st.selectbox("Voyage Type", ["", "One-way", "Round trip", "STS"], key="voyage_type") 
-        
-    with col3:
-        st.text_input("Voyage ID", key=f"voyage_id_{uuid.uuid4()}")
-        st.text_input("Segment ID", key=f"segment_id_{uuid.uuid4()}")
-        st.date_input("ETA (Date/Time)", value=datetime.now(), key="eta")
-    with col4:
-        st.text_input("Speed Order (CP)", key="speed_order")
-        st.text_input("Charter Type", key="charter_type")
-        
 
-def display_custom_voyage_information(noon_report_type):
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        st.text_input("Departure Port", key="voyage_from")
-        st.text_input("UNLOCODE", key="voyage_fromunlo")
-        st.selectbox("Vessel Condition", ["", "Laden", "Ballast"], key=f"vessel_condition_{uuid.uuid4()}")
-        
-    with col2:
-        st.text_input("Arrival Port", key="voyage_to")
-        st.text_input("UNLOCODE", key="voyage_tounlo")
-        st.selectbox("Voyage Type", ["", "One-way", "Round trip", "STS"], key="voyage_type") 
-        
-    with col3:
-        st.text_input("Voyage ID", key=f"voyage_id_{uuid.uuid4()}")
-        st.text_input("Segment ID", key=f"segment_id_{uuid.uuid4()}")
-        st.date_input("ETA (Date/Time)", value=datetime.now(), key="eta")
-    with col4:
-        st.text_input("Speed Order (CP)", key="speed_order")
-        st.text_input("Charter Type", key="charter_type")
-        drydock = st.checkbox("Drydock", key="drydock")
 
 def display_special_events():
     st.subheader("Special Events")
