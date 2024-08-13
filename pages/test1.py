@@ -6,28 +6,32 @@ import uuid
 
 st.set_page_config(layout="wide", page_title="Maritime Reporting Portal")
 
-def create_voyage_timeline(vessel_info, voyage_info):
+def create_voyage_timeline(vessel_info, voyage_info, segment_info):
     st.markdown("""
     <style>
+    .container {
+        font-family: Arial, sans-serif;
+        width: 100%;
+        padding: 10px;
+        background-color: #f0f0f0;
+        border-radius: 10px;
+    }
     .vessel-info {
         display: flex;
         justify-content: space-between;
-        padding: 5px 10px;
-        background-color: #2c3e50;
-        color: white;
-        font-size: 12px;
-        border-top-left-radius: 10px;
-        border-top-right-radius: 10px;
+        padding: 5px 0;
+        font-size: 14px;
+        border-bottom: 1px solid #ccc;
     }
-    .voyage-timeline {
+    .voyage-info {
+        text-align: center;
+        padding: 5px 0;
+        font-size: 14px;
+    }
+    .timeline {
         position: relative;
-        width: 100%;
-        height: 100px;
-        background-color: #1e2130;
-        border-bottom-left-radius: 10px;
-        border-bottom-right-radius: 10px;
-        padding: 10px;
-        margin-bottom: 20px;
+        height: 80px;
+        margin-top: 20px;
     }
     .timeline-line {
         position: absolute;
@@ -41,88 +45,94 @@ def create_voyage_timeline(vessel_info, voyage_info):
         position: absolute;
         top: 50%;
         transform: translateY(-50%);
-        width: 20px;
-        height: 20px;
+        width: 12px;
+        height: 12px;
         border-radius: 50%;
         background-color: #4a90e2;
     }
     .port-info {
         position: absolute;
-        top: 70%;
+        top: 100%;
         transform: translateX(-50%);
         text-align: center;
-        color: white;
         font-size: 12px;
-    }
-    .voyage-info {
-        position: absolute;
-        top: 10px;
-        left: 50%;
-        transform: translateX(-50%);
-        text-align: center;
-        color: white;
-        font-size: 14px;
+        width: 100px;
     }
     </style>
     """, unsafe_allow_html=True)
 
+    ports = [
+        {"name": segment_info['departurePort'], "unlocode": segment_info['departureUnlocode'], "date": segment_info['departureDate'], "position": 0},
+        {"name": "Port Said", "unlocode": "EGPSD", "date": "01/06/2024", "position": 20},
+        {"name": "Jeddah", "unlocode": "SAJED", "date": "10/06/2024", "position": 40},
+        {"name": "Colombo", "unlocode": "LKCMB", "date": "20/06/2024", "position": 60},
+        {"name": "Singapore", "unlocode": "SGSIN", "date": "01/07/2024", "position": 80},
+        {"name": segment_info['arrivalPort'], "unlocode": segment_info['arrivalUnlocode'], "date": segment_info['eta'], "position": 100}
+    ]
+
     html_content = f"""
-    <div class="vessel-info">
-        <span>Vessel: {vessel_info['name']}</span>
-        <span>IMO: {vessel_info['imo']}</span>
-        <span>Type: {vessel_info['type']}</span>
-    </div>
-    <div class="voyage-timeline">
-        <div class="timeline-line"></div>
-        <div class="port-marker" style="left: 0%;"></div>
-        <div class="port-info" style="left: 0%;">
-            <div>{voyage_info['departurePort']}</div>
-            <div>{voyage_info['departureUnlocode']}</div>
-            <div>ATD: {voyage_info['departureDate']}</div>
-        </div>
-        <div class="port-marker" style="right: 0%;"></div>
-        <div class="port-info" style="right: 0%;">
-            <div>{voyage_info['arrivalPort']}</div>
-            <div>{voyage_info['arrivalUnlocode']}</div>
-            <div>ETA: {voyage_info['eta']}</div>
+    <div class="container">
+        <div class="vessel-info">
+            <span>Vessel: {vessel_info['name']}</span>
+            <span>IMO: {vessel_info['imo']}</span>
+            <span>Type: {vessel_info['type']}</span>
         </div>
         <div class="voyage-info">
-            <div>Voyage ID: {voyage_info['voyageId']} | Segment ID: {voyage_info['segmentId']}</div>
-            <div>{voyage_info['vesselCondition']} | {voyage_info['voyageType']} | Speed Order: {voyage_info['speedOrder']} knots</div>
+            <span>Voyage ID: {voyage_info['voyageId']} | Segment ID: {segment_info['segmentId']} | 
+            {segment_info['vesselCondition']} | {segment_info['voyageType']} | 
+            CP Speed: {segment_info['speedOrder']} knots | 
+            CP Consumption: {segment_info['cpConsumption']} mT/day</span>
+        </div>
+        <div class="timeline">
+            <div class="timeline-line"></div>
+    """
+
+    for port in ports:
+        html_content += f"""
+            <div class="port-marker" style="left: {port['position']}%;"></div>
+            <div class="port-info" style="left: {port['position']}%;">
+                <div>{port['name']}</div>
+                <div>{port['unlocode']}</div>
+                <div>{port['date']}</div>
+            </div>
+        """
+
+    html_content += """
         </div>
     </div>
     """
     st.markdown(html_content, unsafe_allow_html=True)
 
 def main():
-    # Vessel information
     vessel_info = {
         "name": "Ocean Explorer",
         "imo": "1234567",
         "type": "Tanker"
     }
 
-    # Voyage information
     voyage_info = {
         "voyageId": "VOY123456",
+    }
+
+    segment_info = {
         "segmentId": "SEG001",
-        "departurePort": "Singapore",
-        "departureUnlocode": "SGSIN",
+        "departurePort": "Rotterdam",
+        "departureUnlocode": "NLRTM",
         "departureDate": "22/05/2024",
         "arrivalPort": "Lagos",
         "arrivalUnlocode": "NGLOS",
-        "eta": "22/05/2024",
+        "eta": "22/07/2024",
         "vesselCondition": "Laden",
         "voyageType": "One-way",
         "speedOrder": "12.5",
-        "charterType": "Time Charter"
+        "cpConsumption": f"{random.uniform(20, 25):.1f}"
     }
 
-    # Create voyage timeline with vessel info
-    create_voyage_timeline(vessel_info, voyage_info)
+    create_voyage_timeline(vessel_info, voyage_info, segment_info)
 
     # Rest of your application...
     st.title("Maritime Reporting Portal")
+
 
 
     # Departure Report Selection
