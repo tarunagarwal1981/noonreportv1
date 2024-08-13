@@ -3,6 +3,7 @@ import pandas as pd
 from datetime import datetime
 import numpy as np
 import uuid
+import random
 
 st.set_page_config(layout="wide", page_title="Maritime Reporting Portal")
 
