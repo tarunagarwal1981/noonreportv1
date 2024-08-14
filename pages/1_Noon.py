@@ -793,10 +793,10 @@ def display_machinery():
         with me_rev_col1:
             st.number_input("M/E rev counter", min_value=0, step=1, key=f"me_rev_counter_{uuid.uuid4()}")
         with me_rev_col2:
-            st.markdown('<p style="font-size: 8px;">Meter Defective</p>', unsafe_allow_html=True)
+            st.markdown('<p style="font-size: 10px;">Meter Defective</p>', unsafe_allow_html=True)
             st.checkbox("", key=f"me_rev_counter_defective_{uuid.uuid4()}", label_visibility="collapsed")
         with me_rev_col3:
-            st.markdown('<p style="font-size: 8px;">Reset Meter</p>', unsafe_allow_html=True)
+            st.markdown('<p style="font-size: 10px;">Reset Meter</p>', unsafe_allow_html=True)
             st.checkbox("", key=f"me_rev_counter_reset_{uuid.uuid4()}", label_visibility="collapsed")
         
         st.number_input("ME TC RPM", min_value=0.0, step=0.1, key=f"me_tc1_rpm_{uuid.uuid4()}")
@@ -812,10 +812,10 @@ def display_machinery():
         with kwhr_col1:
             st.number_input("kWhr", min_value=0.0, step=0.1, key=f"avg_kw_{uuid.uuid4()}")
         with kwhr_col2:
-            st.markdown('<p style="font-size: 8px;">Meter Defective</p>', unsafe_allow_html=True)
+            st.markdown('<p style="font-size: 10px;">Meter Defective</p>', unsafe_allow_html=True)
             st.checkbox("", key=f"kwhr_defective_{uuid.uuid4()}", label_visibility="collapsed")
         with kwhr_col3:
-            st.markdown('<p style="font-size: 8px;">Reset Meter</p>', unsafe_allow_html=True)
+            st.markdown('<p style="font-size: 10px;">Reset Meter</p>', unsafe_allow_html=True)
             st.checkbox("", key=f"kwhr_reset_{uuid.uuid4()}", label_visibility="collapsed")
         
         st.number_input("SFOC", min_value=0.0, step=0.1, key=f"sfoc_{uuid.uuid4()}")
@@ -865,11 +865,29 @@ def display_custom_machinery(noon_report_type):
     st.subheader("Main Engine")
     col1, col2 = st.columns(2)
     with col1:
-        st.number_input("M/E rev counter", min_value=0, step=1, key=f"me_rev_counter_{uuid.uuid4()}")
+        me_rev_col1, me_rev_col2, me_rev_col3 = st.columns([2,1,1])
+        with me_rev_col1:
+            st.number_input("M/E rev counter", min_value=0, step=1, key=f"me_rev_counter_{uuid.uuid4()}")
+        with me_rev_col2:
+            st.markdown('<p style="font-size: 10px;">Meter Defective</p>', unsafe_allow_html=True)
+            st.checkbox("", key=f"me_rev_counter_defective_{uuid.uuid4()}", label_visibility="collapsed")
+        with me_rev_col3:
+            st.markdown('<p style="font-size: 10px;">Reset Meter</p>', unsafe_allow_html=True)
+            st.checkbox("", key=f"me_rev_counter_reset_{uuid.uuid4()}", label_visibility="collapsed")
+        
+        
         
         
     with col2:
-        st.number_input("ME RPM", min_value=0.0, step=0.1, key=f"me_rpm_{uuid.uuid4()}")
+        kwhr_col1, kwhr_col2, kwhr_col3 = st.columns([2,1,1])
+        with kwhr_col1:
+            st.number_input("kWhr", min_value=0.0, step=0.1, key=f"avg_kw_{uuid.uuid4()}")
+        with kwhr_col2:
+            st.markdown('<p style="font-size: 10px;">Meter Defective</p>', unsafe_allow_html=True)
+            st.checkbox("", key=f"kwhr_defective_{uuid.uuid4()}", label_visibility="collapsed")
+        with kwhr_col3:
+            st.markdown('<p style="font-size: 10px;">Reset Meter</p>', unsafe_allow_html=True)
+            st.checkbox("", key=f"kwhr_reset_{uuid.uuid4()}", label_visibility="collapsed")
        
         
     st.subheader("Auxiliary Engines")
