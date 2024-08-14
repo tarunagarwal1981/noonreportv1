@@ -116,7 +116,7 @@ def display_voyage_information():
     with col1:
         st.text_input("Voyage ID", key=f"voyage_id_{uuid.uuid4()}")
         
-        st.write("Departure Port")
+        st.write("Last Port")
         dep_col1, dep_col2 = st.columns(2)
         with dep_col1:
             st.text_input("", key="voyage_from", placeholder="Name")
@@ -141,19 +141,33 @@ def display_voyage_information():
         
 
 def display_custom_voyage_information(noon_report_type):
-    col1, col2, col3, col4 = st.columns(4)
+    
+    col1, col2, col3 = st.columns(3)
     with col1:
-        st.text_input("Port Name", key=f"port_name_{uuid.uuid4()}")
-        st.text_input("Port UNLOCODE", key=f"port_unlo_{uuid.uuid4()}")
-    with col2:
-        st.selectbox("Voyage Type", ["", "One-way", "Round trip", "STS"], key="voyage_type")
-        st.date_input("ETA", value=datetime.now(), key="eta")
+        st.text_input("Voyage ID", key=f"voyage_id_{uuid.uuid4()}")
         
+        st.write("Last Port")
+        dep_col1, dep_col2 = st.columns(2)
+        with dep_col1:
+            st.text_input("", key="voyage_from", placeholder="Name")
+        with dep_col2:
+            st.text_input("", key="voyage_fromunlo", placeholder="UNLOCODE")
+                
+    with col2:
+        st.text_input("Segment ID", key=f"segment_id_{uuid.uuid4()}")
+        
+        st.write("Next Port")
+        next_col1, next_col2 = st.columns(2)
+        with next_col1:
+            st.text_input("", key="voyage_to", placeholder="Name")
+        with next_col2:
+            st.text_input("", key="voyage_tounlo", placeholder="UNLOCODE")
+                        
     with col3:
         st.selectbox("Vessel Condition", ["", "Laden", "Ballast"], key=f"vessel_condition_{uuid.uuid4()}")
+        st.date_input("ETA Date Time (LT)", value=datetime.now(), key="eta")
+        st.text_input("Speed Order (CP)", key="speed_order")
         st.text_input("Charter Type", key="charter_type")
-    with col4:
-        drydock = st.checkbox("Drydock", key="drydock")
 
 def display_special_events():
     st.subheader("Special Events")
@@ -769,12 +783,19 @@ def display_custom_fuel_consumption(noon_report_type):
         edit_tank_properties()
 
 def display_machinery():
-    st.subheader("Machinery")
-
+   
     st.subheader("Main Engine")
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.number_input("M/E rev counter", min_value=0, step=1, key=f"me_rev_counter_{uuid.uuid4()}")
+        st.markdown('<p style="font-size: 8px;">Meter Defective Reset Meter</p>', unsafe_allow_html=True)
+        me_rev_col1, me_rev_col2, me_rev_col3 = st.columns([2,1,1])
+        with me_rev_col1:
+            st.number_input("M/E rev counter", min_value=0, step=1, key=f"me_rev_counter_{uuid.uuid4()}", label_visibility="collapsed")
+        with me_rev_col2:
+            st.checkbox("", key=f"me_rev_counter_defective_{uuid.uuid4()}", label_visibility="collapsed")
+        with me_rev_col3:
+            st.checkbox("", key=f"me_rev_counter_reset_{uuid.uuid4()}", label_visibility="collapsed")
+        
         st.number_input("ME TC RPM", min_value=0.0, step=0.1, key=f"me_tc1_rpm_{uuid.uuid4()}")
         st.number_input("Exhaust Max. Temp.(C)", min_value=0.0, step=0.1, key=f"exhaust_max_temp_{uuid.uuid4()}")
         
@@ -784,8 +805,17 @@ def display_machinery():
         st.number_input("Exhaust Min. Temp.(C)", min_value=0.0, step=0.1, key=f"exhaust_min_temp_{uuid.uuid4()}")
         
     with col3:
-        st.number_input("kWhr", min_value=0.0, step=0.1, key=f"avg_kw_{uuid.uuid4()}")
+        st.markdown('<p style="font-size: 8px;">Meter Defective Reset Meter</p>', unsafe_allow_html=True)
+        kwhr_col1, kwhr_col2, kwhr_col3 = st.columns([2,1,1])
+        with kwhr_col1:
+            st.number_input("kWhr", min_value=0.0, step=0.1, key=f"avg_kw_{uuid.uuid4()}", label_visibility="collapsed")
+        with kwhr_col2:
+            st.checkbox("", key=f"kwhr_defective_{uuid.uuid4()}", label_visibility="collapsed")
+        with kwhr_col3:
+            st.checkbox("", key=f"kwhr_reset_{uuid.uuid4()}", label_visibility="collapsed")
+        
         st.number_input("SFOC", min_value=0.0, step=0.1, key=f"sfoc_{uuid.uuid4()}")
+    
     with col4:
         st.number_input("Shaft Power", min_value=0.0, max_value=100.0, step=0.1, key=f"mcr_{uuid.uuid4()}")
         st.number_input("Slip", min_value=0.0, max_value=100.0, step=0.1, key=f"slip_{uuid.uuid4()}")
@@ -821,6 +851,7 @@ def display_machinery():
     with col4:
 
         st.number_input("A/E 4", min_value=0.0, step=0.1, key=f"ae_4_hours_{uuid.uuid4()}")
+        
         st.number_input("Air Comp 2", min_value=0.0, step=0.1, key=f"comp2_hours_{uuid.uuid4()}")
 
    
@@ -867,6 +898,7 @@ def display_custom_machinery(noon_report_type):
     with col4:
 
         st.number_input("A/E 4", min_value=0.0, step=0.1, key=f"ae_4_hours_{uuid.uuid4()}")
+        
         st.number_input("Air Comp 2", min_value=0.0, step=0.1, key=f"comp2_hours_{uuid.uuid4()}")
 
 
