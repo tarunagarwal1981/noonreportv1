@@ -108,26 +108,34 @@ def display_custom_report_form(noon_report_type):
         st.success("Report submitted successfully!")
 
 
-# Example display functions (You will need to define all similar
+
 
 
 def display_voyage_information():
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3 = st.columns(3)
     with col1:
-        st.text_input("Departure Port", key="voyage_from")
-        st.text_input("UNLOCODE", key="voyage_fromunlo")
-        st.selectbox("Vessel Condition", ["", "Laden", "Ballast"], key=f"vessel_condition_{uuid.uuid4()}")
-        
-    with col2:
-        st.text_input("Arrival Port", key="voyage_to")
-        st.text_input("UNLOCODE", key="voyage_tounlo")
-        st.selectbox("Voyage Type", ["", "One-way", "Round trip", "STS"], key="voyage_type") 
-        
-    with col3:
         st.text_input("Voyage ID", key=f"voyage_id_{uuid.uuid4()}")
+        
+        st.write("Departure Port")
+        dep_col1, dep_col2 = st.columns(2)
+        with dep_col1:
+            st.text_input("", key="voyage_from", placeholder="Name")
+        with dep_col2:
+            st.text_input("", key="voyage_fromunlo", placeholder="UNLOCODE")
+                
+    with col2:
         st.text_input("Segment ID", key=f"segment_id_{uuid.uuid4()}")
-        st.date_input("ETA (Date/Time)", value=datetime.now(), key="eta")
-    with col4:
+        
+        st.write("Next Port")
+        next_col1, next_col2 = st.columns(2)
+        with next_col1:
+            st.text_input("", key="voyage_to", placeholder="Name")
+        with next_col2:
+            st.text_input("", key="voyage_tounlo", placeholder="UNLOCODE")
+                        
+    with col3:
+        st.selectbox("Vessel Condition", ["", "Laden", "Ballast"], key=f"vessel_condition_{uuid.uuid4()}")
+        st.date_input("ETA Date Time (LT)", value=datetime.now(), key="eta")
         st.text_input("Speed Order (CP)", key="speed_order")
         st.text_input("Charter Type", key="charter_type")
         
