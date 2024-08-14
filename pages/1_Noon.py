@@ -885,7 +885,7 @@ def display_custom_environmental_compliance(noon_report_type):
     col1, col2, col3 = st.columns(3)
     with col1:
         st.number_input("Sludge ROB (MT)", min_value=0.0, step=0.1, key=f"sludge_rob_{uuid.uuid4()}")
-         st.number_input("Bilge Water Quantity (m³)", min_value=0.0, step=0.1, key=f"bilge_water_qty_{uuid.uuid4()}")
+        st.number_input("Bilge Water Quantity (m³)", min_value=0.0, step=0.1, key=f"bilge_water_qty_{uuid.uuid4()}")
     with col2:
         st.number_input("Sludge Landed Ashore (MT)", min_value=0.0, step=0.1, key=f"sludge_landed_{uuid.uuid4()}")
         st.number_input("Food waste Disposed (m³)", min_value=0.0, step=0.1, key=f"food_waste_{uuid.uuid4()}")
