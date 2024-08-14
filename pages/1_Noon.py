@@ -311,48 +311,48 @@ def display_speed_position_and_navigation():
             st.selectbox("IDL Direction", ["East", "West"], key="idl_direction")
 
  def display_custom_speed_position_and_navigation(noon_report_type):
-    st.subheader("Speed, Position and Distance")
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        st.selectbox("Ship Mean Time", options=list(range(-12, 13)), key="ship_mean_time")
-        st.selectbox("Clocks Advanced/Retarded", ["", "Advanced", "Retarded"], key="clocks_change")
+     st.subheader("Speed, Position and Distance")
+     col1, col2, col3, col4 = st.columns(4)
+     with col1:
+         st.selectbox("Ship Mean Time", options=list(range(-12, 13)), key="ship_mean_time")
+         st.selectbox("Clocks Advanced/Retarded", ["", "Advanced", "Retarded"], key="clocks_change")
         
-        st.number_input("Course (°)", min_value=0, max_value=359, step=1, key=f"course_{uuid.uuid4()}")
+         st.number_input("Course (°)", min_value=0, max_value=359, step=1, key=f"course_{uuid.uuid4()}")
         
-    with col2:
-        st.time_input("Date Time (Local)", value=datetime.now().time(), key=f"local_time_{uuid.uuid4()}")
-        st.number_input("Clocks Changed By (minutes)", min_value=0, step=1, key="clocks_change_minutes")
+     with col2:
+         st.time_input("Date Time (Local)", value=datetime.now().time(), key=f"local_time_{uuid.uuid4()}")
+         st.number_input("Clocks Changed By (minutes)", min_value=0, step=1, key="clocks_change_minutes")
         
-        st.number_input("Heading (°)", min_value=0, max_value=359, step=1, key=f"heading_{uuid.uuid4()}")
+         st.number_input("Heading (°)", min_value=0, max_value=359, step=1, key=f"heading_{uuid.uuid4()}")
         
         
-    with col3:
-        st.time_input("Date Time (UTC)", value=datetime.now().time(), key=f"local_time_{uuid.uuid4()}")
-        st.text("Latitude")
-        lat_col1, lat_col2, lat_col3, lat_col4 = st.columns([2, 2, 2, 1])
-        with lat_col1:
-            lat_deg = st.number_input("Deg", min_value=0, max_value=90, step=1, key="lat_degree")
-        with lat_col2:
-            lat_min = st.number_input("Min", min_value=0, max_value=59, step=1, key="lat_minute")
-        with lat_col3:
-            lat_sec = st.number_input("Sec", min_value=0, max_value=59, step=1, key="lat_second")
-        with lat_col4:
-            lat_dir = st.selectbox("", ["N", "S"], key="lat_direction")
+     with col3:
+         st.time_input("Date Time (UTC)", value=datetime.now().time(), key=f"local_time_{uuid.uuid4()}")
+         st.text("Latitude")
+         lat_col1, lat_col2, lat_col3, lat_col4 = st.columns([2, 2, 2, 1])
+         with lat_col1:
+             lat_deg = st.number_input("Deg", min_value=0, max_value=90, step=1, key="lat_degree")
+         with lat_col2:
+             lat_min = st.number_input("Min", min_value=0, max_value=59, step=1, key="lat_minute")
+         with lat_col3:
+             lat_sec = st.number_input("Sec", min_value=0, max_value=59, step=1, key="lat_second")
+         with lat_col4:
+             lat_dir = st.selectbox("", ["N", "S"], key="lat_direction")
         
-        st.text_input("Ordered Speed", key=f"speed_order_{uuid.uuid4()}")
+         st.text_input("Ordered Speed", key=f"speed_order_{uuid.uuid4()}")
         
-    with col4:
-        st.number_input("Time Since Last Report (hours)", min_value=0.0, step=0.1, key="time_since_last_report")
-        st.text("Longitude")
-        lon_col1, lon_col2, lon_col3, lon_col4 = st.columns([2, 2, 2, 1])
-        with lon_col1:
-            lon_deg = st.number_input("Deg", min_value=0, max_value=180, step=1, key="lon_degree")
-        with lon_col2:
-            lon_min = st.number_input("Min", min_value=0, max_value=59, step=1, key="lon_minute")
-        with lon_col3:
-            lon_sec = st.number_input("Sec", min_value=0, max_value=59, step=1, key="lon_second")
-        with lon_col4:
-            lon_dir = st.selectbox("", ["E", "W"], key="lon_direction")
+     with col4:
+         st.number_input("Time Since Last Report (hours)", min_value=0.0, step=0.1, key="time_since_last_report")
+         st.text("Longitude")
+         lon_col1, lon_col2, lon_col3, lon_col4 = st.columns([2, 2, 2, 1])
+         with lon_col1:
+             lon_deg = st.number_input("Deg", min_value=0, max_value=180, step=1, key="lon_degree")
+         with lon_col2:
+             lon_min = st.number_input("Min", min_value=0, max_value=59, step=1, key="lon_minute")
+         with lon_col3:
+             lon_sec = st.number_input("Sec", min_value=0, max_value=59, step=1, key="lon_second")
+         with lon_col4:
+             lon_dir = st.selectbox("", ["E", "W"], key="lon_direction")
         
         
 def display_weather_and_sea_conditions():
