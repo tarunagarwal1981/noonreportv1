@@ -379,26 +379,70 @@ def display_custom_speed_position_and_navigation(noon_report_type):
         
 def display_weather_and_sea_conditions():
     st.subheader("Weather and Sea Conditions")
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        st.number_input("True Wind Speed (kts)", min_value=0.0, step=0.1, key=f"true_wind_speed_{uuid.uuid4()}")
-        st.number_input("Sea Height (m)", min_value=0.0, step=0.1, key=f"sea_height_{uuid.uuid4()}")
-        st.selectbox("BF Scale", range(13), key=f"bf_scale_{uuid.uuid4()}")
-    with col2:
-        st.number_input("True Wind Direction (°)", min_value=0, max_value=359, step=1, key=f"true_wind_direction_{uuid.uuid4()}")
-        st.number_input("Sea Direction (°)", min_value=0, max_value=359, step=1, key=f"sea_direction_{uuid.uuid4()}")
-        st.selectbox("Sea State (Douglas)", range(10), key=f"douglas_sea_state_{uuid.uuid4()}")
+    
+    six_hourly = st.checkbox("6-hourly Weather Reports", key="six_hourly_weather")
+    
+    if not six_hourly:
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.number_input("True Wind Speed (kts)", min_value=0.0, step=0.1, key=f"true_wind_speed_{uuid.uuid4()}")
+            st.number_input("Sea Height (m)", min_value=0.0, step=0.1, key=f"sea_height_{uuid.uuid4()}")
+            st.selectbox("BF Scale", range(13), key=f"bf_scale_{uuid.uuid4()}")
+        with col2:
+            st.number_input("True Wind Direction (°)", min_value=0, max_value=359, step=1, key=f"true_wind_direction_{uuid.uuid4()}")
+            st.number_input("Sea Direction (°)", min_value=0, max_value=359, step=1, key=f"sea_direction_{uuid.uuid4()}")
+            st.selectbox("Sea State (Douglas)", range(10), key=f"douglas_sea_state_{uuid.uuid4()}")
+        with col3:
+            st.number_input("Significant Wave Height (m)", min_value=0.0, step=0.1, key=f"sig_wave_height_{uuid.uuid4()}")
+            st.number_input("Swell Height (m) (DSS)", min_value=0.0, step=0.1, key=f"swell_height_{uuid.uuid4()}")
+            st.number_input("Air Temp (°C)", min_value=-50.0, max_value=50.0, step=0.1, key=f"air_temp_{uuid.uuid4()}")
+        with col4:
+            st.number_input("Wave Direction (°)", min_value=0, max_value=359, step=1, key=f"wave_direction_{uuid.uuid4()}")
+            st.number_input("Swell Direction (°)", min_value=0, max_value=359, step=1, key=f"swell_direction_{uuid.uuid4()}")
+            st.number_input("Sea Water Temp (°C)", min_value=-2.0, max_value=35.0, step=0.1, key=f"sea_water_temp_{uuid.uuid4()}")
+    else:
+        weather_data = {
+            "Date Time": [""] * 4,
+            "True Wind Speed (kts)": [0.0] * 4,
+            "True Wind Direction (°)": [0] * 4,
+            "BF Scale": [0] * 4,
+            "Sea Height (m)": [0.0] * 4,
+            "Sea Direction (°)": [0] * 4,
+            "Sea State (Douglas)": [0] * 4,
+            "Significant Wave Height (m)": [0.0] * 4,
+            "Wave Direction (°)": [0] * 4,
+            "Swell Height (m) (DSS)": [0.0] * 4,
+            "Swell Direction (°)": [0] * 4,
+            "Air Temp (°C)": [0.0] * 4,
+            "Sea Water Temp (°C)": [0.0] * 4
+        }
         
-    with col3:
-        st.number_input("Significant Wave Height (m)", min_value=0.0, step=0.1, key=f"sig_wave_height_{uuid.uuid4()}")
-        st.number_input("Swell Height (m) (DSS)", min_value=0.0, step=0.1, key=f"swell_height_{uuid.uuid4()}")
-        st.number_input("Air Temp (°C)", min_value=-50.0, max_value=50.0, step=0.1, key=f"air_temp_{uuid.uuid4()}")
+        df = pd.DataFrame(weather_data)
         
-    with col4:
-        st.number_input("Wave Direction (°)", min_value=0, max_value=359, step=1, key=f"wave_direction_{uuid.uuid4()}")
-        st.number_input("Swell Direction (°)", min_value=0, max_value=359, step=1, key=f"swell_direction_{uuid.uuid4()}")
-        st.number_input("Sea Water Temp (°C)", min_value=-2.0, max_value=35.0, step=0.1, key=f"sea_water_temp_{uuid.uuid4()}")
-        
+        edited_df = st.data_editor(
+            df,
+            column_config={
+                "Date Time": st.column_config.DatetimeColumn(
+                    "Date Time",
+                    min_value=datetime.now() - timedelta(days=1),
+                    max_value=datetime.now() + timedelta(days=1),
+                    format="DD/MM/YYYY HH:mm",
+                    step=60,
+                ),
+                "BF Scale": st.column_config.SelectboxColumn(
+                    "BF Scale",
+                    options=range(13),
+                    required=True,
+                ),
+                "Sea State (Douglas)": st.column_config.SelectboxColumn(
+                    "Sea State (Douglas)",
+                    options=range(10),
+                    required=True,
+                ),
+            },
+            hide_index=True,
+            key="weather_table"
+        )
         
 
         
