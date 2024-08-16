@@ -376,10 +376,6 @@ def display_custom_speed_position_and_navigation(noon_report_type):
         with lon_col4:
             lon_dir = st.selectbox("", ["E", "W"], key="lon_direction")
         
-        
-import streamlit as st
-import pandas as pd
-from datetime import datetime, timedelta
 
 def display_weather_and_sea_conditions():
     st.subheader("Weather and Sea Conditions")
@@ -406,7 +402,7 @@ def display_weather_and_sea_conditions():
             st.number_input("Sea Water Temp (°C)", min_value=-2.0, max_value=35.0, step=0.1, key=f"sea_water_temp_{uuid.uuid4()}")
     else:
         weather_data = {
-            "Date Time": [""] * 4,
+            "Date Time": [pd.NaT] * 4,
             "True Wind Speed (kts)": [0.0] * 4,
             "True Wind Direction (°)": [0] * 4,
             "BF Scale": [0] * 4,
@@ -435,20 +431,18 @@ def display_weather_and_sea_conditions():
                 ),
                 "BF Scale": st.column_config.SelectboxColumn(
                     "BF Scale",
-                    options=range(13),
+                    options=list(range(13)),
                     required=True,
                 ),
                 "Sea State (Douglas)": st.column_config.SelectboxColumn(
                     "Sea State (Douglas)",
-                    options=range(10),
+                    options=list(range(10)),
                     required=True,
                 ),
             },
             hide_index=True,
             key="weather_table"
         )
-        
-
 def display_custom_weather_and_sea_conditions(noon_report_type):
     st.subheader("Weather and Sea Conditions")
     col1, col2, col3, col4 = st.columns(4)
