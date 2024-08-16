@@ -377,6 +377,10 @@ def display_custom_speed_position_and_navigation(noon_report_type):
             lon_dir = st.selectbox("", ["E", "W"], key="lon_direction")
         
         
+import streamlit as st
+import pandas as pd
+from datetime import datetime, timedelta
+
 def display_weather_and_sea_conditions():
     st.subheader("Weather and Sea Conditions")
     
@@ -424,8 +428,8 @@ def display_weather_and_sea_conditions():
             column_config={
                 "Date Time": st.column_config.DatetimeColumn(
                     "Date Time",
-                    min_value=datetime.now() - timedelta(days=1),
-                    max_value=datetime.now() + timedelta(days=1),
+                    min_value=datetime(2023, 1, 1),
+                    max_value=datetime(2025, 12, 31),
                     format="DD/MM/YYYY HH:mm",
                     step=60,
                 ),
@@ -443,10 +447,6 @@ def display_weather_and_sea_conditions():
             hide_index=True,
             key="weather_table"
         )
-        
-
-        
-        
         
 
 def display_custom_weather_and_sea_conditions(noon_report_type):
