@@ -535,8 +535,6 @@ def display_fuel_consumption():
         st.session_state.sulfur = {tank: np.random.uniform(0.05, 0.49) for tank in st.session_state.tanks}
     if 'previous_rob' not in st.session_state:
         st.session_state.previous_rob = pd.Series({tank: np.random.uniform(100, 1000) for tank in st.session_state.tanks})
-    if 'bunker_survey_correction' not in st.session_state:
-        st.session_state.bunker_survey_correction = pd.Series({tank: 0 for tank in st.session_state.tanks})
     if 'bunker_survey_comments' not in st.session_state:
         st.session_state.bunker_survey_comments = ""
 
@@ -545,23 +543,24 @@ def display_fuel_consumption():
     # Add bunker survey checkbox
     bunker_survey = st.checkbox("Bunker Survey")
 
+    # Add comment box right after the checkbox
+    if bunker_survey:
+        st.session_state.bunker_survey_comments = st.text_area(
+            "Bunker Survey Comments",
+            value=st.session_state.bunker_survey_comments,
+            height=100
+        )
+
     def format_column_header(tank):
         return f"{tank}\nVisc: {st.session_state.viscosity[tank]:.1f}\nSulfur: {st.session_state.sulfur[tank]:.2f}%"
 
     def create_editable_dataframe():
-        index = ['Previous ROB'] + st.session_state.consumers
-        if bunker_survey:
-            index += ['Bunker Survey Correction']
-        index += ['Current ROB']
+        index = ['Previous ROB'] + st.session_state.consumers + ['Current ROB']
         df = pd.DataFrame(index=index, columns=st.session_state.tanks)
         df.loc['Previous ROB'] = st.session_state.previous_rob
         df.loc[st.session_state.consumers] = st.session_state.consumption_data
-        if bunker_survey:
-            df.loc['Bunker Survey Correction'] = st.session_state.bunker_survey_correction
         total_consumption = df.loc[st.session_state.consumers].sum()
         df.loc['Current ROB'] = df.loc['Previous ROB'] - total_consumption
-        if bunker_survey:
-            df.loc['Current ROB'] += df.loc['Bunker Survey Correction']
         df.columns = [format_column_header(tank) for tank in st.session_state.tanks]
         return df
 
@@ -592,23 +591,6 @@ def display_fuel_consumption():
         elif consumer in italic_rows:
             df_html = df_html.replace(f'<td>{consumer}</td>', f'<td class="italic-row">{consumer}</td>')
     st.markdown(df_html, unsafe_allow_html=True)
-
-    if bunker_survey:
-        st.write("Bunker Survey Correction:")
-        bunker_survey_correction = st.data_editor(
-            pd.DataFrame(st.session_state.bunker_survey_correction).T,
-            use_container_width=True,
-            column_config={tank: st.column_config.NumberColumn(
-                tank, min_value=-100.0, max_value=100.0, step=0.1, format="%.1f"
-            ) for tank in st.session_state.tanks}
-        )
-        st.session_state.bunker_survey_correction = bunker_survey_correction.iloc[0]
-        
-        st.session_state.bunker_survey_comments = st.text_area(
-            "Bunker Survey Comments",
-            value=st.session_state.bunker_survey_comments,
-            height=100
-        )
 
     def display_additional_table():
         st.write("Additional Consumption Data:")
