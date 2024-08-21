@@ -535,8 +535,6 @@ def display_fuel_consumption():
         st.session_state.sulfur = {tank: np.random.uniform(0.05, 0.49) for tank in st.session_state.tanks}
     if 'previous_rob' not in st.session_state:
         st.session_state.previous_rob = pd.Series({tank: np.random.uniform(100, 1000) for tank in st.session_state.tanks})
-    if 'bunker_survey_correction' not in st.session_state:
-        st.session_state.bunker_survey_correction = pd.Series(0, index=st.session_state.tanks)
 
     st.title('Fuel Consumption Tracker')
 
@@ -544,13 +542,12 @@ def display_fuel_consumption():
         return f"{tank}\nVisc: {st.session_state.viscosity[tank]:.1f}\nSulfur: {st.session_state.sulfur[tank]:.2f}%"
 
     def create_editable_dataframe():
-        index = ['Previous ROB'] + st.session_state.consumers + ['Bunker Survey Correction', 'Current ROB']
+        index = ['Previous ROB'] + st.session_state.consumers + ['Current ROB']
         df = pd.DataFrame(index=index, columns=st.session_state.tanks)
         df.loc['Previous ROB'] = st.session_state.previous_rob
         df.loc[st.session_state.consumers] = st.session_state.consumption_data
-        df.loc['Bunker Survey Correction'] = st.session_state.bunker_survey_correction
         total_consumption = df.loc[st.session_state.consumers].sum()
-        df.loc['Current ROB'] = df.loc['Previous ROB'] - total_consumption + df.loc['Bunker Survey Correction']
+        df.loc['Current ROB'] = df.loc['Previous ROB'] - total_consumption
         df.columns = [format_column_header(tank) for tank in st.session_state.tanks]
         return df
 
@@ -635,46 +632,7 @@ def display_fuel_consumption():
 
     if st.checkbox("Edit Tank Properties"):
         edit_tank_properties()
-
-    # New checkbox for bunker survey
-    bunker_survey = st.checkbox("Bunker Survey")
-
-    if bunker_survey:
-        st.write("Bunker Survey Correction:")
-        bunker_survey_correction = st.data_editor(
-            pd.DataFrame(st.session_state.bunker_survey_correction).T,
-            use_container_width=True,
-            column_config={tank: st.column_config.NumberColumn(
-                tank, min_value=-100.0, max_value=100.0, step=0.1, format="%.1f"
-            ) for tank in st.session_state.tanks}
-        )
-        st.session_state.bunker_survey_correction = bunker_survey_correction.iloc[0]
-
-        # Comments box for bunker survey
-        st.text_area("Bunker Survey Comments", key="bunker_survey_comments")
-
-    # Existing checkboxes for bunkering and debunkering
-    bunkering = st.checkbox("Bunkering")
-    debunkering = st.checkbox("Debunkering")
-
-    if bunkering or debunkering:
-        operation = "Bunkering" if bunkering else "Debunkering"
-        st.write(f"{operation} Data:")
-        bunkering_data = st.data_editor(
-            pd.DataFrame(0, index=['Quantity'], columns=st.session_state.tanks),
-            use_container_width=True,
-            column_config={tank: st.column_config.NumberColumn(
-                tank, min_value=0, max_value=1000, step=0.1, format="%.1f"
-            ) for tank in st.session_state.tanks}
-        )
         
-        if st.button(f"Apply {operation}"):
-            if bunkering:
-                st.session_state.previous_rob += bunkering_data.iloc[0]
-            else:
-                st.session_state.previous_rob -= bunkering_data.iloc[0]
-            st.success(f"{operation} applied successfully!")
-
 def display_custom_fuel_consumption(noon_report_type):
     if 'consumers' not in st.session_state:
         st.session_state.consumers = [
@@ -706,14 +664,18 @@ def display_custom_fuel_consumption(noon_report_type):
         st.session_state.bunkering_entries = []
     if 'debunkering_entries' not in st.session_state:
         st.session_state.debunkering_entries = []
+    if 'bunker_survey_correction' not in st.session_state:
+        st.session_state.bunker_survey_correction = pd.Series({tank: 0 for tank in st.session_state.tanks})
 
     st.title('Fuel Consumption Tracker')
 
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
     with col1:
         bunkering_happened = st.checkbox("Bunkering Happened")
     with col2:
         debunkering_happened = st.checkbox("Debunkering Happened")
+    with col3:
+        bunker_survey = st.checkbox("Bunker Survey")
 
     if bunkering_happened:
         st.markdown("<h4 style='font-size: 18px;'>Bunkering Details</h4>", unsafe_allow_html=True)
@@ -753,6 +715,18 @@ def display_custom_fuel_consumption(noon_report_type):
             st.session_state.debunkering_entries.append({})
             st.experimental_rerun()
 
+    if bunker_survey:
+        st.markdown("<h4 style='font-size: 18px;'>Bunker Survey Correction</h4>", unsafe_allow_html=True)
+        bunker_survey_correction = st.data_editor(
+            pd.DataFrame(st.session_state.bunker_survey_correction).T,
+            use_container_width=True,
+            column_config={tank: st.column_config.NumberColumn(
+                tank, min_value=-100.0, max_value=100.0, step=0.1, format="%.1f"
+            ) for tank in st.session_state.tanks}
+        )
+        st.session_state.bunker_survey_correction = bunker_survey_correction.iloc[0]
+        st.text_area("Bunker Survey Comments", key="bunker_survey_comments")
+
     def format_column_header(tank):
         return f"{tank}\nVisc: {st.session_state.viscosity[tank]:.1f}\nSulfur: {st.session_state.sulfur[tank]:.2f}%"
 
@@ -762,22 +736,28 @@ def display_custom_fuel_consumption(noon_report_type):
             index += ['Bunkered Qty']
         if debunkering_happened:
             index += ['Debunkered Qty']
+        if bunker_survey:
+            index += ['Bunker Survey Correction']
         index += ['Current ROB']
         df = pd.DataFrame(index=index, columns=st.session_state.tanks)
         df.loc['Previous ROB'] = st.session_state.previous_rob
         df.loc[st.session_state.consumers] = st.session_state.consumption_data
         if bunkering_happened:
-            total_bunkered = sum(entry.get('total_qty', 0) for entry in st.session_state.bunkering_entries)
+            total_bunkered = sum(entry.get('mass', 0) for entry in st.session_state.bunkering_entries)
             df.loc['Bunkered Qty'] = [total_bunkered] + [0] * (len(st.session_state.tanks) - 1)
         if debunkering_happened:
             total_debunkered = sum(entry.get('quantity', 0) for entry in st.session_state.debunkering_entries)
             df.loc['Debunkered Qty'] = [total_debunkered] + [0] * (len(st.session_state.tanks) - 1)
+        if bunker_survey:
+            df.loc['Bunker Survey Correction'] = st.session_state.bunker_survey_correction
         total_consumption = df.loc[st.session_state.consumers].sum()
         df.loc['Current ROB'] = df.loc['Previous ROB'] - total_consumption
         if bunkering_happened:
             df.loc['Current ROB'] += df.loc['Bunkered Qty']
         if debunkering_happened:
             df.loc['Current ROB'] -= df.loc['Debunkered Qty']
+        if bunker_survey:
+            df.loc['Current ROB'] += df.loc['Bunker Survey Correction']
         df.columns = [format_column_header(tank) for tank in st.session_state.tanks]
         return df
 
@@ -862,7 +842,7 @@ def display_custom_fuel_consumption(noon_report_type):
 
     if st.checkbox("Edit Tank Properties"):
         edit_tank_properties()
-
+        
 def display_machinery():
    
     
