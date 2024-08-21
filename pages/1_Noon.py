@@ -542,6 +542,8 @@ def display_fuel_consumption():
 
     # Add bunker survey checkbox
     bunker_survey = st.checkbox("Bunker Survey")
+    if bunker_survey:
+        st.text_area("Bunker Survey Comments", key="bunker_survey_comments")
 
     def format_column_header(tank):
         return f"{tank}\nVisc: {st.session_state.viscosity[tank]:.1f}\nSulfur: {st.session_state.sulfur[tank]:.2f}%"
