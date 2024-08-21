@@ -494,7 +494,6 @@ def display_custom_cargo_and_stability(noon_report_type):
         st.number_input("Freeboard (m)", min_value=0.0, step=0.01, key=f"freeboard_{uuid.uuid4()}")
         st.number_input("Cb (Block Co-efficient)", min_value=0.0, step=0.01, key=f"cb_{uuid.uuid4()}")
         
-        
 def display_fuel_consumption():
     if 'consumers' not in st.session_state:
         st.session_state.consumers = [
@@ -829,6 +828,7 @@ def display_custom_fuel_consumption(noon_report_type):
 
     if st.checkbox("Edit Tank Properties"):
         edit_tank_properties()
+        
 def display_machinery():
    
     
