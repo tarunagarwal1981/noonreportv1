@@ -537,13 +537,13 @@ def display_fuel_consumption():
         st.session_state.previous_rob = pd.Series({tank: np.random.uniform(100, 1000) for tank in st.session_state.tanks})
     if 'bunker_survey_correction' not in st.session_state:
         st.session_state.bunker_survey_correction = pd.Series({tank: 0 for tank in st.session_state.tanks})
+    if 'bunker_survey_comments' not in st.session_state:
+        st.session_state.bunker_survey_comments = ""
 
     st.title('Fuel Consumption Tracker')
 
     # Add bunker survey checkbox
     bunker_survey = st.checkbox("Bunker Survey")
-    if bunker_survey:
-        st.text_area("Bunker Survey Comments", key="bunker_survey_comments")
 
     def format_column_header(tank):
         return f"{tank}\nVisc: {st.session_state.viscosity[tank]:.1f}\nSulfur: {st.session_state.sulfur[tank]:.2f}%"
@@ -604,7 +604,11 @@ def display_fuel_consumption():
         )
         st.session_state.bunker_survey_correction = bunker_survey_correction.iloc[0]
         
-        st.text_area("Bunker Survey Comments", key="bunker_survey_comments")
+        st.session_state.bunker_survey_comments = st.text_area(
+            "Bunker Survey Comments",
+            value=st.session_state.bunker_survey_comments,
+            height=100
+        )
 
     def display_additional_table():
         st.write("Additional Consumption Data:")
