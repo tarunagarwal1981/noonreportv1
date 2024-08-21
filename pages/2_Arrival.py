@@ -833,6 +833,7 @@ def display_custom_fuel_consumption(noon_report_type):
 
     if st.checkbox("Edit Tank Properties"):
         edit_tank_properties()
+        
 def display_machinery():
    
     
