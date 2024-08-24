@@ -54,6 +54,17 @@ def create_editable_grid(df, key):
         key=key
     )
 
+def add_tank(tank_type):
+    if tank_type == "fuel":
+        new_row = pd.DataFrame([['' for _ in range(len(st.session_state.fuel_tanks.columns))]], columns=st.session_state.fuel_tanks.columns)
+        st.session_state.fuel_tanks = pd.concat([st.session_state.fuel_tanks, new_row], ignore_index=True)
+    elif tank_type == "lube":
+        new_row = pd.DataFrame([['' for _ in range(len(st.session_state.lube_oil_tanks.columns))]], columns=st.session_state.lube_oil_tanks.columns)
+        st.session_state.lube_oil_tanks = pd.concat([st.session_state.lube_oil_tanks, new_row], ignore_index=True)
+    elif tank_type == "water":
+        new_row = pd.DataFrame([['' for _ in range(len(st.session_state.water_tanks.columns))]], columns=st.session_state.water_tanks.columns)
+        st.session_state.water_tanks = pd.concat([st.session_state.water_tanks, new_row], ignore_index=True)
+
 def main():
     st.title("Vessel Setup")
     initialize_session_state()
@@ -63,27 +74,21 @@ def main():
     fuel_grid_response = create_editable_grid(st.session_state.fuel_tanks, 'fuel_grid')
     st.session_state.fuel_tanks = fuel_grid_response['data']
     if st.button("Add Fuel Tank"):
-        new_row = pd.DataFrame([['' for _ in range(len(st.session_state.fuel_tanks.columns))]], columns=st.session_state.fuel_tanks.columns)
-        st.session_state.fuel_tanks = pd.concat([st.session_state.fuel_tanks, new_row], ignore_index=True)
-        st.experimental_rerun()
+        add_tank("fuel")
 
     # Lube Oil Tank Allocation
     st.header("Lube Oil Tank Allocation")
     lube_grid_response = create_editable_grid(st.session_state.lube_oil_tanks, 'lube_grid')
     st.session_state.lube_oil_tanks = lube_grid_response['data']
     if st.button("Add Lube Oil Tank"):
-        new_row = pd.DataFrame([['' for _ in range(len(st.session_state.lube_oil_tanks.columns))]], columns=st.session_state.lube_oil_tanks.columns)
-        st.session_state.lube_oil_tanks = pd.concat([st.session_state.lube_oil_tanks, new_row], ignore_index=True)
-        st.experimental_rerun()
+        add_tank("lube")
 
     # Fresh Water/Distilled Water Tank Allocation
     st.header("Fresh Water/Distilled Water Tank Allocation")
     water_grid_response = create_editable_grid(st.session_state.water_tanks, 'water_grid')
     st.session_state.water_tanks = water_grid_response['data']
     if st.button("Add Water Tank"):
-        new_row = pd.DataFrame([['' for _ in range(len(st.session_state.water_tanks.columns))]], columns=st.session_state.water_tanks.columns)
-        st.session_state.water_tanks = pd.concat([st.session_state.water_tanks, new_row], ignore_index=True)
-        st.experimental_rerun()
+        add_tank("water")
 
 if __name__ == "__main__":
     main()
