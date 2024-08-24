@@ -7,7 +7,7 @@ def create_input_row(labels, keys, col_count=4):
     cols = st.columns(col_count)
     for i, (label, key) in enumerate(zip(labels, keys)):
         with cols[i % col_count]:
-            st.text_input(label, key=key)
+            st.text_input(label, key=f"{key}_{i}")
 
 def main():
     st.title("Vessel Onboarding")
@@ -86,7 +86,7 @@ def main():
         )
         create_input_row(
             ["A/E Laden", "Blr Laden", "", ""],
-            ["ae_laden", "blr_laden", "", ""]
+            ["ae_laden", "blr_laden", "empty1", "empty2"]
         )
 
         st.subheader("At Port")
@@ -100,7 +100,7 @@ def main():
         for i in range(0, len(fuels), 4):
             create_input_row(
                 fuels[i:i+4],
-                [fuel.lower() for fuel in fuels[i:i+4]]
+                [f"fuel_{fuel.lower()}" for fuel in fuels[i:i+4]]
             )
 
     if st.button("Submit"):
