@@ -20,6 +20,16 @@ def create_engine_fields(engine_type, num_engines):
             [f"{engine_type} #{i} NCR Power", f"{engine_type} #{i} NCR RPM", f"{engine_type} #{i} Flowmeter Make", f"{engine_type} #{i} Flowmeter Model"],
             [f"{engine_type.lower()}_{i}_ncr_power", f"{engine_type.lower()}_{i}_ncr_rpm", f"{engine_type.lower()}_{i}_flowmeter_make", f"{engine_type.lower()}_{i}_flowmeter_model"]
         )
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            epl_fitted = st.selectbox(f"EPL Fitted for {engine_type} #{i}", ["No", "Yes"], key=f"{engine_type.lower()}_{i}_epl_fitted")
+        with col2:
+            if epl_fitted == "Yes":
+                st.text_input(f"EPL Power for {engine_type} #{i}", key=f"{engine_type.lower()}_{i}_epl_power")
+        
+        if engine_type == "Main Engine":
+            shaft_generator_fitted = st.selectbox(f"Shaft Generator Fitted for {engine_type} #{i}", ["No", "Yes"], key=f"{engine_type.lower()}_{i}_shaft_generator_fitted")
 
 def main():
     st.title("Vessel Onboarding")
@@ -99,29 +109,15 @@ def main():
                 ["scrubber_make", "scrubber_model", "scrubber_type", "scrubber_capacity"]
             )
 
-    with st.expander("Engine Details"):
-        create_input_row(
-            ["Shaft Generator Fitted?", "Engine fitted with EPL/Derated Engine?", "Propeller Diameter (mm)", "Propeller Pitch"],
-            ["shaft_generator_fitted", "engine_epl_derated", "propeller_diameter", "propeller_pitch"]
-        )
+        # Propeller
+        st.subheader("Propeller")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.text_input("Propeller Diameter (mm)", key="propeller_diameter")
+        with col2:
+            st.number_input("Number of Blades", min_value=1, max_value=10, value=4, step=1, key="propeller_blades")
 
-    with st.expander("Consumption Details"):
-        st.subheader("At Sea")
-        create_input_row(
-            ["M/E Ballast", "A/E Ballast", "Blr Ballast", "M/E Laden"],
-            ["me_ballast", "ae_ballast", "blr_ballast", "me_laden"]
-        )
-        create_input_row(
-            ["A/E Laden", "Blr Laden", "", ""],
-            ["ae_laden", "blr_laden", "empty1", "empty2"]
-        )
-
-        st.subheader("At Port")
-        create_input_row(
-            ["AE HSFO", "BLKR HSFO", "AE VLSFO", "BLKR VLSFO"],
-            ["ae_hsfo", "blkr_hsfo", "ae_vlsfo", "blkr_vlsfo"]
-        )
-
+    
     with st.expander("Fuel Compatibility"):
         fuels = ["HFO", "LFO", "MGO", "MDO", "LPGP", "LPGB", "LNG", "LNGN2", "Methanol", "Ethanol", "Ethane", "Blend"]
         for i in range(0, len(fuels), 4):
