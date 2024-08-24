@@ -9,6 +9,18 @@ def create_input_row(labels, keys, col_count=4):
         with cols[i % col_count]:
             st.text_input(label, key=f"{key}_{i}")
 
+def create_engine_fields(engine_type, num_engines):
+    for i in range(1, num_engines + 1):
+        st.subheader(f"{engine_type} #{i}")
+        create_input_row(
+            [f"{engine_type} #{i} Make", f"{engine_type} #{i} Model", f"{engine_type} #{i} SMCR Power", f"{engine_type} #{i} SMCR RPM"],
+            [f"{engine_type.lower()}_{i}_make", f"{engine_type.lower()}_{i}_model", f"{engine_type.lower()}_{i}_smcr_power", f"{engine_type.lower()}_{i}_smcr_rpm"]
+        )
+        create_input_row(
+            [f"{engine_type} #{i} NCR Power", f"{engine_type} #{i} NCR RPM", f"{engine_type} #{i} Flowmeter Make", f"{engine_type} #{i} Flowmeter Model"],
+            [f"{engine_type.lower()}_{i}_ncr_power", f"{engine_type.lower()}_{i}_ncr_rpm", f"{engine_type.lower()}_{i}_flowmeter_make", f"{engine_type.lower()}_{i}_flowmeter_model"]
+        )
+
 def main():
     st.title("Vessel Onboarding")
 
@@ -54,28 +66,43 @@ def main():
             ["summer_draft", "winter_draft", "tropical_draft", "summer_fw_draft"]
         )
 
-    with st.expander("Machinery Particulars"):
-        create_input_row(
-            ["Main ENGINE #1 make/model", "Generator#1 Make/Model", "Boiler#1 Make/Model", "Cargo pumps#1 Make/Model"],
-            ["main_engine_1", "generator_1", "boiler_1", "cargo_pumps_1"]
-        )
-        create_input_row(
-            ["Main ENGINE #2 make/model", "Generator#2 Make/Model", "Boiler#2 Make/Model", "Cargo pumps#2 Make/Model"],
-            ["main_engine_2", "generator_2", "boiler_2", "cargo_pumps_2"]
-        )
-        create_input_row(
-            ["Generator#3 Make/Model", "Generator#4 Make/Model", "Generator#5 Make/Model", "FW Generator Make/Model"],
-            ["generator_3", "generator_4", "generator_5", "fw_generator"]
-        )
+    with st.expander("Machinery Particulars", expanded=True):
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            num_main_engines = st.number_input("Number of Main Engines", min_value=1, max_value=4, value=1, step=1)
+        with col2:
+            num_aux_engines = st.number_input("Number of Auxiliary Engines", min_value=1, max_value=6, value=1, step=1)
+        with col3:
+            scrubber_fitted = st.selectbox("Scrubber Fitted", ["No", "Yes"])
+        with col4:
+            num_boilers = st.number_input("Number of Boilers", min_value=1, max_value=4, value=1, step=1)
+
+        # Main Engines
+        create_engine_fields("Main Engine", num_main_engines)
+
+        # Auxiliary Engines
+        create_engine_fields("Auxiliary Engine", num_aux_engines)
+
+        # Boilers
+        for i in range(1, num_boilers + 1):
+            st.subheader(f"Boiler #{i}")
+            create_input_row(
+                [f"Boiler #{i} Make", f"Boiler #{i} Model", f"Boiler #{i} Capacity", f"Boiler #{i} Working Pressure"],
+                [f"boiler_{i}_make", f"boiler_{i}_model", f"boiler_{i}_capacity", f"boiler_{i}_working_pressure"]
+            )
+
+        # Scrubber (if fitted)
+        if scrubber_fitted == "Yes":
+            st.subheader("Scrubber Details")
+            create_input_row(
+                ["Scrubber Make", "Scrubber Model", "Scrubber Type", "Scrubber Capacity"],
+                ["scrubber_make", "scrubber_model", "scrubber_type", "scrubber_capacity"]
+            )
 
     with st.expander("Engine Details"):
         create_input_row(
-            ["Scrubber Fitted?", "Scrubber Make/Model", "Shaft Generator Fitted?", "Engine fitted with EPL/Derated Engine?"],
-            ["scrubber_fitted", "scrubber_make_model", "shaft_generator_fitted", "engine_epl_derated"]
-        )
-        create_input_row(
-            ["Volumetric or Mass Flow Meter?", "ME#1 Flowmeters make/model", "ME#2 Flowmeters make/model", "Propeller Diameter (mm)"],
-            ["flow_meter_type", "me1_flowmeter", "me2_flowmeter", "propeller_diameter"]
+            ["Shaft Generator Fitted?", "Engine fitted with EPL/Derated Engine?", "Propeller Diameter (mm)", "Propeller Pitch"],
+            ["shaft_generator_fitted", "engine_epl_derated", "propeller_diameter", "propeller_pitch"]
         )
 
     with st.expander("Consumption Details"):
