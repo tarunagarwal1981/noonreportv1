@@ -21,15 +21,18 @@ def create_engine_fields(engine_type, num_engines):
             [f"{engine_type.lower()}_{i}_ncr_power", f"{engine_type.lower()}_{i}_ncr_rpm", f"{engine_type.lower()}_{i}_flowmeter_make", f"{engine_type.lower()}_{i}_flowmeter_model"]
         )
         
-        col1, col2 = st.columns(2)
-        with col1:
-            epl_fitted = st.selectbox(f"EPL Fitted for {engine_type} #{i}", ["No", "Yes"], key=f"{engine_type.lower()}_{i}_epl_fitted")
-        with col2:
-            if epl_fitted == "Yes":
-                st.text_input(f"EPL Power for {engine_type} #{i}", key=f"{engine_type.lower()}_{i}_epl_power")
-        
         if engine_type == "Main Engine":
-            shaft_generator_fitted = st.selectbox(f"Shaft Generator Fitted for {engine_type} #{i}", ["No", "Yes"], key=f"{engine_type.lower()}_{i}_shaft_generator_fitted")
+            col1, col2, col3, col4 = st.columns(4)
+            with col1:
+                epl_fitted = st.selectbox(f"EPL Fitted for {engine_type} #{i}", ["No", "Yes"], key=f"{engine_type.lower()}_{i}_epl_fitted")
+            with col2:
+                if epl_fitted == "Yes":
+                    st.text_input(f"EPL Power for {engine_type} #{i}", key=f"{engine_type.lower()}_{i}_epl_power")
+            with col3:
+                shaft_generator_fitted = st.selectbox(f"Shaft Generator Fitted for {engine_type} #{i}", ["No", "Yes"], key=f"{engine_type.lower()}_{i}_shaft_generator_fitted")
+            with col4:
+                if shaft_generator_fitted == "Yes":
+                    st.text_input(f"Shaft Generator Power for {engine_type} #{i}", key=f"{engine_type.lower()}_{i}_shaft_generator_power")
 
 def main():
     st.title("Vessel Onboarding")
@@ -117,14 +120,62 @@ def main():
         with col2:
             st.number_input("Number of Blades", min_value=1, max_value=10, value=4, step=1, key="propeller_blades")
 
-    
+    with st.expander("Energy Saving Devices (if fitted)"):
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.subheader("Pre-Swirl Device")
+            pre_swirl_options = [
+                "None (selected)", "Pre-Swirl Fins & Stators", "Mitsui Integrated Ducted Propeller",
+                "Hatch Zosen Nozzle", "Sumitomo Integrated Lammeren Duct", "Becker Mewis Duct"
+            ]
+            st.selectbox("Pre-Swirl Device", pre_swirl_options, key="pre_swirl_device")
+        
+        with col2:
+            st.subheader("Post-Swirl Devices")
+            post_swirl_options = [
+                "None", "Rudder Thruster Fins", "Post Swirl Stators", "Asymmetric Rudders",
+                "Rudder (Costa Bulb)", "Propeller Boss Cap Fin (PBCF)", "Divergent Propeller Caps", "Grim Vane Wheels"
+            ]
+            st.selectbox("Post-Swirl Devices", post_swirl_options, key="post_swirl_devices")
+        
+        with col3:
+            st.subheader("Skin Friction Reduction")
+            skin_friction_options = ["None (selected)", "Air Cavity Systems", "Micro Bubbles"]
+            st.selectbox("Skin Friction Reduction", skin_friction_options, key="skin_friction_reduction")
+
     with st.expander("Fuel Compatibility"):
-        fuels = ["HFO", "LFO", "MGO", "MDO", "LPGP", "LPGB", "LNG", "LNGN2", "Methanol", "Ethanol", "Ethane", "Blend"]
-        for i in range(0, len(fuels), 4):
-            create_input_row(
-                fuels[i:i+4],
-                [f"fuel_{fuel.lower()}" for fuel in fuels[i:i+4]]
-            )
+        fuels = [
+            "HFO", "eMDO", "NH3", "ULSFO2020", "B10MGO",
+            "LFO", "eMGO", "H2", "ULSLFO2020", "B20LFO",
+            "MGO", "eLPG", "BioH2", "ULSMDO2020", "B24LFO",
+            "MDO", "eDME", "eH2", "ULSMGO2020", "B30LFO",
+            "LPGP", "HVO", "eNH3", "VLSFO", "B50MGO",
+            "LPGB", "FAME", "LBG", "VLSFO2020", "BioLFO",
+            "LNG", "BioLNG", "OtherBio", "VLSLFO2020", "BioMGO",
+            "LNGN2", "eLNG", "LSHFO", "B100LFO", "Other",
+            "Methanol", "BioMethanol", "LSLFO", "B100MGO",
+            "Ethanol", "eMethanol", "LSMGO", "B10LFO",
+            "Ethane", "Blend"
+        ]
+        
+        col1, col2, col3, col4 = st.columns(4)
+        for i, fuel in enumerate(fuels):
+            with col1 if i % 4 == 0 else col2 if i % 4 == 1 else col3 if i % 4 == 2 else col4:
+                st.checkbox(fuel, key=f"fuel_{fuel.lower()}")
+
+    with st.expander("Additional Info"):
+        create_input_row(
+            ["Last Dry Dock Date", "Coating: Silicone Paint Applied?", "Last UW-Coating Application Date", "Surface Preparation (Last Coating Application)"],
+            ["last_dry_dock_date", "silicone_paint_applied", "last_uw_coating_date", "surface_preparation"]
+        )
+        create_input_row(
+            ["Last UW Inspection Date", "Intended Next Coating Application", "Last Hull Cleaning Date", "UW-Coating: Paint"],
+            ["last_uw_inspection_date", "next_coating_application", "last_hull_cleaning_date", "uw_coating_paint"]
+        )
+        create_input_row(
+            ["Last Propeller Polishing Date", "UW-Coating: Paint Producer", "", ""],
+            ["last_propeller_polishing_date", "uw_coating_paint_producer", "empty1", "empty2"]
+        )
 
     if st.button("Submit"):
         st.success("Vessel onboarding information submitted successfully!")
