@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+from st_aggrid import AgGrid, GridOptionsBuilder
 
 st.set_page_config(layout="wide", page_title="Vessel Setup")
 
@@ -20,35 +21,38 @@ def initialize_session_state():
             "Water Type"
         ])
 
-def add_tank(tank_type):
-    if tank_type == "Fuel":
-        new_tank = {
-            "Tank Name": st.session_state.fuel_tank_name,
-            "Tank Capacity (100% m3)": st.session_state.fuel_tank_capacity,
-            "Current ROB (mT)": st.session_state.fuel_current_rob,
-            "Fuel Grade": st.session_state.fuel_grade,
-            "BDN Number": st.session_state.fuel_bdn_number,
-            "% Sulphur": st.session_state.fuel_sulphur,
-            "Viscosity": st.session_state.fuel_viscosity
-        }
-        st.session_state.fuel_tanks = pd.concat([st.session_state.fuel_tanks, pd.DataFrame([new_tank])], ignore_index=True)
-    elif tank_type == "Lube Oil":
-        new_tank = {
-            "Tank Name": st.session_state.lube_tank_name,
-            "Tank Capacity (100% m3)": st.session_state.lube_tank_capacity,
-            "Current ROB (mT)": st.session_state.lube_current_rob,
-            "Lube Oil Grade": st.session_state.lube_grade,
-            "BN": st.session_state.lube_bn
-        }
-        st.session_state.lube_oil_tanks = pd.concat([st.session_state.lube_oil_tanks, pd.DataFrame([new_tank])], ignore_index=True)
-    elif tank_type == "Water":
-        new_tank = {
-            "Tank Name": st.session_state.water_tank_name,
-            "Tank Capacity (100% m3)": st.session_state.water_tank_capacity,
-            "Current ROB (mT)": st.session_state.water_current_rob,
-            "Water Type": st.session_state.water_type
-        }
-        st.session_state.water_tanks = pd.concat([st.session_state.water_tanks, pd.DataFrame([new_tank])], ignore_index=True)
+def create_editable_grid(df, key):
+    gb = GridOptionsBuilder.from_dataframe(df)
+    gb.configure_default_column(editable=True, resizable=True)
+    gb.configure_column("Tank Name", header_name="Tank Name")
+    gb.configure_column("Tank Capacity (100% m3)", header_name="Tank Capacity (100% m3)", type=["numericColumn", "numberColumnFilter", "customNumericFormat"], precision=2)
+    gb.configure_column("Current ROB (mT)", header_name="Current ROB (mT)", type=["numericColumn", "numberColumnFilter", "customNumericFormat"], precision=2)
+    
+    if "Fuel Grade" in df.columns:
+        gb.configure_column("Fuel Grade", header_name="Fuel Grade")
+        gb.configure_column("BDN Number", header_name="BDN Number")
+        gb.configure_column("% Sulphur", header_name="% Sulphur", type=["numericColumn", "numberColumnFilter", "customNumericFormat"], precision=4)
+        gb.configure_column("Viscosity", header_name="Viscosity", type=["numericColumn", "numberColumnFilter", "customNumericFormat"], precision=2)
+    elif "Lube Oil Grade" in df.columns:
+        gb.configure_column("Lube Oil Grade", header_name="Lube Oil Grade")
+        gb.configure_column("BN", header_name="BN", type=["numericColumn", "numberColumnFilter", "customNumericFormat"], precision=1)
+    elif "Water Type" in df.columns:
+        gb.configure_column("Water Type", header_name="Water Type")
+    
+    gb.configure_grid_options(domLayout='normal')
+    gridOptions = gb.build()
+    
+    return AgGrid(
+        df,
+        gridOptions=gridOptions,
+        height=300,
+        width='100%',
+        data_return_mode='AS_INPUT',
+        update_mode='MODEL_CHANGED',
+        fit_columns_on_grid_load=False,
+        allow_unsafe_jscode=True,
+        key=key
+    )
 
 def main():
     st.title("Vessel Setup")
@@ -56,82 +60,30 @@ def main():
 
     # Fuel Tank Allocation
     st.header("Fuel Tank Allocation")
-    st.dataframe(st.session_state.fuel_tanks)
-    
-    with st.expander("Add New Fuel Tank"):
-        col1, col2 = st.columns(2)
-        with col1:
-            st.text_input("Tank Name", key="fuel_tank_name")
-            st.number_input("Tank Capacity (100% m3)", min_value=0.0, key="fuel_tank_capacity")
-            st.number_input("Current ROB (mT)", min_value=0.0, key="fuel_current_rob")
-            st.text_input("Fuel Grade", key="fuel_grade")
-        with col2:
-            st.text_input("BDN Number", key="fuel_bdn_number")
-            st.number_input("% Sulphur", min_value=0.0, max_value=100.0, key="fuel_sulphur")
-            st.number_input("Viscosity", min_value=0.0, key="fuel_viscosity")
-        if st.button("Add Fuel Tank"):
-            add_tank("Fuel")
-            st.success("Fuel tank added successfully!")
+    fuel_grid_response = create_editable_grid(st.session_state.fuel_tanks, 'fuel_grid')
+    st.session_state.fuel_tanks = fuel_grid_response['data']
+    if st.button("Add Fuel Tank"):
+        new_row = pd.DataFrame([['' for _ in range(len(st.session_state.fuel_tanks.columns))]], columns=st.session_state.fuel_tanks.columns)
+        st.session_state.fuel_tanks = pd.concat([st.session_state.fuel_tanks, new_row], ignore_index=True)
+        st.experimental_rerun()
 
     # Lube Oil Tank Allocation
     st.header("Lube Oil Tank Allocation")
-    st.dataframe(st.session_state.lube_oil_tanks)
-    
-    with st.expander("Add New Lube Oil Tank"):
-        col1, col2 = st.columns(2)
-        with col1:
-            st.text_input("Tank Name", key="lube_tank_name")
-            st.number_input("Tank Capacity (100% m3)", min_value=0.0, key="lube_tank_capacity")
-            st.number_input("Current ROB (mT)", min_value=0.0, key="lube_current_rob")
-        with col2:
-            st.text_input("Lube Oil Grade", key="lube_grade")
-            st.number_input("BN", min_value=0, key="lube_bn")
-        if st.button("Add Lube Oil Tank"):
-            add_tank("Lube Oil")
-            st.success("Lube oil tank added successfully!")
+    lube_grid_response = create_editable_grid(st.session_state.lube_oil_tanks, 'lube_grid')
+    st.session_state.lube_oil_tanks = lube_grid_response['data']
+    if st.button("Add Lube Oil Tank"):
+        new_row = pd.DataFrame([['' for _ in range(len(st.session_state.lube_oil_tanks.columns))]], columns=st.session_state.lube_oil_tanks.columns)
+        st.session_state.lube_oil_tanks = pd.concat([st.session_state.lube_oil_tanks, new_row], ignore_index=True)
+        st.experimental_rerun()
 
     # Fresh Water/Distilled Water Tank Allocation
     st.header("Fresh Water/Distilled Water Tank Allocation")
-    st.dataframe(st.session_state.water_tanks)
-    
-    with st.expander("Add New Water Tank"):
-        col1, col2 = st.columns(2)
-        with col1:
-            st.text_input("Tank Name", key="water_tank_name")
-            st.number_input("Tank Capacity (100% m3)", min_value=0.0, key="water_tank_capacity")
-        with col2:
-            st.number_input("Current ROB (mT)", min_value=0.0, key="water_current_rob")
-            st.selectbox("Water Type", ["Fresh Water", "Distilled Water"], key="water_type")
-        if st.button("Add Water Tank"):
-            add_tank("Water")
-            st.success("Water tank added successfully!")
-
-    # Download buttons
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        csv_fuel = st.session_state.fuel_tanks.to_csv(index=False)
-        st.download_button(
-            label="Download Fuel Tanks CSV",
-            data=csv_fuel,
-            file_name="fuel_tanks.csv",
-            mime="text/csv",
-        )
-    with col2:
-        csv_lube = st.session_state.lube_oil_tanks.to_csv(index=False)
-        st.download_button(
-            label="Download Lube Oil Tanks CSV",
-            data=csv_lube,
-            file_name="lube_oil_tanks.csv",
-            mime="text/csv",
-        )
-    with col3:
-        csv_water = st.session_state.water_tanks.to_csv(index=False)
-        st.download_button(
-            label="Download Water Tanks CSV",
-            data=csv_water,
-            file_name="water_tanks.csv",
-            mime="text/csv",
-        )
+    water_grid_response = create_editable_grid(st.session_state.water_tanks, 'water_grid')
+    st.session_state.water_tanks = water_grid_response['data']
+    if st.button("Add Water Tank"):
+        new_row = pd.DataFrame([['' for _ in range(len(st.session_state.water_tanks.columns))]], columns=st.session_state.water_tanks.columns)
+        st.session_state.water_tanks = pd.concat([st.session_state.water_tanks, new_row], ignore_index=True)
+        st.experimental_rerun()
 
 if __name__ == "__main__":
     main()
