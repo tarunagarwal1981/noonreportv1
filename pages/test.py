@@ -87,12 +87,15 @@ def display_custom_report_form(noon_report_type):
 
     for section in sections:
         with st.expander(f"#### {section}"):
-            function_name = f"display_custom_{section.lower().replace(' ', '_').replace(',', '')}"
-            if function_name in globals():
-                globals()[function_name](noon_report_type)
+            if section == "Events":
+                display_custom_events(noon_report_type)
             else:
-                st.write(f"Custom function {function_name} not found. Displaying default section.")
-                display_default_section(section)
+                function_name = f"display_custom_{section.lower().replace(' ', '_').replace(',', '')}"
+                if function_name in globals():
+                    globals()[function_name](noon_report_type)
+                else:
+                    st.write(f"Custom function {function_name} not found. Displaying default section.")
+                    globals()[f"display_{section.lower().replace(' ', '_').replace(',', '')}"]()
 
     if st.button("Submit Report", type="primary", key=f"submit_report_{uuid.uuid4()}"):
         st.success("Report submitted successfully!")
@@ -135,22 +138,17 @@ def display_custom_voyage_information(noon_report_type):
 def display_events():
     st.subheader("Events")
 
-    col1, col2 = st.columns(2)
+    st.write("Events")
+    if st.session_state.report_type == "Noon at Sea":
+        st.checkbox("Drifting")
+        st.checkbox("Canal/River Passage")
+    else:
+        st.checkbox("STS")
+        st.checkbox("Port")
+        st.checkbox("Anchor")
 
-    # Different events based on report type
-    with col1:
-        st.write("Events")
-        if st.session_state.report_type == "Noon at Sea":
-            st.checkbox("Drifting")
-            st.checkbox("Canal/River Passage")
-        else:
-            st.checkbox("STS")
-            st.checkbox("Port")
-            st.checkbox("Anchor")
-
-    with col2:
-        st.write("Special Events")
-        display_special_events()
+    st.write("Special Events")
+    display_special_events()
 
 def display_special_events():
     columns = [
@@ -208,6 +206,21 @@ def display_special_events():
     )
 
     st.session_state.special_events_df = edited_df
+
+def display_custom_events(noon_report_type):
+    st.subheader("Events")
+
+    st.write("Events")
+    if noon_report_type == "Noon at Sea":
+        st.checkbox("Drifting")
+        st.checkbox("Canal/River Passage")
+    else:  # Noon report
+        st.checkbox("STS")
+        st.checkbox("Port")
+        st.checkbox("Anchor")
+
+    st.write("Special Events")
+    display_special_events()
 
 def display_speed_position_and_navigation():
     st.subheader("Speed, Position and Distance")
