@@ -514,7 +514,205 @@ def display_fuel_consumption():
         edit_tank_properties()
 
 def display_custom_fuel_consumption(noon_report_type):
-    display_fuel_consumption()  # Reuse the base function for custom report
+    if 'consumers' not in st.session_state:
+        st.session_state.consumers = [
+            'Main Engine', 'Aux Engine1', 'Aux Engine2', 'Aux Engine3',
+            'Boiler 1',
+            '    Boiler 1 - Cargo Heating',
+            '    Boiler 1 - Discharge',
+            'Boiler 2',
+            '    Boiler 2 - Cargo Heating',
+            '    Boiler 2 - Discharge',
+            'IGG', 'Incinerator',
+            'DPP1', 'DPP2', 'DPP3'
+        ]
+    if 'tanks' not in st.session_state:
+        st.session_state.tanks = [f'Tank {i}' for i in range(1, 9)]
+    if 'consumption_data' not in st.session_state:
+        st.session_state.consumption_data = pd.DataFrame(0, index=st.session_state.consumers, columns=st.session_state.tanks)
+    if 'viscosity' not in st.session_state:
+        st.session_state.viscosity = {tank: np.random.uniform(20, 100) for tank in st.session_state.tanks}
+    if 'sulfur' not in st.session_state:
+        st.session_state.sulfur = {tank: np.random.uniform(0.05, 0.49) for tank in st.session_state.tanks}
+    if 'previous_rob' not in st.session_state:
+        st.session_state.previous_rob = pd.Series({tank: np.random.uniform(100, 1000) for tank in st.session_state.tanks})
+    if 'bunkered_qty' not in st.session_state:
+        st.session_state.bunkered_qty = pd.Series({tank: 0 for tank in st.session_state.tanks})
+    if 'debunkered_qty' not in st.session_state:
+        st.session_state.debunkered_qty = pd.Series({tank: 0 for tank in st.session_state.tanks})
+    if 'bunkering_entries' not in st.session_state:
+        st.session_state.bunkering_entries = []
+    if 'debunkering_entries' not in st.session_state:
+        st.session_state.debunkering_entries = []
+    if 'bunker_survey_correction' not in st.session_state:
+        st.session_state.bunker_survey_correction = pd.Series({tank: 0 for tank in st.session_state.tanks})
+
+    st.title('Fuel Consumption Tracker')
+
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        bunkering_happened = st.checkbox("Bunkering Happened")
+    with col2:
+        debunkering_happened = st.checkbox("Debunkering Happened")
+    with col3:
+        bunker_survey = st.checkbox("Bunker Survey")
+
+    if bunkering_happened:
+        st.markdown("<h4 style='font-size: 18px;'>Bunkering Details</h4>", unsafe_allow_html=True)
+        for i, entry in enumerate(st.session_state.bunkering_entries):
+            st.markdown(f"<h5 style='font-size: 16px;'>Bunkering Entry {i+1}</h5>", unsafe_allow_html=True)
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                entry['bdn_number'] = st.text_input("Bunker Delivery Note Number", key=f"bdn_number_{i}")
+                entry['delivery_date'] = st.date_input("Bunker Delivery Date", key=f"delivery_date_{i}")
+                entry['delivery_time'] = st.time_input("Bunker Delivery Time", key=f"delivery_time_{i}")
+            with col2:
+                entry['imo_number'] = st.text_input("IMO number", key=f"imo_number_{i}")
+                entry['fuel_type'] = st.text_input("Fuel Type", key=f"fuel_type_{i}")
+                entry['mass'] = st.number_input("Mass (mt)", min_value=0.0, step=0.1, key=f"mass_{i}")
+            with col3:
+                entry['lower_heating_value'] = st.number_input("Lower heating value (MJ/kg)", min_value=0.0, step=0.1, key=f"lower_heating_value_{i}")
+                entry['eu_ghg_intensity'] = st.number_input("EU GHG emission intensity (gCO2eq/MJ)", min_value=0.0, step=0.1, key=f"eu_ghg_intensity_{i}")
+                entry['imo_ghg_intensity'] = st.number_input("IMO GHG emission intensity (gCO2eq/MJ)", min_value=0.0, step=0.1, key=f"imo_ghg_intensity_{i}")
+                entry['lcv_eu'] = st.number_input("Lower Calorific Value (EU) (MJ/kg)", min_value=0.0, step=0.1, key=f"lcv_eu_{i}")
+                entry['sustainability'] = st.text_input("Sustainability", key=f"sustainability_{i}")
+        if st.button("➕ Add Bunkering Entry"):
+            st.session_state.bunkering_entries.append({})
+            st.experimental_rerun()
+
+    if debunkering_happened:
+        st.markdown("<h4 style='font-size: 18px;'>Debunkering Details</h4>", unsafe_allow_html=True)
+        for i, entry in enumerate(st.session_state.debunkering_entries):
+            st.markdown(f"<h5 style='font-size: 16px;'>Debunkering Entry {i+1}</h5>", unsafe_allow_html=True)
+            col1, col2 = st.columns(2)
+            with col1:
+                entry['date'] = st.date_input("Date of Debunkering", key=f"debunker_date_{i}")
+                entry['quantity'] = st.number_input("Quantity Debunkered (mt)", min_value=0.0, step=0.1, key=f"debunker_qty_{i}")
+            with col2:
+                entry['bdn_number'] = st.text_input("BDN Number of Debunkered Oil", key=f"debunker_bdn_{i}")
+                entry['receipt_file'] = st.file_uploader("Upload Receipt", type=['pdf', 'jpg', 'png'], key=f"receipt_file_{i}")
+        if st.button("➕ Add Debunkering Entry"):
+            st.session_state.debunkering_entries.append({})
+            st.experimental_rerun()
+
+    if bunker_survey:
+        st.text_area("Bunker Survey Comments", key="bunker_survey_comments")
+
+    def format_column_header(tank):
+        return f"{tank}\nVisc: {st.session_state.viscosity[tank]:.1f}\nSulfur: {st.session_state.sulfur[tank]:.2f}%"
+
+    def create_editable_dataframe():
+        index = ['Previous ROB'] + st.session_state.consumers
+        if bunkering_happened:
+            index += ['Bunkered Qty']
+        if debunkering_happened:
+            index += ['Debunkered Qty']
+        if bunker_survey:
+            index += ['Bunker Survey Correction']
+        index += ['Current ROB']
+        df = pd.DataFrame(index=index, columns=st.session_state.tanks)
+        df.loc['Previous ROB'] = st.session_state.previous_rob
+        df.loc[st.session_state.consumers] = st.session_state.consumption_data
+        if bunkering_happened:
+            total_bunkered = sum(entry.get('mass', 0) for entry in st.session_state.bunkering_entries)
+            df.loc['Bunkered Qty'] = [total_bunkered] + [0] * (len(st.session_state.tanks) - 1)
+        if debunkering_happened:
+            total_debunkered = sum(entry.get('quantity', 0) for entry in st.session_state.debunkering_entries)
+            df.loc['Debunkered Qty'] = [total_debunkered] + [0] * (len(st.session_state.tanks) - 1)
+        if bunker_survey:
+            df.loc['Bunker Survey Correction'] = st.session_state.bunker_survey_correction
+        total_consumption = df.loc[st.session_state.consumers].sum()
+        df.loc['Current ROB'] = df.loc['Previous ROB'] - total_consumption
+        if bunkering_happened:
+            df.loc['Current ROB'] += df.loc['Bunkered Qty']
+        if debunkering_happened:
+            df.loc['Current ROB'] -= df.loc['Debunkered Qty']
+        if bunker_survey:
+            df.loc['Current ROB'] += df.loc['Bunker Survey Correction']
+        df.columns = [format_column_header(tank) for tank in st.session_state.tanks]
+        return df
+
+    df = create_editable_dataframe()
+
+    st.write("Fuel Consumption Data:")
+    custom_css = """
+    <style>
+        .dataframe td:first-child {
+            font-weight: bold;
+        }
+        .dataframe td.italic-row {
+            font-style: italic;
+        }
+        .dataframe td.boiler-subsection {
+            padding-left: 30px !important;
+            font-style: italic;
+        }
+    </style>
+    """
+    st.markdown(custom_css, unsafe_allow_html=True)
+    df_html = df.to_html(classes='dataframe', escape=False)
+    df_html = df_html.replace('<th>', '<th style="text-align: center;">')
+    italic_rows = ['Boiler 1', 'Boiler 2', 'DPP1', 'DPP2', 'DPP3']
+    for consumer in st.session_state.consumers:
+        if consumer.startswith('    '):
+            df_html = df_html.replace(f'<td>{consumer}</td>', f'<td class="boiler-subsection">{consumer.strip()}</td>')
+        elif consumer in italic_rows:
+            df_html = df_html.replace(f'<td>{consumer}</td>', f'<td class="italic-row">{consumer}</td>')
+    st.markdown(df_html, unsafe_allow_html=True)
+
+    def display_additional_table():
+        st.write("Additional Consumption Data:")
+        additional_data = pd.DataFrame({
+            'Work': [0, 0, 0, 0],
+            'SFOC': [0, 0, 0, ''],
+            'Tank Name': ['', '', '', '']
+        }, index=['Reefer container', 'Cargo cooling', 'Heating/Discharge pump', 'Shore-Side Electricity'])
+        custom_css = """
+        <style>
+            .additional-table th {
+                text-align: center !important;
+            }
+            .additional-table td {
+                text-align: center !important;
+            }
+            .grey-out {
+                background-color: #f0f0f0 !important;
+                color: #888 !important;
+            }
+        </style>
+        """
+        st.markdown(custom_css, unsafe_allow_html=True)
+        table_html = additional_data.to_html(classes='additional-table', escape=False)
+        table_html = table_html.replace('<td></td>', '<td>-</td>')
+        table_html = table_html.replace('<td>Shore-Side Electricity</td><td>0</td><td></td><td></td>', 
+                                        '<td>Shore-Side Electricity</td><td>0</td><td class="grey-out">-</td><td class="grey-out">-</td>')
+        st.markdown(table_html, unsafe_allow_html=True)
+
+    display_additional_table()
+
+    def edit_tank_properties():
+        st.write("Edit tank properties:")
+        tank_props = pd.DataFrame({
+            'Viscosity': st.session_state.viscosity,
+            'Sulfur (%)': st.session_state.sulfur
+        })
+        edited_props = st.data_editor(
+            tank_props,
+            use_container_width=True,
+            column_config={
+                'Viscosity': st.column_config.NumberColumn(
+                    'Viscosity', min_value=20.0, max_value=100.0, step=0.1, format="%.1f"
+                ),
+                'Sulfur (%)': st.column_config.NumberColumn(
+                    'Sulfur (%)', min_value=0.05, max_value=0.49, step=0.01, format="%.2f"
+                )
+            }
+        )
+        st.session_state.viscosity = edited_props['Viscosity'].to_dict()
+        st.session_state.sulfur = edited_props['Sulfur (%)'].to_dict()
+
+    if st.checkbox("Edit Tank Properties"):
+        edit_tank_properties()
 
 def display_machinery():
     st.subheader("Machinery")
