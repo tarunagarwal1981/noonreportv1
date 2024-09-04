@@ -1,11 +1,3 @@
-import streamlit as st
-import pandas as pd
-from datetime import datetime
-import numpy as np
-import uuid
-
-st.set_page_config(layout="wide", page_title="Noon Reporting Portal")
-
 def main():
     # Display vessel information at the top of the page
     st.markdown("<h2 style='text-align: center;'>Vessel Information</h2>", unsafe_allow_html=True)
@@ -17,62 +9,14 @@ def main():
     with col3:
         st.text("Vessel Type: Tanker")  # Random value
 
-    st.markdown("<h2 style='text-align: center;'>COSP Report Selection</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align: center;'>COSP/RFA Report</h2>", unsafe_allow_html=True)
     
-    # Arrange the noon report checkboxes in rows of three
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        noon_at_port = st.checkbox("Departure Port")
-    with col2:
-        noon_at_anchor = st.checkbox("Departure from Anchor")
-    with col3:
-        noon_at_drifting = st.checkbox("Departure Canal/River")  
-    with col4:
-        noon_at_sts = st.checkbox("Departure STS")    
-    
-    # Display the relevant form based on the selected checkbox
-    if noon_at_port:
-        st.markdown("### Departure Port Report")
-        display_base_report_form()
-    if noon_at_anchor:
-        st.markdown("### Departure from Anchor Report")
-        display_base_report_form()
-    if noon_at_drifting:
-        st.markdown("### Departure Canal/River")
-        display_base_report_form()
-    if noon_at_sts:
-        st.markdown("### Departure STS Report")
-        display_base_report_form()
-        
+    display_base_report_form()
+
 def display_base_report_form():
     sections = [
         "Voyage Information",
-        "Special Events",
-        "Speed, Position and Navigation",
-        "Weather and Sea Conditions",
-        "Cargo and Stability",
-        "Fuel Consumption",
-        "Machinery",
-        "Environmental Compliance",
-        "Miscellaneous Consumables",
-    ]
-
-    for section in sections:
-        with st.expander(f"#### {section}"):
-            function_name = f"display_{section.lower().replace(' ', '_').replace(',', '')}"
-            if function_name in globals():
-                globals()[function_name]()
-            else:
-                st.write(f"Function {function_name} not found.")
-
-    if st.button("Submit Report", type="primary", key=f"submit_report_{uuid.uuid4()}"):
-        st.success("Report submitted successfully!")
-
-
-def display_custom_report_form(noon_report_type):
-    sections = [
-        "Voyage Information",
-        "Special Events",
+        "Events",
         "Speed, Position and Navigation",
         "Weather and Sea Conditions",
         "Cargo and Stability",
@@ -153,6 +97,23 @@ def display_custom_voyage_information(noon_report_type):
         st.date_input("ETA Date Time (LT)", value=datetime.now(), key="eta")
         st.text_input("Speed Order (CP)", key="speed_order")
         st.text_input("Charter Type", key="charter_type")
+
+def display_events():
+    st.subheader("Events")
+    
+    # Events subsection
+    st.write("Event Type")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.checkbox("Departure Port")
+        st.checkbox("Departure Anchor")
+    with col2:
+        st.checkbox("Departure Canal/River")
+        st.checkbox("Departure STS")
+
+    # Special Events subsection
+    st.write("Special Events")
+    display_special_events()
 
 def display_special_events():
     st.subheader("Special Events")
@@ -282,7 +243,6 @@ def display_speed_position_and_navigation():
         st.number_input("EM Log Speed (LOG) (kts)", min_value=0.0, step=0.1, key=f"em_log_speed_{uuid.uuid4()}")
         st.number_input("Heading (°)", min_value=0, max_value=359, step=1, key=f"heading_{uuid.uuid4()}")
         
-        
     with col3:
         st.time_input("Date Time (UTC)", value=datetime.now().time(), key=f"local_time_{uuid.uuid4()}")
         st.text("Latitude")
@@ -316,6 +276,24 @@ def display_speed_position_and_navigation():
         idl_crossing = st.checkbox("IDL Crossing", key="idl_crossing")
         if idl_crossing:
             st.selectbox("IDL Direction", ["East", "West"], key="idl_direction")
+
+    # New fields for anchor aweigh, pilot onboard, and all gone and clear
+    st.subheader("Additional Event Times")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.date_input("Anchor Aweigh Date (LT)", key="anchor_aweigh_date_lt")
+        st.time_input("Anchor Aweigh Time (LT)", key="anchor_aweigh_time_lt")
+        st.date_input("Pilot Onboard Date (LT)", key="pilot_onboard_date_lt")
+        st.time_input("Pilot Onboard Time (LT)", key="pilot_onboard_time_lt")
+        st.date_input("All Gone and Clear (LLC) Date (LT)", key="llc_date_lt")
+        st.time_input("All Gone and Clear (LLC) Time (LT)", key="llc_time_lt")
+    with col2:
+        st.date_input("Anchor Aweigh Date (UTC)", key="anchor_aweigh_date_utc")
+        st.time_input("Anchor Aweigh Time (UTC)", key="anchor_aweigh_time_utc")
+        st.date_input("Pilot Onboard Date (UTC)", key="pilot_onboard_date_utc")
+        st.time_input("Pilot Onboard Time (UTC)", key="pilot_onboard_time_utc")
+        st.date_input("All Gone and Clear (LLC) Date (UTC)", key="llc_date_utc")
+        st.time_input("All Gone and Clear (LLC) Time (UTC)", key="llc_time_utc")
 
 def display_custom_speed_position_and_navigation(noon_report_type):
     st.subheader("Speed, Position and Distance")
