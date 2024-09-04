@@ -17,37 +17,14 @@ def main():
     with col3:
         st.text("Vessel Type: Tanker")  # Random value
 
-    st.markdown("<h2 style='text-align: center;'>EOSP Report Selection</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align: center;'>EOSP Report</h2>", unsafe_allow_html=True)
     
-    # Arrange the noon report checkboxes in rows of three
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        noon_at_port = st.checkbox("Arrival at Port")
-    with col2:
-        noon_at_anchor = st.checkbox("Arrival at Anchor")
-    with col3:
-        noon_at_drifting = st.checkbox("Entering Canal/River")  
-    with col4:
-        noon_at_sts = st.checkbox("Arrival at STS")    
-    
-    # Display the relevant form based on the selected checkbox
-    if noon_at_port:
-        st.markdown("### Arrival at Port Report")
-        display_base_report_form()
-    if noon_at_anchor:
-        st.markdown("### Arrival at Anchor Report")
-        display_base_report_form()
-    if noon_at_drifting:
-        st.markdown("### Entering Canal/River")
-        display_base_report_form()
-    if noon_at_sts:
-        st.markdown("### Arrival at STS Report")
-        display_base_report_form()
-        
+    display_base_report_form()
+
 def display_base_report_form():
     sections = [
         "Voyage Information",
-        "Special Events",
+        "Events",
         "Speed, Position and Navigation",
         "Weather and Sea Conditions",
         "Cargo and Stability",
@@ -68,33 +45,6 @@ def display_base_report_form():
     if st.button("Submit Report", type="primary", key=f"submit_report_{uuid.uuid4()}"):
         st.success("Report submitted successfully!")
 
-
-def display_custom_report_form(noon_report_type):
-    sections = [
-        "Voyage Information",
-        "Special Events",
-        "Speed, Position and Navigation",
-        "Weather and Sea Conditions",
-        "Cargo and Stability",
-        "Fuel Consumption",
-        "Machinery",
-        "Environmental Compliance",
-        "Miscellaneous Consumables",
-    ]
-
-    for section in sections:
-        with st.expander(f"#### {section}"):
-            function_name = f"display_{section.lower().replace(' ', '_').replace(',', '')}"
-            if function_name in globals():
-                globals()[function_name]()
-            else:
-                st.write(f"Function {function_name} not found.")
-
-    if st.button("Submit Report", type="primary", key=f"submit_report_{uuid.uuid4()}"):
-        st.success("Report submitted successfully!")
-
-
-# Example display functions (You will need to define all similar
 
 
 def display_voyage_information():
@@ -155,9 +105,25 @@ def display_custom_voyage_information(noon_report_type):
         st.text_input("Speed Order (CP)", key="speed_order")
         st.text_input("Charter Type", key="charter_type")
 
-def display_special_events():
-    st.subheader("Special Events")
 
+def display_events():
+    st.subheader("Events")
+    
+    # Events subsection
+    st.write("Events")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.checkbox("Port Arrival")
+        st.checkbox("Anchor Arrival")
+    with col2:
+        st.checkbox("STS Arrival")
+        st.checkbox("Entering Canal/River")
+
+    # Special Events subsection
+    st.write("Special Events")
+    display_special_events()
+
+def display_special_events():
     columns = [
         "Event", "Start Date Time", "Start Lat", "Start Long", "End Date Time",
         "End Lat", "End Long", "Distance Travelled", "Total Consumption", "Consumption Tank Name"
@@ -193,58 +159,6 @@ def display_special_events():
                     "Transiting Special Area - IWL", "Transiting Special Area - ICE regions",
                     "Transiting Special Area - HRA"
                 ],
-            ),
-            "Start Date Time": st.column_config.DatetimeColumn(
-                "Start Date Time", format="DD/MM/YYYY HH:mm", step=60
-            ),
-            "End Date Time": st.column_config.DatetimeColumn(
-                "End Date Time", format="DD/MM/YYYY HH:mm", step=60
-            ),
-            "Distance Travelled": st.column_config.NumberColumn(
-                "Distance Travelled", min_value=0, max_value=1000, step=0.1, format="%.1f"
-            ),
-            "Total Consumption": st.column_config.NumberColumn(
-                "Total Consumption", min_value=0, max_value=1000, step=0.1, format="%.1f"
-            ),
-            "Consumption Tank Name": st.column_config.SelectboxColumn(
-                "Consumption Tank Name", options=[f"Tank {i}" for i in range(1, 9)]
-            ),
-        }
-    )
-
-    st.session_state.special_events_df = edited_df
-
-def display_custom_special_events(noon_report_type):
-    st.subheader("Special Events")
-
-    columns = [
-        "Event", "Start Date Time", "Start Lat", "Start Long", "End Date Time",
-        "End Lat", "End Long", "Distance Travelled", "Total Consumption", "Consumption Tank Name"
-    ]
-
-    if 'special_events_df' not in st.session_state:
-        default_row = {
-            "Event": "Off-hire",
-            "Start Date Time": datetime.now(),
-            "Start Lat": "0.0",
-            "Start Long": "0.0",
-            "End Date Time": datetime.now(),
-            "End Lat": "0.0",
-            "End Long": "0.0",
-            "Distance Travelled": 0.0,
-            "Total Consumption": 0.0,
-            "Consumption Tank Name": "Tank 1"
-        }
-        st.session_state.special_events_df = pd.DataFrame([default_row])
-
-    edited_df = st.data_editor(
-        st.session_state.special_events_df,
-        num_rows="dynamic",
-        use_container_width=True,
-        column_config={
-            "Event": st.column_config.SelectboxColumn(
-                "Event", width="medium",
-                options=["Off-hire", "ECA Transit", "Fuel Changeover"]
             ),
             "Start Date Time": st.column_config.DatetimeColumn(
                 "Start Date Time", format="DD/MM/YYYY HH:mm", step=60
