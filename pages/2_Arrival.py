@@ -17,37 +17,14 @@ def main():
     with col3:
         st.text("Vessel Type: Tanker")  # Random value
 
-    st.markdown("<h2 style='text-align: center;'>Arrival Report Selection</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align: center;'>Arrival/FWE Report</h2>", unsafe_allow_html=True)
     
-    # Arrange the noon report checkboxes in rows of three
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        noon_at_port = st.checkbox("Arrival at Port")
-    with col2:
-        noon_at_anchor = st.checkbox("Arrival at Anchor")
-    with col3:
-        noon_at_drifting = st.checkbox("Arrival for Drifting")  
-    with col4:
-        noon_at_sts = st.checkbox("Arrival at STS")    
-    
-    # Display the relevant form based on the selected checkbox
-    if noon_at_port:
-        st.markdown("### Arrival at Port Report")
-        display_base_report_form()
-    elif noon_at_anchor:
-        st.markdown("### Arrival at Anchor Report")
-        display_custom_report_form("Arrival at Anchor")
-    elif noon_at_drifting:
-        st.markdown("### Arrival for Drifting Report")
-        display_base_report_form()
-    elif noon_at_sts:
-        st.markdown("### Arrival at STS Report")
-        display_base_report_form()
+    display_base_report_form()
 
 def display_base_report_form():
     sections = [
         "Voyage Information",
-        "Special Events",
+        "Events",
         "Speed, Position and Navigation",
         "Weather and Sea Conditions",
         "Cargo and Stability",
@@ -67,36 +44,6 @@ def display_base_report_form():
 
     if st.button("Submit Report", type="primary", key=f"submit_report_{uuid.uuid4()}"):
         st.success("Report submitted successfully!")
-
-
-def display_custom_report_form(noon_report_type):
-    st.write(f"Displaying custom form for: {noon_report_type}")
-    
-    sections = [
-        "Voyage Information",
-        "Special Events",
-        "Speed, Position and Navigation",
-        "Weather and Sea Conditions",
-        "Cargo and Stability",
-        "Fuel Consumption",
-        "Machinery",
-        "Environmental Compliance",
-        "Miscellaneous Consumables",
-    ]
-
-    for section in sections:
-        with st.expander(f"#### {section}"):
-            function_name = f"display_custom_{section.lower().replace(' ', '_').replace(',', '')}"
-            if function_name in globals():
-                globals()[function_name](noon_report_type)
-            else:
-                st.write(f"Custom function {function_name} not found. Displaying default section.")
-                display_default_section(section)
-
-
-    if st.button("Submit Report", type="primary", key=f"submit_report_{uuid.uuid4()}"):
-        st.success("Report submitted successfully!")
-
 
 
 def display_voyage_information():
@@ -156,6 +103,23 @@ def display_custom_voyage_information(noon_report_type):
         st.date_input("ETA Date Time (LT)", value=datetime.now(), key="eta")
         st.text_input("Speed Order (CP)", key="speed_order")
         st.text_input("Charter Type", key="charter_type")
+
+def display_events():
+    st.subheader("Events")
+    
+    # Events subsection
+    st.write("Event Type")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.checkbox("Port Arrival")
+        st.checkbox("Anchor Arrival")
+    with col2:
+        st.checkbox("STS Arrival")
+        st.checkbox("Arrival Drifting Area")
+
+    # Special Events subsection
+    st.write("Special Events")
+    display_special_events()
 
 def display_special_events():
     st.subheader("Special Events")
@@ -285,7 +249,6 @@ def display_speed_position_and_navigation():
         st.number_input("EM Log Speed (LOG) (kts)", min_value=0.0, step=0.1, key=f"em_log_speed_{uuid.uuid4()}")
         st.number_input("Heading (°)", min_value=0, max_value=359, step=1, key=f"heading_{uuid.uuid4()}")
         
-        
     with col3:
         st.time_input("Date Time (UTC)", value=datetime.now().time(), key=f"local_time_{uuid.uuid4()}")
         st.text("Latitude")
@@ -320,6 +283,23 @@ def display_speed_position_and_navigation():
         if idl_crossing:
             st.selectbox("IDL Direction", ["East", "West"], key="idl_direction")
 
+    # New fields for First shackle in water, Let Go Anchor, and All Fast
+    st.subheader("Additional Event Times")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.date_input("First Shackle in Water Date (LT)", key="first_shackle_date_lt")
+        st.time_input("First Shackle in Water Time (LT)", key="first_shackle_time_lt")
+        st.date_input("Let Go Anchor Date (LT)", key="let_go_anchor_date_lt")
+        st.time_input("Let Go Anchor Time (LT)", key="let_go_anchor_time_lt")
+        st.date_input("All Fast Date (LT)", key="all_fast_date_lt")
+        st.time_input("All Fast Time (LT)", key="all_fast_time_lt")
+    with col2:
+        st.date_input("First Shackle in Water Date (UTC)", key="first_shackle_date_utc")
+        st.time_input("First Shackle in Water Time (UTC)", key="first_shackle_time_utc")
+        st.date_input("Let Go Anchor Date (UTC)", key="let_go_anchor_date_utc")
+        st.time_input("Let Go Anchor Time (UTC)", key="let_go_anchor_time_utc")
+        st.date_input("All Fast Date (UTC)", key="all_fast_date_utc")
+        st.time_input("All Fast Time (UTC)", key="all_fast_time_utc")
 def display_custom_speed_position_and_navigation(noon_report_type):
     st.subheader("Speed, Position and Distance")
     col1, col2, col3, col4 = st.columns(4)
