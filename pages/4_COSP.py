@@ -1,3 +1,12 @@
+import streamlit as st
+import pandas as pd
+from datetime import datetime
+import numpy as np
+import uuid
+import random
+
+st.set_page_config(layout="wide", page_title="Maritime Reporting Portal")
+
 def main():
     # Display vessel information at the top of the page
     st.markdown("<h2 style='text-align: center;'>Vessel Information</h2>", unsafe_allow_html=True)
