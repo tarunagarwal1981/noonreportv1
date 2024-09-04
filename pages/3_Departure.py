@@ -17,42 +17,14 @@ def main():
     with col3:
         st.text("Vessel Type: Tanker")  # Random value
 
-    st.markdown("<h2 style='text-align: center;'>Departure Report Selection</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align: center;'>Departure/SBE Report</h2>", unsafe_allow_html=True)
     
-    # Arrange the noon report checkboxes in rows of three
-    col1, col2, col3, col4, col5 = st.columns(5)
-    with col1:
-        noon_at_portshift = st.checkbox("Departure for Berth Shifting")
-    with col2:
-        noon_at_port = st.checkbox("Departure Port")
-    with col3:
-        noon_at_anchor = st.checkbox("Departure Anchor")
-    with col4:
-        noon_at_drifting = st.checkbox("Departure Drifting")  
-    with col5:
-        noon_at_sts = st.checkbox("Departure STS")    
-    
-    # Display the relevant form based on the selected checkbox
-    if noon_at_portshift:
-        st.markdown("### Departure for Berth Shifting")
-        display_base_report_form()
-    if noon_at_port:
-        st.markdown("### Departure Port")
-        display_base_report_form()
-    if noon_at_anchor:
-        st.markdown("### Departure Anchor")
-        display_custom_report_form("Departure Anchor")
-    if noon_at_drifting:
-        st.markdown("### Departure Drifting")
-        display_base_report_form()
-    if noon_at_sts:
-        st.markdown("### Departure STS")
-        display_base_report_form()    
-        
+    display_base_report_form()
+
 def display_base_report_form():
     sections = [
         "Voyage Information",
-        "Special Events",
+        "Events",
         "Speed, Position and Navigation",
         "Weather and Sea Conditions",
         "Cargo and Stability",
@@ -72,36 +44,6 @@ def display_base_report_form():
 
     if st.button("Submit Report", type="primary", key=f"submit_report_{uuid.uuid4()}"):
         st.success("Report submitted successfully!")
-
-
-def display_custom_report_form(noon_report_type):
-    st.write(f"Displaying custom form for: {noon_report_type}")
-    
-    sections = [
-        "Voyage Information",
-        "Special Events",
-        "Speed, Position and Navigation",
-        "Weather and Sea Conditions",
-        "Cargo and Stability",
-        "Fuel Consumption",
-        "Machinery",
-        "Environmental Compliance",
-        "Miscellaneous Consumables",
-    ]
-
-    for section in sections:
-        with st.expander(f"#### {section}"):
-            function_name = f"display_custom_{section.lower().replace(' ', '_').replace(',', '')}"
-            if function_name in globals():
-                globals()[function_name](noon_report_type)
-            else:
-                st.write(f"Custom function {function_name} not found. Displaying default section.")
-                display_default_section(section)
-
-    if st.button("Submit Report", type="primary", key=f"submit_report_{uuid.uuid4()}"):
-        st.success("Report submitted successfully!")
-
-
 
 def display_voyage_information():
     col1, col2, col3 = st.columns(3)
@@ -160,6 +102,24 @@ def display_custom_voyage_information(noon_report_type):
         st.date_input("ETA Date Time (LT)", value=datetime.now(), key="eta")
         st.text_input("Speed Order (CP)", key="speed_order")
         st.text_input("Charter Type", key="charter_type")
+def display_events():
+    st.subheader("Events")
+    
+    # Events subsection
+    st.write("Event Type")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.checkbox("Departure Port")
+        st.checkbox("Departure Anchor")
+    with col2:
+        st.checkbox("Departure for Berth Shifting")
+        st.checkbox("Departure Drifting")
+    with col3:
+        st.checkbox("Departure after STS Operation")
+
+    # Special Events subsection
+    st.write("Special Events")
+    display_special_events()
 
 def display_special_events():
     st.subheader("Special Events")
