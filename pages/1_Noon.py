@@ -136,9 +136,9 @@ def display_custom_voyage_information(noon_report_type):
     display_voyage_information()  # Reuse the base function for custom report
 
 def display_events():
-    st.subheader("Events")
+    st.subheader("Events & Operations")
 
-    st.write("Events")
+    st.write("Operations")
     if st.session_state.report_type == "Noon at Sea":
         st.checkbox("Drifting")
         st.checkbox("Canal/River Passage")
@@ -147,7 +147,7 @@ def display_events():
         st.checkbox("Port")
         st.checkbox("Anchor")
 
-    st.write("Special Events")
+    st.write("Events")
     display_special_events()
 
 def display_special_events():
@@ -208,9 +208,9 @@ def display_special_events():
     st.session_state.special_events_df = edited_df
 
 def display_custom_events(noon_report_type):
-    st.subheader("Events")
+    st.subheader("Events & Operations")
 
-    st.write("Events")
+    st.write("Operations")
     if noon_report_type == "Noon at Sea":
         st.checkbox("Drifting")
         st.checkbox("Canal/River Passage")
@@ -219,7 +219,7 @@ def display_custom_events(noon_report_type):
         st.checkbox("Port")
         st.checkbox("Anchor")
 
-    st.write("Special Events")
+    st.write("Events")
     display_special_events()
 
 def display_speed_position_and_navigation():
