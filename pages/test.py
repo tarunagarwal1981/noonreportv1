@@ -587,7 +587,7 @@ def display_custom_fuel_consumption(noon_report_type):
     with col3:
         bunker_survey = st.checkbox("Bunker Survey")
 
-     if bunkering_happened:
+    if bunkering_happened:
         st.markdown("<h4 style='font-size: 18px;'>Bunkering Details</h4>", unsafe_allow_html=True)
         for i, entry in enumerate(st.session_state.bunkering_entries):
             st.markdown(f"<h5 style='font-size: 16px;'>Bunkering Entry {i+1}</h5>", unsafe_allow_html=True)
