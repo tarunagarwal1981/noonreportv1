@@ -136,9 +136,9 @@ def display_custom_voyage_information(noon_report_type):
     display_voyage_information()  # Reuse the base function for custom report
 
 def display_events():
-    st.subheader("Events")
+    st.subheader("Events & Operations")
 
-    st.write("Events")
+    st.write("Operations")
     if st.session_state.report_type == "Noon at Sea":
         st.checkbox("Drifting")
         st.checkbox("Canal/River Passage")
@@ -147,7 +147,7 @@ def display_events():
         st.checkbox("Port")
         st.checkbox("Anchor")
 
-    st.write("Special Events")
+    st.write("Events")
     display_special_events()
 
 def display_special_events():
@@ -208,9 +208,9 @@ def display_special_events():
     st.session_state.special_events_df = edited_df
 
 def display_custom_events(noon_report_type):
-    st.subheader("Events")
+    st.subheader("Events & Operations")
 
-    st.write("Events")
+    st.write("Operations")
     if noon_report_type == "Noon at Sea":
         st.checkbox("Drifting")
         st.checkbox("Canal/River Passage")
@@ -219,7 +219,7 @@ def display_custom_events(noon_report_type):
         st.checkbox("Port")
         st.checkbox("Anchor")
 
-    st.write("Special Events")
+    st.write("Events")
     display_special_events()
 
 def display_speed_position_and_navigation():
@@ -391,6 +391,10 @@ def display_fuel_consumption():
         st.session_state.viscosity = {tank: np.random.uniform(20, 100) for tank in st.session_state.tanks}
     if 'sulfur' not in st.session_state:
         st.session_state.sulfur = {tank: np.random.uniform(0.05, 0.49) for tank in st.session_state.tanks}
+    if 'density' not in st.session_state:
+        st.session_state.density = {tank: np.random.uniform(0.8, 1.0) for tank in st.session_state.tanks}
+    if 'bdn_number' not in st.session_state:
+        st.session_state.bdn_number = {tank: f"BDN-{np.random.randint(1000, 9999)}" for tank in st.session_state.tanks}
     if 'previous_rob' not in st.session_state:
         st.session_state.previous_rob = pd.Series({tank: np.random.uniform(100, 1000) for tank in st.session_state.tanks})
     if 'bunker_survey_correction' not in st.session_state:
@@ -412,14 +416,19 @@ def display_fuel_consumption():
         )
 
     def format_column_header(tank):
-        return f"{tank}\nVisc: {st.session_state.viscosity[tank]:.1f}\nSulfur: {st.session_state.sulfur[tank]:.2f}%"
+        return f"{tank}"
 
     def create_editable_dataframe():
-        index = ['Previous ROB'] + st.session_state.consumers
+        index = ['Tank Properties', 'Previous ROB'] + st.session_state.consumers
         if bunker_survey:
             index.append('Bunker Survey Correction')
         index.append('Current ROB')
         df = pd.DataFrame(index=index, columns=st.session_state.tanks)
+        
+        # Add Tank Properties row
+        tank_properties = [f"Visc: {st.session_state.viscosity[tank]:.1f}\nSulfur: {st.session_state.sulfur[tank]:.2f}%\nDensity: {st.session_state.density[tank]:.3f}\nBDN: {st.session_state.bdn_number[tank]}" for tank in st.session_state.tanks]
+        df.loc['Tank Properties'] = tank_properties
+        
         df.loc['Previous ROB'] = st.session_state.previous_rob
         df.loc[st.session_state.consumers] = st.session_state.consumption_data
         if bunker_survey:
@@ -446,11 +455,18 @@ def display_fuel_consumption():
             padding-left: 30px !important;
             font-style: italic;
         }
+        .dataframe td.tank-properties {
+            font-size: 11px;
+            white-space: pre-wrap;
+        }
     </style>
     """
     st.markdown(custom_css, unsafe_allow_html=True)
     df_html = df.to_html(classes='dataframe', escape=False)
     df_html = df_html.replace('<th>', '<th style="text-align: center;">')
+    df_html = df_html.replace('<td>Tank Properties</td>', '<td style="font-weight: bold;">Tank Properties</td>')
+    for tank in st.session_state.tanks:
+        df_html = df_html.replace(f'<td>{df.loc["Tank Properties", tank]}</td>', f'<td class="tank-properties">{df.loc["Tank Properties", tank]}</td>')
     italic_rows = ['Boiler 1', 'Boiler 2', 'DPP1', 'DPP2', 'DPP3']
     for consumer in st.session_state.consumers:
         if consumer.startswith('    '):
@@ -493,7 +509,9 @@ def display_fuel_consumption():
         st.write("Edit tank properties:")
         tank_props = pd.DataFrame({
             'Viscosity': st.session_state.viscosity,
-            'Sulfur (%)': st.session_state.sulfur
+            'Sulfur (%)': st.session_state.sulfur,
+            'Density': st.session_state.density,
+            'BDN Number': st.session_state.bdn_number
         })
         edited_props = st.data_editor(
             tank_props,
@@ -504,11 +522,19 @@ def display_fuel_consumption():
                 ),
                 'Sulfur (%)': st.column_config.NumberColumn(
                     'Sulfur (%)', min_value=0.05, max_value=0.49, step=0.01, format="%.2f"
+                ),
+                'Density': st.column_config.NumberColumn(
+                    'Density', min_value=0.8, max_value=1.0, step=0.001, format="%.3f"
+                ),
+                'BDN Number': st.column_config.TextColumn(
+                    'BDN Number'
                 )
             }
         )
         st.session_state.viscosity = edited_props['Viscosity'].to_dict()
         st.session_state.sulfur = edited_props['Sulfur (%)'].to_dict()
+        st.session_state.density = edited_props['Density'].to_dict()
+        st.session_state.bdn_number = edited_props['BDN Number'].to_dict()
 
     if st.checkbox("Edit Tank Properties"):
         edit_tank_properties()
@@ -534,6 +560,10 @@ def display_custom_fuel_consumption(noon_report_type):
         st.session_state.viscosity = {tank: np.random.uniform(20, 100) for tank in st.session_state.tanks}
     if 'sulfur' not in st.session_state:
         st.session_state.sulfur = {tank: np.random.uniform(0.05, 0.49) for tank in st.session_state.tanks}
+    if 'density' not in st.session_state:
+        st.session_state.density = {tank: np.random.uniform(0.8, 1.0) for tank in st.session_state.tanks}
+    if 'bdn_number' not in st.session_state:
+        st.session_state.bdn_number = {tank: f"BDN-{np.random.randint(1000, 9999)}" for tank in st.session_state.tanks}
     if 'previous_rob' not in st.session_state:
         st.session_state.previous_rob = pd.Series({tank: np.random.uniform(100, 1000) for tank in st.session_state.tanks})
     if 'bunkered_qty' not in st.session_state:
@@ -557,7 +587,7 @@ def display_custom_fuel_consumption(noon_report_type):
     with col3:
         bunker_survey = st.checkbox("Bunker Survey")
 
-    if bunkering_happened:
+     if bunkering_happened:
         st.markdown("<h4 style='font-size: 18px;'>Bunkering Details</h4>", unsafe_allow_html=True)
         for i, entry in enumerate(st.session_state.bunkering_entries):
             st.markdown(f"<h5 style='font-size: 16px;'>Bunkering Entry {i+1}</h5>", unsafe_allow_html=True)
@@ -599,10 +629,10 @@ def display_custom_fuel_consumption(noon_report_type):
         st.text_area("Bunker Survey Comments", key="bunker_survey_comments")
 
     def format_column_header(tank):
-        return f"{tank}\nVisc: {st.session_state.viscosity[tank]:.1f}\nSulfur: {st.session_state.sulfur[tank]:.2f}%"
+        return f"{tank}"
 
     def create_editable_dataframe():
-        index = ['Previous ROB'] + st.session_state.consumers
+        index = ['Tank Properties', 'Previous ROB'] + st.session_state.consumers
         if bunkering_happened:
             index += ['Bunkered Qty']
         if debunkering_happened:
@@ -611,6 +641,11 @@ def display_custom_fuel_consumption(noon_report_type):
             index += ['Bunker Survey Correction']
         index += ['Current ROB']
         df = pd.DataFrame(index=index, columns=st.session_state.tanks)
+        
+        # Add Tank Properties row
+        tank_properties = [f"Visc: {st.session_state.viscosity[tank]:.1f}\nSulfur: {st.session_state.sulfur[tank]:.2f}%\nDensity: {st.session_state.density[tank]:.3f}\nBDN: {st.session_state.bdn_number[tank]}" for tank in st.session_state.tanks]
+        df.loc['Tank Properties'] = tank_properties
+        
         df.loc['Previous ROB'] = st.session_state.previous_rob
         df.loc[st.session_state.consumers] = st.session_state.consumption_data
         if bunkering_happened:
@@ -647,11 +682,18 @@ def display_custom_fuel_consumption(noon_report_type):
             padding-left: 30px !important;
             font-style: italic;
         }
+        .dataframe td.tank-properties {
+            font-size: 11px;
+            white-space: pre-wrap;
+        }
     </style>
     """
     st.markdown(custom_css, unsafe_allow_html=True)
     df_html = df.to_html(classes='dataframe', escape=False)
     df_html = df_html.replace('<th>', '<th style="text-align: center;">')
+    df_html = df_html.replace('<td>Tank Properties</td>', '<td style="font-weight: bold;">Tank Properties</td>')
+    for tank in st.session_state.tanks:
+        df_html = df_html.replace(f'<td>{df.loc["Tank Properties", tank]}</td>', f'<td class="tank-properties">{df.loc["Tank Properties", tank]}</td>')
     italic_rows = ['Boiler 1', 'Boiler 2', 'DPP1', 'DPP2', 'DPP3']
     for consumer in st.session_state.consumers:
         if consumer.startswith('    '):
@@ -694,7 +736,9 @@ def display_custom_fuel_consumption(noon_report_type):
         st.write("Edit tank properties:")
         tank_props = pd.DataFrame({
             'Viscosity': st.session_state.viscosity,
-            'Sulfur (%)': st.session_state.sulfur
+            'Sulfur (%)': st.session_state.sulfur,
+            'Density': st.session_state.density,
+            'BDN Number': st.session_state.bdn_number
         })
         edited_props = st.data_editor(
             tank_props,
@@ -705,11 +749,19 @@ def display_custom_fuel_consumption(noon_report_type):
                 ),
                 'Sulfur (%)': st.column_config.NumberColumn(
                     'Sulfur (%)', min_value=0.05, max_value=0.49, step=0.01, format="%.2f"
+                ),
+                'Density': st.column_config.NumberColumn(
+                    'Density', min_value=0.8, max_value=1.0, step=0.001, format="%.3f"
+                ),
+                'BDN Number': st.column_config.TextColumn(
+                    'BDN Number'
                 )
             }
         )
         st.session_state.viscosity = edited_props['Viscosity'].to_dict()
         st.session_state.sulfur = edited_props['Sulfur (%)'].to_dict()
+        st.session_state.density = edited_props['Density'].to_dict()
+        st.session_state.bdn_number = edited_props['BDN Number'].to_dict()
 
     if st.checkbox("Edit Tank Properties"):
         edit_tank_properties()
