@@ -105,6 +105,9 @@ def display_voyage_manifest():
 def general_info():
     voyage = st.session_state.current_voyage
     edit_mode = st.session_state.edit_mode
+    
+    st.subheader("General Information")
+    
     col1, col2, col3, col4 = st.columns(4)
     with col1:
         voyage['general_info']['vessel_code'] = st.text_input("Vessel Code", value=voyage['general_info'].get('vessel_code', ''), key="vessel_code", disabled=not edit_mode or voyage['status'] == 'Closed')
@@ -121,6 +124,28 @@ def general_info():
         voyage['general_info']['revision_date'] = st.date_input("Revision Date", value=voyage['general_info'].get('revision_date', datetime.date.today()), key="revision_date", disabled=not edit_mode or voyage['status'] == 'Closed')
     
     voyage['general_info']['comments'] = st.text_area("Comments", value=voyage['general_info'].get('comments', ''), key="comments", disabled=not edit_mode or voyage['status'] == 'Closed')
+
+    st.subheader("Additional Information")
+    st.write("MCR/RPM Range")
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.write("Continuous Operable Range")
+        voyage['general_info']['continuous_operable_min'] = st.number_input("Min", value=float(voyage['general_info'].get('continuous_operable_min', 0)), format="%.2f", key="continuous_operable_min", disabled=not edit_mode or voyage['status'] == 'Closed')
+        voyage['general_info']['continuous_operable_max'] = st.number_input("Max", value=float(voyage['general_info'].get('continuous_operable_max', 0)), format="%.2f", key="continuous_operable_max", disabled=not edit_mode or voyage['status'] == 'Closed')
+
+        st.write("Prohibited Range")
+        voyage['general_info']['prohibited_range_min'] = st.number_input("Min", value=float(voyage['general_info'].get('prohibited_range_min', 0)), format="%.2f", key="prohibited_range_min", disabled=not edit_mode or voyage['status'] == 'Closed')
+        voyage['general_info']['prohibited_range_max'] = st.number_input("Max", value=float(voyage['general_info'].get('prohibited_range_max', 0)), format="%.2f", key="prohibited_range_max", disabled=not edit_mode or voyage['status'] == 'Closed')
+
+    with col2:
+        st.write("Prohibited Range-2")
+        voyage['general_info']['prohibited_range_2_min'] = st.number_input("Min", value=float(voyage['general_info'].get('prohibited_range_2_min', 0)), format="%.2f", key="prohibited_range_2_min", disabled=not edit_mode or voyage['status'] == 'Closed')
+        voyage['general_info']['prohibited_range_2_max'] = st.number_input("Max", value=float(voyage['general_info'].get('prohibited_range_2_max', 0)), format="%.2f", key="prohibited_range_2_max", disabled=not edit_mode or voyage['status'] == 'Closed')
+
+        st.write("Ultra slow steaming range")
+        voyage['general_info']['ultra_slow_steaming_min'] = st.number_input("Min", value=float(voyage['general_info'].get('ultra_slow_steaming_min', 0)), format="%.2f", key="ultra_slow_steaming_min", disabled=not edit_mode or voyage['status'] == 'Closed')
+        voyage['general_info']['ultra_slow_steaming_max'] = st.number_input("Max", value=float(voyage['general_info'].get('ultra_slow_steaming_max', 0)), format="%.2f", key="ultra_slow_steaming_max", disabled=not edit_mode or voyage['status'] == 'Closed')
 
 def voyage_itinerary():
     voyage = st.session_state.current_voyage
