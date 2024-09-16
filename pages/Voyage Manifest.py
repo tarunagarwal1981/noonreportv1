@@ -157,12 +157,11 @@ def voyage_itinerary():
                 voyage['itinerary']['Segment ID'] = range(len(voyage['itinerary']))
                 st.experimental_rerun()
 
-    # Display additional data for each segment
+    # Display segment details
     st.subheader("Segment Details")
-    selected_segment = st.selectbox("Select Segment for Details:", options=voyage['itinerary']['Segment ID'].tolist(), format_func=lambda x: f"Segment {x}")
-    
-    if selected_segment is not None:
-        segment_details(selected_segment)
+    for index, row in voyage['itinerary'].iterrows():
+        with st.expander(f"Detailed Information for Segment {index} - {row['Port Name']}"):
+            segment_details(index)
 
 def segment_details(segment_id):
     voyage = st.session_state.current_voyage
@@ -176,36 +175,20 @@ def segment_details(segment_id):
     
     segment_info = voyage['segment_details'][segment_id]
     
-    st.subheader(f"Detailed Information for Segment {segment_id}")
-    
-    tab1, tab2, tab3 = st.tabs(["Position", "Vessel Condition", "Cargo"])
-    
-    with tab1:
-        col1, col2 = st.columns(2)
-        with col1:
-            segment_info['latitude'] = st.text_input("Latitude", value=segment_info.get('latitude', ''), key=f"lat_{segment_id}", disabled=not edit_mode or voyage['status'] == 'Closed')
-        with col2:
-            segment_info['longitude'] = st.text_input("Longitude", value=segment_info.get('longitude', ''), key=f"long_{segment_id}", disabled=not edit_mode or voyage['status'] == 'Closed')
-    
-    with tab2:
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            segment_info['forward_draft'] = st.number_input("Forward Draft (mtr)", value=float(segment_info.get('forward_draft', 0)), format="%.2f", key=f"fwd_draft_{segment_id}", disabled=not edit_mode or voyage['status'] == 'Closed')
-        with col2:
-            segment_info['after_draft'] = st.number_input("After Draft (mtr)", value=float(segment_info.get('after_draft', 0)), format="%.2f", key=f"aft_draft_{segment_id}", disabled=not edit_mode or voyage['status'] == 'Closed')
-        with col3:
-            segment_info['gm'] = st.number_input("GM (mtr)", value=float(segment_info.get('gm', 0)), format="%.2f", key=f"gm_{segment_id}", disabled=not edit_mode or voyage['status'] == 'Closed')
-        with col4:
-            segment_info['displacement'] = st.number_input("Displacement (MT)", value=float(segment_info.get('displacement', 0)), format="%.2f", key=f"disp_{segment_id}", disabled=not edit_mode or voyage['status'] == 'Closed')
-    
-    with tab3:
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            segment_info['cargo_quantity'] = st.number_input("Cargo Quantity (mt)", value=float(segment_info.get('cargo_quantity', 0)), format="%.2f", key=f"cargo_{segment_id}", disabled=not edit_mode or voyage['status'] == 'Closed')
-        with col2:
-            segment_info['roll_period'] = st.number_input("Roll Period (sec)", value=float(segment_info.get('roll_period', 0)), format="%.2f", key=f"roll_{segment_id}", disabled=not edit_mode or voyage['status'] == 'Closed')
-        with col3:
-            segment_info['freeboard'] = st.number_input("Freeboard (mtr)", value=float(segment_info.get('freeboard', 0)), format="%.2f", key=f"freeboard_{segment_id}", disabled=not edit_mode or voyage['status'] == 'Closed')
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        segment_info['latitude'] = st.text_input("Latitude", value=segment_info.get('latitude', ''), key=f"lat_{segment_id}", disabled=not edit_mode or voyage['status'] == 'Closed')
+        segment_info['forward_draft'] = st.number_input("Forward Draft (mtr)", value=float(segment_info.get('forward_draft', 0)), format="%.2f", key=f"fwd_draft_{segment_id}", disabled=not edit_mode or voyage['status'] == 'Closed')
+        segment_info['gm'] = st.number_input("GM (mtr)", value=float(segment_info.get('gm', 0)), format="%.2f", key=f"gm_{segment_id}", disabled=not edit_mode or voyage['status'] == 'Closed')
+    with col2:
+        segment_info['longitude'] = st.text_input("Longitude", value=segment_info.get('longitude', ''), key=f"long_{segment_id}", disabled=not edit_mode or voyage['status'] == 'Closed')
+        segment_info['after_draft'] = st.number_input("After Draft (mtr)", value=float(segment_info.get('after_draft', 0)), format="%.2f", key=f"aft_draft_{segment_id}", disabled=not edit_mode or voyage['status'] == 'Closed')
+        segment_info['displacement'] = st.number_input("Displacement (MT)", value=float(segment_info.get('displacement', 0)), format="%.2f", key=f"disp_{segment_id}", disabled=not edit_mode or voyage['status'] == 'Closed')
+    with col3:
+        segment_info['cargo_quantity'] = st.number_input("Cargo Quantity (mt)", value=float(segment_info.get('cargo_quantity', 0)), format="%.2f", key=f"cargo_{segment_id}", disabled=not edit_mode or voyage['status'] == 'Closed')
+        segment_info['roll_period'] = st.number_input("Roll Period (sec)", value=float(segment_info.get('roll_period', 0)), format="%.2f", key=f"roll_{segment_id}", disabled=not edit_mode or voyage['status'] == 'Closed')
+        segment_info['freeboard'] = st.number_input("Freeboard (mtr)", value=float(segment_info.get('freeboard', 0)), format="%.2f", key=f"freeboard_{segment_id}", disabled=not edit_mode or voyage['status'] == 'Closed')
+        
 def charterer_info():
     voyage = st.session_state.current_voyage
     edit_mode = st.session_state.edit_mode
