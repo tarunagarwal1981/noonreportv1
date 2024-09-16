@@ -125,27 +125,22 @@ def general_info():
     
     voyage['general_info']['comments'] = st.text_area("Comments", value=voyage['general_info'].get('comments', ''), key="comments", disabled=not edit_mode or voyage['status'] == 'Closed')
 
-    st.subheader("Additional Information")
-    st.write("MCR/RPM Range")
+    show_additional_info = st.checkbox("Show Additional Information", value=voyage['general_info'].get('show_additional_info', False), key="show_additional_info")
+    voyage['general_info']['show_additional_info'] = show_additional_info
 
-    col1, col2 = st.columns(2)
-    with col1:
-        st.write("Continuous Operable Range")
-        voyage['general_info']['continuous_operable_min'] = st.number_input("Min", value=float(voyage['general_info'].get('continuous_operable_min', 0)), format="%.2f", key="continuous_operable_min", disabled=not edit_mode or voyage['status'] == 'Closed')
-        voyage['general_info']['continuous_operable_max'] = st.number_input("Max", value=float(voyage['general_info'].get('continuous_operable_max', 0)), format="%.2f", key="continuous_operable_max", disabled=not edit_mode or voyage['status'] == 'Closed')
+    if show_additional_info:
+        st.subheader("Additional Information")
+        st.write("MCR/RPM Range")
 
-        st.write("Prohibited Range")
-        voyage['general_info']['prohibited_range_min'] = st.number_input("Min", value=float(voyage['general_info'].get('prohibited_range_min', 0)), format="%.2f", key="prohibited_range_min", disabled=not edit_mode or voyage['status'] == 'Closed')
-        voyage['general_info']['prohibited_range_max'] = st.number_input("Max", value=float(voyage['general_info'].get('prohibited_range_max', 0)), format="%.2f", key="prohibited_range_max", disabled=not edit_mode or voyage['status'] == 'Closed')
-
-    with col2:
-        st.write("Prohibited Range-2")
-        voyage['general_info']['prohibited_range_2_min'] = st.number_input("Min", value=float(voyage['general_info'].get('prohibited_range_2_min', 0)), format="%.2f", key="prohibited_range_2_min", disabled=not edit_mode or voyage['status'] == 'Closed')
-        voyage['general_info']['prohibited_range_2_max'] = st.number_input("Max", value=float(voyage['general_info'].get('prohibited_range_2_max', 0)), format="%.2f", key="prohibited_range_2_max", disabled=not edit_mode or voyage['status'] == 'Closed')
-
-        st.write("Ultra slow steaming range")
-        voyage['general_info']['ultra_slow_steaming_min'] = st.number_input("Min", value=float(voyage['general_info'].get('ultra_slow_steaming_min', 0)), format="%.2f", key="ultra_slow_steaming_min", disabled=not edit_mode or voyage['status'] == 'Closed')
-        voyage['general_info']['ultra_slow_steaming_max'] = st.number_input("Max", value=float(voyage['general_info'].get('ultra_slow_steaming_max', 0)), format="%.2f", key="ultra_slow_steaming_max", disabled=not edit_mode or voyage['status'] == 'Closed')
+        for range_type in ["Continuous Operable Range", "Prohibited Range", "Prohibited Range-2", "Ultra slow steaming range"]:
+            st.write(range_type)
+            col1, col2 = st.columns(2)
+            with col1:
+                voyage['general_info'][f'{range_type.lower().replace(" ", "_")}_kw_min'] = st.number_input(f"Min kW", value=float(voyage['general_info'].get(f'{range_type.lower().replace(" ", "_")}_kw_min', 0)), format="%.2f", key=f"{range_type.lower().replace(' ', '_')}_kw_min", disabled=not edit_mode or voyage['status'] == 'Closed')
+                voyage['general_info'][f'{range_type.lower().replace(" ", "_")}_kw_max'] = st.number_input(f"Max kW", value=float(voyage['general_info'].get(f'{range_type.lower().replace(" ", "_")}_kw_max', 0)), format="%.2f", key=f"{range_type.lower().replace(' ', '_')}_kw_max", disabled=not edit_mode or voyage['status'] == 'Closed')
+            with col2:
+                voyage['general_info'][f'{range_type.lower().replace(" ", "_")}_rpm_min'] = st.number_input(f"Min RPM", value=float(voyage['general_info'].get(f'{range_type.lower().replace(" ", "_")}_rpm_min', 0)), format="%.2f", key=f"{range_type.lower().replace(' ', '_')}_rpm_min", disabled=not edit_mode or voyage['status'] == 'Closed')
+                voyage['general_info'][f'{range_type.lower().replace(" ", "_")}_rpm_max'] = st.number_input(f"Max RPM", value=float(voyage['general_info'].get(f'{range_type.lower().replace(" ", "_")}_rpm_max', 0)), format="%.2f", key=f"{range_type.lower().replace(' ', '_')}_rpm_max", disabled=not edit_mode or voyage['status'] == 'Closed')
 
 def voyage_itinerary():
     voyage = st.session_state.current_voyage
@@ -183,13 +178,17 @@ def voyage_itinerary():
                 st.experimental_rerun()
 
     # Display segment details
-    st.subheader("Segment Details")
-    segment_options = [f"Segment {index} - {row['Port Name']}" for index, row in voyage['itinerary'].iterrows()]
-    selected_segment = st.selectbox("Select a segment to view details:", segment_options)
-    
-    if selected_segment:
-        segment_index = int(selected_segment.split(" - ")[0].split(" ")[1])
-        segment_details(segment_index)
+    show_segment_details = st.checkbox("Show Segment Details", value=voyage.get('show_segment_details', False), key="show_segment_details")
+    voyage['show_segment_details'] = show_segment_details
+
+    if show_segment_details:
+        st.subheader("Segment Details")
+        segment_options = [f"Segment {index} - {row['Port Name']}" for index, row in voyage['itinerary'].iterrows()]
+        selected_segment = st.selectbox("Select a segment to view details:", segment_options)
+        
+        if selected_segment:
+            segment_index = int(selected_segment.split(" - ")[0].split(" ")[1])
+            segment_details(segment_index)
 
 def segment_details(segment_id):
     voyage = st.session_state.current_voyage
