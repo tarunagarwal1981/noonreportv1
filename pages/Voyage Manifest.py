@@ -125,6 +125,7 @@ def general_info():
 def voyage_itinerary():
     voyage = st.session_state.current_voyage
     edit_mode = st.session_state.edit_mode
+
     if len(voyage['itinerary']) == 0:
         voyage['itinerary'] = pd.DataFrame([
             {"Segment ID": 0, "Port Code": "", "Port Name": "", "Transit Port": False, "ETA": "", "ETB": "", "ETD": "", "Actual Arrival(EOSP)": "", "Arrival Date(AB)": "", "Departure Date(DB)": "", "Actual Departure(COSP)": ""},
@@ -132,34 +133,36 @@ def voyage_itinerary():
         ])
 
     st.subheader("Voyage Itinerary")
-    
-    for index, row in voyage['itinerary'].iterrows():
-        col1, col2, col3, col4, col5 = st.columns([2, 2, 2, 2, 1])
+
+    # Display the itinerary table
+    edited_df = st.data_editor(
+        voyage['itinerary'],
+        disabled=not edit_mode or voyage['status'] == 'Closed',
+        num_rows="dynamic",
+        key="itinerary_editor"
+    )
+
+    # Update the voyage itinerary with edited data
+    voyage['itinerary'] = edited_df
+
+    # Add intermediate port functionality
+    if edit_mode and voyage['status'] != 'Closed':
+        col1, col2 = st.columns([1, 3])
         with col1:
-            voyage['itinerary'].at[index, 'Port Code'] = st.text_input(f"Port Code {index}", value=row['Port Code'], key=f"port_code_{index}", disabled=not edit_mode or voyage['status'] == 'Closed')
-            voyage['itinerary'].at[index, 'Port Name'] = st.text_input(f"Port Name {index}", value=row['Port Name'], key=f"port_name_{index}", disabled=not edit_mode or voyage['status'] == 'Closed')
+            insert_index = st.number_input("Insert after row:", min_value=0, max_value=len(voyage['itinerary'])-1, value=0, step=1)
         with col2:
-            voyage['itinerary'].at[index, 'Transit Port'] = st.checkbox(f"Transit Port {index}", value=row['Transit Port'], key=f"transit_port_{index}", disabled=not edit_mode or voyage['status'] == 'Closed')
-            voyage['itinerary'].at[index, 'ETA'] = st.text_input(f"ETA {index}", value=row['ETA'], key=f"eta_{index}", disabled=not edit_mode or voyage['status'] == 'Closed')
-        with col3:
-            voyage['itinerary'].at[index, 'ETB'] = st.text_input(f"ETB {index}", value=row['ETB'], key=f"etb_{index}", disabled=not edit_mode or voyage['status'] == 'Closed')
-            voyage['itinerary'].at[index, 'ETD'] = st.text_input(f"ETD {index}", value=row['ETD'], key=f"etd_{index}", disabled=not edit_mode or voyage['status'] == 'Closed')
-        with col4:
-            voyage['itinerary'].at[index, 'Actual Arrival(EOSP)'] = st.text_input(f"Actual Arrival(EOSP) {index}", value=row['Actual Arrival(EOSP)'], key=f"eosp_{index}", disabled=not edit_mode or voyage['status'] == 'Closed')
-            voyage['itinerary'].at[index, 'Arrival Date(AB)'] = st.text_input(f"Arrival Date(AB) {index}", value=row['Arrival Date(AB)'], key=f"ab_{index}", disabled=not edit_mode or voyage['status'] == 'Closed')
-        with col5:
-            if st.button(f"Details {index}", key=f"details_{index}"):
-                st.session_state.active_segment = index
-                segment_details(index)
-        
-        if edit_mode and voyage['status'] != 'Closed':
-            if st.button(f"Add Intermediate Port {index}", key=f"add_port_{index}"):
-                new_row = pd.DataFrame([{"Segment ID": index + 0.5}])
-                voyage['itinerary'] = pd.concat([voyage['itinerary'].iloc[:index+1], new_row, voyage['itinerary'].iloc[index+1:]], ignore_index=True)
+            if st.button("Add Intermediate Port"):
+                new_row = pd.DataFrame([{"Segment ID": insert_index + 0.5}])
+                voyage['itinerary'] = pd.concat([voyage['itinerary'].iloc[:insert_index+1], new_row, voyage['itinerary'].iloc[insert_index+1:]], ignore_index=True)
                 voyage['itinerary']['Segment ID'] = range(len(voyage['itinerary']))
                 st.experimental_rerun()
-        
-        st.markdown("---")
+
+    # Display additional data for each segment
+    st.subheader("Segment Details")
+    selected_segment = st.selectbox("Select Segment for Details:", options=voyage['itinerary']['Segment ID'].tolist(), format_func=lambda x: f"Segment {x}")
+    
+    if selected_segment is not None:
+        segment_details(selected_segment)
 
 def segment_details(segment_id):
     voyage = st.session_state.current_voyage
@@ -203,8 +206,6 @@ def segment_details(segment_id):
             segment_info['roll_period'] = st.number_input("Roll Period (sec)", value=float(segment_info.get('roll_period', 0)), format="%.2f", key=f"roll_{segment_id}", disabled=not edit_mode or voyage['status'] == 'Closed')
         with col3:
             segment_info['freeboard'] = st.number_input("Freeboard (mtr)", value=float(segment_info.get('freeboard', 0)), format="%.2f", key=f"freeboard_{segment_id}", disabled=not edit_mode or voyage['status'] == 'Closed')
-
-
 def charterer_info():
     voyage = st.session_state.current_voyage
     edit_mode = st.session_state.edit_mode
