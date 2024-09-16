@@ -90,6 +90,9 @@ def display_voyage_manifest():
     with st.expander("Voyage Itinerary", expanded=False):
         voyage_itinerary()
 
+    with st.expander("Additional Data", expanded=False):
+        additional_data()
+    
     with st.expander("Charterer Info", expanded=False):
         charterer_info()
 
@@ -189,6 +192,40 @@ def voyage_itinerary():
         if selected_segment:
             segment_index = int(selected_segment.split(" - ")[0].split(" ")[1])
             segment_details(segment_index)
+
+def additional_data():
+    voyage = st.session_state.current_voyage
+    edit_mode = st.session_state.edit_mode
+
+    if 'additional_data' not in voyage:
+        voyage['additional_data'] = {}
+
+    st.subheader("Additional Data")
+
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        voyage['additional_data']['optimization_objective'] = st.text_input("Optimization Objective", value=voyage['additional_data'].get('optimization_objective', ''), key="optimization_objective", disabled=not edit_mode or voyage['status'] == 'Closed')
+        voyage['additional_data']['instructed_speed'] = st.number_input("Instructed speed", value=float(voyage['additional_data'].get('instructed_speed', 0)), format="%.2f", key="instructed_speed", disabled=not edit_mode or voyage['status'] == 'Closed')
+        voyage['additional_data']['limit_foc_rough_wx'] = st.number_input("Limit FOC in rough WX", value=float(voyage['additional_data'].get('limit_foc_rough_wx', 0)), format="%.2f", key="limit_foc_rough_wx", disabled=not edit_mode or voyage['status'] == 'Closed')
+        voyage['additional_data']['min_foc'] = st.number_input("Min FOC", value=float(voyage['additional_data'].get('min_foc', 0)), format="%.2f", key="min_foc", disabled=not edit_mode or voyage['status'] == 'Closed')
+
+    with col2:
+        voyage['additional_data']['min_voyage_cost'] = st.number_input("Min Voyage Cost (Hire + Bunker)", value=float(voyage['additional_data'].get('min_voyage_cost', 0)), format="%.2f", key="min_voyage_cost", disabled=not edit_mode or voyage['status'] == 'Closed')
+        voyage['additional_data']['required_time_to_arrive'] = st.text_input("Required Time to Arrive", value=voyage['additional_data'].get('required_time_to_arrive', ''), key="required_time_to_arrive", disabled=not edit_mode or voyage['status'] == 'Closed')
+        voyage['additional_data']['variable_speed'] = st.text_input("Variable speed", value=voyage['additional_data'].get('variable_speed', ''), key="variable_speed", disabled=not edit_mode or voyage['status'] == 'Closed')
+        voyage['additional_data']['control_mode'] = st.text_input("Control Mode", value=voyage['additional_data'].get('control_mode', ''), key="control_mode", disabled=not edit_mode or voyage['status'] == 'Closed')
+
+    with col3:
+        voyage['additional_data']['vertex_limit'] = st.number_input("Vertex Limit", value=float(voyage['additional_data'].get('vertex_limit', 0)), format="%.2f", key="vertex_limit", disabled=not edit_mode or voyage['status'] == 'Closed')
+        voyage['additional_data']['estimated_robs_departure'] = st.number_input("Estimated ROBs on Departure Berth", value=float(voyage['additional_data'].get('estimated_robs_departure', 0)), format="%.2f", key="estimated_robs_departure", disabled=not edit_mode or voyage['status'] == 'Closed')
+        voyage['additional_data']['fuel_used'] = st.number_input("Fuel Used", value=float(voyage['additional_data'].get('fuel_used', 0)), format="%.2f", key="fuel_used", disabled=not edit_mode or voyage['status'] == 'Closed')
+        voyage['additional_data']['bio_fuel'] = st.number_input("Bio Fuel", value=float(voyage['additional_data'].get('bio_fuel', 0)), format="%.2f", key="bio_fuel", disabled=not edit_mode or voyage['status'] == 'Closed')
+
+    with col4:
+        voyage['additional_data']['zone_eca'] = st.text_input("Zone ECA", value=voyage['additional_data'].get('zone_eca', ''), key="zone_eca", disabled=not edit_mode or voyage['status'] == 'Closed')
+        voyage['additional_data']['usd_cost'] = st.number_input("USD Cost", value=float(voyage['additional_data'].get('usd_cost', 0)), format="%.2f", key="usd_cost", disabled=not edit_mode or voyage['status'] == 'Closed')
+
 
 def segment_details(segment_id):
     voyage = st.session_state.current_voyage
