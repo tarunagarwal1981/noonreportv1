@@ -134,7 +134,7 @@ def voyage_itinerary():
     voyage['itinerary'] = st.data_editor(voyage['itinerary'], disabled=not edit_mode or voyage['status'] == 'Closed', num_rows="dynamic", key="itinerary_editor")
     
     if edit_mode and voyage['status'] != 'Closed':
-        if st.button("Add Intermediate Port"):
+        if st.button("Add Segment info"):
             new_row = pd.DataFrame([{"Segment ID": len(voyage['itinerary']) - 1}])
             voyage['itinerary'] = pd.concat([voyage['itinerary'].iloc[:-1], new_row, voyage['itinerary'].iloc[-1:]], ignore_index=True)
             voyage['itinerary']['Segment ID'] = range(len(voyage['itinerary']))
