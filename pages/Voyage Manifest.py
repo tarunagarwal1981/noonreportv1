@@ -159,9 +159,12 @@ def voyage_itinerary():
 
     # Display segment details
     st.subheader("Segment Details")
-    for index, row in voyage['itinerary'].iterrows():
-        with st.expander(f"Detailed Information for Segment {index} - {row['Port Name']}"):
-            segment_details(index)
+    segment_options = [f"Segment {index} - {row['Port Name']}" for index, row in voyage['itinerary'].iterrows()]
+    selected_segment = st.selectbox("Select a segment to view details:", segment_options)
+    
+    if selected_segment:
+        segment_index = int(selected_segment.split(" - ")[0].split(" ")[1])
+        segment_details(segment_index)
 
 def segment_details(segment_id):
     voyage = st.session_state.current_voyage
@@ -174,6 +177,8 @@ def segment_details(segment_id):
         voyage['segment_details'][segment_id] = {}
     
     segment_info = voyage['segment_details'][segment_id]
+    
+    st.write(f"Detailed Information for Segment {segment_id}")
     
     col1, col2, col3 = st.columns(3)
     with col1:
