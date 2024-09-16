@@ -134,7 +134,7 @@ def voyage_itinerary():
     voyage['itinerary'] = st.data_editor(voyage['itinerary'], disabled=not edit_mode or voyage['status'] == 'Closed', num_rows="dynamic", key="itinerary_editor")
     
     if edit_mode and voyage['status'] != 'Closed':
-        if st.button("Add Segment info"):
+        if st.button("Add Intermediate Port"):
             new_row = pd.DataFrame([{"Segment ID": len(voyage['itinerary']) - 1}])
             voyage['itinerary'] = pd.concat([voyage['itinerary'].iloc[:-1], new_row, voyage['itinerary'].iloc[-1:]], ignore_index=True)
             voyage['itinerary']['Segment ID'] = range(len(voyage['itinerary']))
@@ -143,8 +143,11 @@ def voyage_itinerary():
         if port_options:
             selected_port = st.selectbox("Select Port for Detailed Information", options=port_options, key="port_selector")
             if selected_port:
-                segment_id = int(selected_port.split("(Segment ")[-1].strip(")"))
-                port_detailed_info(segment_id)
+                try:
+                    segment_id = int(selected_port.split("(Segment ")[-1].split(")")[0])
+                    port_detailed_info(segment_id)
+                except (ValueError, IndexError):
+                    st.error("Unable to determine segment ID. Please ensure the port name is correctly formatted.")
         else:
             st.info("Add ports to the itinerary to enter detailed information.")
 
