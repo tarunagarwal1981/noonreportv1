@@ -86,7 +86,7 @@ def main():
     )
 
     # Update session state with edited values
-    st.session_state.consumption_data = edited_df.loc[st.session_state.consumers]
+    st.session_state.consumption_data = edited_df.loc[st.session_state.consumers, st.session_state.fuel_types + ['Other Fuel Type']]
     st.session_state.previous_rob = edited_df.loc['Previous ROB']
     if bunker_survey:
         st.session_state.bunker_survey_correction = edited_df.loc['Bunker Survey Correction']
