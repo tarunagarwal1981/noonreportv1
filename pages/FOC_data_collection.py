@@ -3,7 +3,9 @@ import pandas as pd
 import numpy as np
 import uuid
 
-def display_fuel_consumption():
+st.set_page_config(layout="wide", page_title="Fuel Consumption Report")
+
+def main():
     if 'consumers' not in st.session_state:
         st.session_state.consumers = [
             'Main Engine', 'Aux Engine1', 'Aux Engine2', 'Aux Engine3',
@@ -33,7 +35,7 @@ def display_fuel_consumption():
     if 'other_fuel_type' not in st.session_state:
         st.session_state.other_fuel_type = ""
 
-    st.title('Fuel Consumption Tracker')
+    st.title('Fuel Consumption Report')
 
     # Add bunker survey checkbox
     bunker_survey = st.checkbox("Bunker Survey")
@@ -71,64 +73,58 @@ def display_fuel_consumption():
 
     df = create_editable_dataframe()
 
-    st.write("Fuel Consumption Data:")
-    custom_css = """
-    <style>
-        .dataframe td:first-child {
-            font-weight: bold;
-        }
-        .dataframe td.italic-row {
-            font-style: italic;
-        }
-        .dataframe td.boiler-subsection {
-            padding-left: 30px !important;
-            font-style: italic;
-        }
-    </style>
-    """
-    st.markdown(custom_css, unsafe_allow_html=True)
-    df_html = df.to_html(classes='dataframe', escape=False)
-    df_html = df_html.replace('<th>', '<th style="text-align: center;">')
-    italic_rows = ['Boiler 1', 'Boiler 2', 'DPP1', 'DPP2', 'DPP3']
-    for consumer in st.session_state.consumers:
-        if consumer.startswith('    '):
-            df_html = df_html.replace(f'<td>{consumer}</td>', f'<td class="boiler-subsection">{consumer.strip()}</td>')
-        elif consumer in italic_rows:
-            df_html = df_html.replace(f'<td>{consumer}</td>', f'<td class="italic-row">{consumer}</td>')
-    st.markdown(df_html, unsafe_allow_html=True)
+    st.subheader("Fuel Consumption Data")
+    edited_df = st.data_editor(
+        df,
+        use_container_width=True,
+        num_rows="dynamic",
+        key=f"fuel_consumption_editor_{uuid.uuid4()}"
+    )
+
+    # Update session state with edited values
+    st.session_state.consumption_data = edited_df.loc[st.session_state.consumers]
+    st.session_state.previous_rob = edited_df.loc['Previous ROB']
+    if bunker_survey:
+        st.session_state.bunker_survey_correction = edited_df.loc['Bunker Survey Correction']
 
     def display_additional_table():
-        st.write("Additional Consumption Data:")
+        st.subheader("Additional Consumption Data")
         additional_data = pd.DataFrame({
             'Work': [0, 0, 0, 0],
             'SFOC': [0, 0, 0, ''],
             'Fuel Type': ['', '', '', '']
         }, index=['Reefer container', 'Cargo cooling', 'Heating/Discharge pump', 'Shore-Side Electricity'])
-        custom_css = """
-        <style>
-            .additional-table th {
-                text-align: center !important;
-            }
-            .additional-table td {
-                text-align: center !important;
-            }
-            .grey-out {
-                background-color: #f0f0f0 !important;
-                color: #888 !important;
-            }
-        </style>
-        """
-        st.markdown(custom_css, unsafe_allow_html=True)
-        table_html = additional_data.to_html(classes='additional-table', escape=False)
-        table_html = table_html.replace('<td></td>', '<td>-</td>')
-        table_html = table_html.replace('<td>Shore-Side Electricity</td><td>0</td><td></td><td></td>', 
-                                        '<td>Shore-Side Electricity</td><td>0</td><td class="grey-out">-</td><td class="grey-out">-</td>')
-        st.markdown(table_html, unsafe_allow_html=True)
+        
+        edited_additional_data = st.data_editor(
+            additional_data,
+            use_container_width=True,
+            num_rows="dynamic",
+            column_config={
+                "Work": st.column_config.NumberColumn(
+                    "Work",
+                    help="Work done in kWh",
+                    min_value=0,
+                    format="%d kWh"
+                ),
+                "SFOC": st.column_config.NumberColumn(
+                    "SFOC",
+                    help="Specific Fuel Oil Consumption",
+                    min_value=0,
+                    format="%.2f"
+                ),
+                "Fuel Type": st.column_config.SelectboxColumn(
+                    "Fuel Type",
+                    help="Select the fuel type",
+                    options=st.session_state.fuel_types
+                )
+            },
+            key=f"additional_consumption_editor_{uuid.uuid4()}"
+        )
 
     display_additional_table()
 
     def edit_fuel_properties():
-        st.write("Edit fuel properties:")
+        st.subheader("Edit Fuel Properties")
         fuel_props = pd.DataFrame({
             'Viscosity': st.session_state.viscosity,
             'Sulfur (%)': st.session_state.sulfur
@@ -143,7 +139,8 @@ def display_fuel_consumption():
                 'Sulfur (%)': st.column_config.NumberColumn(
                     'Sulfur (%)', min_value=0.05, max_value=0.49, step=0.01, format="%.2f"
                 )
-            }
+            },
+            key=f"fuel_properties_editor_{uuid.uuid4()}"
         )
         st.session_state.viscosity = edited_props['Viscosity'].to_dict()
         st.session_state.sulfur = edited_props['Sulfur (%)'].to_dict()
@@ -151,5 +148,8 @@ def display_fuel_consumption():
     if st.checkbox("Edit Fuel Properties"):
         edit_fuel_properties()
 
-# You can call this function in your main app
-# display_fuel_consumption()
+    if st.button("Submit Report", type="primary"):
+        st.success("Fuel consumption report submitted successfully!")
+
+if __name__ == "__main__":
+    main()
