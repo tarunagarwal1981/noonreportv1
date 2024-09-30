@@ -19,17 +19,17 @@ def main():
             'DPP1', 'DPP2', 'DPP3'
         ]
     if 'fuel_types' not in st.session_state:
-        st.session_state.fuel_types = ['HFO', 'LFO', 'MGO/MDO', 'LPG', 'LNG', 'Methanol', 'Ethanol', 'Others']
+        st.session_state.fuel_types = ['HFO', 'LFO', 'MGO/MDO', 'LPG', 'LNG', 'Methanol', 'Ethanol', 'Others', 'Other Fuel Type']
     if 'consumption_data' not in st.session_state:
-        st.session_state.consumption_data = pd.DataFrame(0, index=st.session_state.consumers, columns=st.session_state.fuel_types + ['Other Fuel Type'])
+        st.session_state.consumption_data = pd.DataFrame(0, index=st.session_state.consumers, columns=st.session_state.fuel_types)
     if 'viscosity' not in st.session_state:
-        st.session_state.viscosity = {fuel: np.random.uniform(20, 100) for fuel in st.session_state.fuel_types}
+        st.session_state.viscosity = {fuel: np.random.uniform(20, 100) for fuel in st.session_state.fuel_types if fuel != 'Other Fuel Type'}
     if 'sulfur' not in st.session_state:
-        st.session_state.sulfur = {fuel: np.random.uniform(0.05, 0.49) for fuel in st.session_state.fuel_types}
+        st.session_state.sulfur = {fuel: np.random.uniform(0.05, 0.49) for fuel in st.session_state.fuel_types if fuel != 'Other Fuel Type'}
     if 'previous_rob' not in st.session_state:
-        st.session_state.previous_rob = pd.Series({fuel: np.random.uniform(100, 1000) for fuel in st.session_state.fuel_types + ['Other Fuel Type']})
+        st.session_state.previous_rob = pd.Series({fuel: np.random.uniform(100, 1000) for fuel in st.session_state.fuel_types})
     if 'bunker_survey_correction' not in st.session_state:
-        st.session_state.bunker_survey_correction = pd.Series({fuel: 0 for fuel in st.session_state.fuel_types + ['Other Fuel Type']})
+        st.session_state.bunker_survey_correction = pd.Series({fuel: 0 for fuel in st.session_state.fuel_types})
     if 'bunker_survey_comments' not in st.session_state:
         st.session_state.bunker_survey_comments = ""
 
@@ -49,14 +49,14 @@ def main():
     def format_column_header(fuel):
         if fuel == 'Other Fuel Type':
             return fuel
-        return f"{fuel}\nVisc: {st.session_state.viscosity[fuel]:.1f}\nSulfur: {st.session_state.sulfur[fuel]:.2f}%"
+        return f"{fuel}\nVisc: {st.session_state.viscosity.get(fuel, 0):.1f}\nSulfur: {st.session_state.sulfur.get(fuel, 0):.2f}%"
 
     def create_editable_dataframe():
         index = ['Previous ROB'] + st.session_state.consumers
         if bunker_survey:
             index.append('Bunker Survey Correction')
         index.append('Current ROB')
-        df = pd.DataFrame(index=index, columns=st.session_state.fuel_types + ['Other Fuel Type'])
+        df = pd.DataFrame(0, index=index, columns=st.session_state.fuel_types)
         df.loc['Previous ROB'] = st.session_state.previous_rob
         df.loc[st.session_state.consumers] = st.session_state.consumption_data
         if bunker_survey:
@@ -65,7 +65,7 @@ def main():
         df.loc['Current ROB'] = df.loc['Previous ROB'] - total_consumption
         if bunker_survey:
             df.loc['Current ROB'] += df.loc['Bunker Survey Correction']
-        df.columns = [format_column_header(fuel) for fuel in st.session_state.fuel_types + ['Other Fuel Type']]
+        df.columns = [format_column_header(fuel) for fuel in st.session_state.fuel_types]
         return df
 
     df = create_editable_dataframe()
@@ -86,7 +86,7 @@ def main():
     )
 
     # Update session state with edited values
-    st.session_state.consumption_data = edited_df.loc[st.session_state.consumers, st.session_state.fuel_types + ['Other Fuel Type']]
+    st.session_state.consumption_data = edited_df.loc[st.session_state.consumers]
     st.session_state.previous_rob = edited_df.loc['Previous ROB']
     if bunker_survey:
         st.session_state.bunker_survey_correction = edited_df.loc['Bunker Survey Correction']
@@ -119,7 +119,7 @@ def main():
                 "Fuel Type": st.column_config.SelectboxColumn(
                     "Fuel Type",
                     help="Select the fuel type",
-                    options=st.session_state.fuel_types + ['Other']
+                    options=st.session_state.fuel_types
                 )
             },
             key=f"additional_consumption_editor_{uuid.uuid4()}"
