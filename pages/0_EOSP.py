@@ -452,9 +452,9 @@ def display_fuel_consumption():
         )
 
     def format_column_header(tank):
-    viscosity = st.session_state.viscosity.get(tank, 0)
-    sulfur = st.session_state.sulfur.get(tank, 0)
-    return f"{tank}\nVisc: {viscosity:.1f}\nSulfur: {sulfur:.2f}%"
+        viscosity = st.session_state.viscosity.get(tank, 0)
+        sulfur = st.session_state.sulfur.get(tank, 0)
+        return f"{tank}\nVisc: {viscosity:.1f}\nSulfur: {sulfur:.2f}%"
 
     def create_editable_dataframe():
         index = ['Previous ROB'] + st.session_state.consumers
