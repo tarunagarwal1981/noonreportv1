@@ -387,6 +387,7 @@ def display_fuel_type_summary(bunker_survey, bunkering_happened, debunkering_hap
     st.dataframe(df_summary)
 
 # Main app functionality
+# Main app functionality
 def main():
     initialize_session_state()
 
@@ -433,5 +434,8 @@ def main():
     # Submit button
     if st.button("Submit Report", type="primary"):
         st.success("Report submitted successfully!")
- if __name__ == "__main__":
+
+# Add the main function call here
+if __name__ == "__main__":
+    main()
 
