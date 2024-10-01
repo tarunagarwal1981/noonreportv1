@@ -50,6 +50,55 @@ def initialize_session_state():
     if 'bunker_survey_comments' not in st.session_state:
         st.session_state.bunker_survey_comments = ""
 
+# Fuel based report functionality
+def display_fuel_consumption_report(bunker_survey):
+    def create_editable_dataframe():
+        index = ['Previous ROB'] + st.session_state.consumers
+        if bunker_survey:
+            index.append('Bunker Survey Correction')
+        index.append('Current ROB')
+        
+        # Create DataFrame with fuel types as columns
+        df = pd.DataFrame(0, index=index, columns=st.session_state.fuel_types)
+        
+        # Fill 'Previous ROB' row
+        df.loc['Previous ROB'] = st.session_state.previous_rob_fuel
+        
+        # Fill consumption data for consumers
+        df.loc[st.session_state.consumers] = st.session_state.consumption_data_fuel
+        
+        # Fill bunker survey correction if needed
+        if bunker_survey:
+            df.loc['Bunker Survey Correction'] = st.session_state.bunker_survey_correction_fuel
+        
+        # Ensure total consumption calculation is numeric
+        total_consumption = pd.to_numeric(df.loc[st.session_state.consumers].sum(), errors='coerce').fillna(0)
+        
+        # Calculate Current ROB
+        df.loc['Current ROB'] = pd.to_numeric(df.loc['Previous ROB'], errors='coerce').fillna(0) - total_consumption
+        
+        # Add bunker correction to Current ROB if present
+        if bunker_survey:
+            df.loc['Current ROB'] += pd.to_numeric(df.loc['Bunker Survey Correction'], errors='coerce').fillna(0)
+        
+        return df
+
+    df = create_editable_dataframe()
+    
+    st.subheader("Fuel Consumption Data")
+    edited_df = st.data_editor(
+        df,
+        use_container_width=True,
+        num_rows="dynamic",
+        key=f"fuel_consumption_editor_{uuid.uuid4()}"
+    )
+
+    # Update session state
+    st.session_state.consumption_data_fuel = edited_df.loc[st.session_state.consumers]
+    st.session_state.previous_rob_fuel = edited_df.loc['Previous ROB']
+    if bunker_survey:
+        st.session_state.bunker_survey_correction_fuel = edited_df.loc['Bunker Survey Correction']
+
 # BDN based report functionality
 def display_bdn_consumption_report(bunker_survey):
     def create_editable_dataframe():
@@ -147,8 +196,7 @@ def main():
 
     # Display corresponding report based on the selected view
     if fuel_type_view:
-        # Call the function for fuel type report (not shown in the question, so it should already exist)
-        pass  # Add the existing fuel type report function call here.
+        display_fuel_consumption_report(bunker_survey)
     elif bdn_view:
         display_bdn_consumption_report(bunker_survey)
 
