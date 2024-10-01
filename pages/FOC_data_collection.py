@@ -34,8 +34,12 @@ def initialize_session_state():
     if 'bunker_survey_correction_tank' not in st.session_state:
         st.session_state.bunker_survey_correction_tank = pd.Series({tank: 0 for tank in st.session_state.tanks})
     
-    if 'consumption_data' not in st.session_state:
-        st.session_state.consumption_data = pd.DataFrame(0, index=st.session_state.consumers, columns=st.session_state.fuel_types + st.session_state.tanks)
+    # Initialize consumption data separately for fuel types and tanks
+    if 'consumption_data_fuel' not in st.session_state:
+        st.session_state.consumption_data_fuel = pd.DataFrame(0, index=st.session_state.consumers, columns=st.session_state.fuel_types)
+    if 'consumption_data_tank' not in st.session_state:
+        st.session_state.consumption_data_tank = pd.DataFrame(0, index=st.session_state.consumers, columns=st.session_state.tanks)
+    
     if 'bunker_survey_comments' not in st.session_state:
         st.session_state.bunker_survey_comments = ""
 
@@ -48,7 +52,7 @@ def display_fuel_consumption_report(bunker_survey):
         index.append('Current ROB')
         df = pd.DataFrame(0, index=index, columns=st.session_state.fuel_types)
         df.loc['Previous ROB'] = st.session_state.previous_rob_fuel
-        df.loc[st.session_state.consumers] = st.session_state.consumption_data[st.session_state.fuel_types]
+        df.loc[st.session_state.consumers] = st.session_state.consumption_data_fuel
         if bunker_survey:
             df.loc['Bunker Survey Correction'] = st.session_state.bunker_survey_correction_fuel
         total_consumption = df.loc[st.session_state.consumers].sum()
@@ -67,7 +71,7 @@ def display_fuel_consumption_report(bunker_survey):
     )
 
     # Update session state
-    st.session_state.consumption_data[st.session_state.fuel_types] = edited_df.loc[st.session_state.consumers]
+    st.session_state.consumption_data_fuel = edited_df.loc[st.session_state.consumers]
     st.session_state.previous_rob_fuel = edited_df.loc['Previous ROB']
     if bunker_survey:
         st.session_state.bunker_survey_correction_fuel = edited_df.loc['Bunker Survey Correction']
@@ -81,7 +85,7 @@ def display_bdn_consumption_report(bunker_survey):
         index.append('Current ROB')
         df = pd.DataFrame(index=index, columns=st.session_state.tanks)
         df.loc['Previous ROB'] = st.session_state.previous_rob_tank
-        df.loc[st.session_state.consumers] = st.session_state.consumption_data[st.session_state.tanks]
+        df.loc[st.session_state.consumers] = st.session_state.consumption_data_tank
         if bunker_survey:
             df.loc['Bunker Survey Correction'] = st.session_state.bunker_survey_correction_tank
         total_consumption = df.loc[st.session_state.consumers].sum()
@@ -100,7 +104,7 @@ def display_bdn_consumption_report(bunker_survey):
     )
 
     # Update session state
-    st.session_state.consumption_data[st.session_state.tanks] = edited_df.loc[st.session_state.consumers]
+    st.session_state.consumption_data_tank = edited_df.loc[st.session_state.consumers]
     st.session_state.previous_rob_tank = edited_df.loc['Previous ROB']
     if bunker_survey:
         st.session_state.bunker_survey_correction_tank = edited_df.loc['Bunker Survey Correction']
