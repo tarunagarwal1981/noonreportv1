@@ -1,9 +1,9 @@
-import streamlit as st
 import pandas as pd
 import numpy as np
 import random
 import string
 import uuid
+import streamlit as st
 
 st.set_page_config(layout="wide", page_title="Fuel Consumption and BDN Report")
 
@@ -30,7 +30,7 @@ def initialize_session_state():
     if 'sulfur' not in st.session_state:
         st.session_state.sulfur = {item: np.random.uniform(0.05, 0.49) for item in st.session_state.fuel_types + st.session_state.tanks}
     
-    # Initialize previous ROBs for fuel types and tanks
+    # Initialize separate previous ROBs for fuel types and tanks
     if 'previous_rob_fuel' not in st.session_state:
         st.session_state.previous_rob_fuel = pd.Series({fuel: np.random.uniform(100, 1000) for fuel in st.session_state.fuel_types})
     if 'previous_rob_tank' not in st.session_state:
@@ -46,7 +46,16 @@ def initialize_session_state():
         st.session_state.consumption_data_fuel = pd.DataFrame(0, index=st.session_state.consumers, columns=st.session_state.fuel_types)
     if 'consumption_data_tank' not in st.session_state:
         st.session_state.consumption_data_tank = pd.DataFrame(0, index=st.session_state.consumers, columns=st.session_state.tanks)
-        
+    
+    if 'bunker_survey_comments' not in st.session_state:
+        st.session_state.bunker_survey_comments = ""
+
+    # Initialize bunkering and debunkering entries
+    if 'bunkering_entries' not in st.session_state:
+        st.session_state.bunkering_entries = [{}]
+    if 'debunkering_entries' not in st.session_state:
+        st.session_state.debunkering_entries = [{}]
+
 # Fuel based report functionality
 def display_fuel_consumption_report(bunker_survey, bunkering_happened, debunkering_happened):
     def create_editable_dataframe():
@@ -413,18 +422,15 @@ def main():
     # Display corresponding report based on the selected view
     if fuel_type_view:
         display_fuel_consumption_report(bunker_survey, bunkering_happened, debunkering_happened)
-        display_additional_table(fuel_type_view)  # Add this line
     elif bdn_view:
         display_bdn_consumption_report(bunker_survey, bunkering_happened, debunkering_happened)
-        display_additional_table(fuel_type_view)  # Add this line
     elif flowmeter_method:
         display_flowmeter_method_report(bunker_survey, bunkering_happened, debunkering_happened)
-        display_additional_table(fuel_type_view)  # Add this line
-
+        
+    # Always display the additional table for all views
+    display_additional_table(fuel_type_view)
     # Submit button
     if st.button("Submit Report", type="primary"):
         st.success("Report submitted successfully!")
 
 if __name__ == "__main__":
-    main()
-
