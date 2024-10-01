@@ -285,6 +285,47 @@ def display_debunkering_details():
         st.session_state.debunkering_entries.append({})
         st.experimental_rerun()
 
+def display_flowmeter_method_report():
+    st.subheader("Flowmeter Method Data")
+    
+    # Flowmeter columns
+    flowmeter_columns = [
+        "Flowmeter In", "Flowmeter Out", "Temp at flowmeter", 
+        "Density @ 15°C", "Fuel Type", "Total Consumption (mT)"
+    ]
+    
+    # Initialize an empty DataFrame for flowmeter data
+    flowmeter_data = pd.DataFrame(columns=flowmeter_columns)
+    
+    # Initialize session state for dynamic rows per consumer
+    if 'flowmeter_rows' not in st.session_state:
+        st.session_state.flowmeter_rows = {consumer: 1 for consumer in st.session_state.consumers}
+    
+    # Loop through each consumer and create rows for flowmeter method
+    for consumer in st.session_state.consumers:
+        st.markdown(f"**{consumer}**")
+        
+        # Allow dynamic row addition for each consumer
+        for row in range(st.session_state.flowmeter_rows[consumer]):
+            col1, col2, col3, col4, col5, col6 = st.columns(6)
+            with col1:
+                flow_in = st.number_input(f"{consumer} - Flowmeter In (Row {row+1})", key=f"flow_in_{consumer}_{row}")
+            with col2:
+                flow_out = st.number_input(f"{consumer} - Flowmeter Out (Row {row+1})", key=f"flow_out_{consumer}_{row}")
+            with col3:
+                temp_at_flowmeter = st.number_input(f"{consumer} - Temp at Flowmeter (Row {row+1})", key=f"temp_{consumer}_{row}")
+            with col4:
+                density_at_15 = st.number_input(f"{consumer} - Density @ 15°C (Row {row+1})", key=f"density_{consumer}_{row}")
+            with col5:
+                fuel_type = st.selectbox(f"{consumer} - Fuel Type (Row {row+1})", st.session_state.fuel_types, key=f"fuel_type_{consumer}_{row}")
+            with col6:
+                total_consumption = st.number_input(f"{consumer} - Total Consumption (mT) (Row {row+1})", key=f"total_consumption_{consumer}_{row}")
+        
+        # Add button to allow adding more rows for the current consumer
+        if st.button(f"➕ Add another row for {consumer}", key=f"add_row_{consumer}"):
+            st.session_state.flowmeter_rows[consumer] += 1
+            st.experimental_rerun()
+
 # Main app functionality
 def main():
     initialize_session_state()
@@ -292,17 +333,19 @@ def main():
     st.title("Fuel Consumption and BDN Report")
 
     # Checkbox for view selection
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
     with col1:
         fuel_type_view = st.checkbox("Fuel Type based", value=True)
     with col2:
         bdn_view = st.checkbox("BDN based", value=False)
+    with col3:
+        flowmeter_method = st.checkbox("Flowmeter Method", value=False)
 
     # Ensure only one view is selected
-    if fuel_type_view and bdn_view:
+    if sum([fuel_type_view, bdn_view, flowmeter_method]) > 1:
         st.warning("Please select only one view type.")
         st.stop()
-    elif not fuel_type_view and not bdn_view:
+    elif not fuel_type_view and not bdn_view and not flowmeter_method:
         st.warning("Please select a view type.")
         st.stop()
 
@@ -333,6 +376,8 @@ def main():
         display_fuel_consumption_report(bunker_survey, bunkering_happened, debunkering_happened)
     elif bdn_view:
         display_bdn_consumption_report(bunker_survey, bunkering_happened, debunkering_happened)
+    elif flowmeter_method:
+        display_flowmeter_method_report()
 
     # Display additional table with the correct view type
     display_additional_table(fuel_type_view)
