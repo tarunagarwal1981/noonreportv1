@@ -422,10 +422,13 @@ def main():
     # Display corresponding report based on the selected view
     if fuel_type_view:
         display_fuel_consumption_report(bunker_survey, bunkering_happened, debunkering_happened)
+        display_additional_table(fuel_type_view)
     elif bdn_view:
         display_bdn_consumption_report(bunker_survey, bunkering_happened, debunkering_happened)
+        display_additional_table(fuel_type_view)
     elif flowmeter_method:
         display_flowmeter_method_report(bunker_survey, bunkering_happened, debunkering_happened)
+        display_additional_table(fuel_type_view)
 
     # Submit button
     if st.button("Submit Report", type="primary"):
