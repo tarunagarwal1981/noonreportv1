@@ -285,6 +285,14 @@ def display_debunkering_details():
         st.session_state.debunkering_entries.append({})
         st.experimental_rerun()
 
+import streamlit as st
+import pandas as pd
+import numpy as np
+import uuid
+
+# Existing setup functions here...
+
+# Function to display Flowmeter Method table similar to BDN-based method
 def display_flowmeter_method_report(bunker_survey, bunkering_happened, debunkering_happened):
     def create_editable_dataframe():
         # Define the index (row names remain the same)
@@ -303,13 +311,13 @@ def display_flowmeter_method_report(bunker_survey, bunkering_happened, debunkeri
             "Density @ 15°C", "Fuel Type", "Total Consumption (mT)"
         ]
         
-        # Initialize the DataFrame for the flowmeter method
+        # Initialize the DataFrame for the flowmeter method with zeros to avoid errors
         df = pd.DataFrame(0, index=index, columns=flowmeter_columns)
 
-        # Fill 'Previous ROB' row (example, you can update with actual logic)
+        # Fill 'Previous ROB' row with random data for demonstration (replace with actual data logic)
         df.loc['Previous ROB'] = [np.random.uniform(100, 1000) for _ in range(len(flowmeter_columns))]
 
-        # Fill consumption data for consumers
+        # Fill consumption data for consumers with random data (replace with actual data logic)
         for consumer in st.session_state.consumers:
             df.loc[consumer] = [np.random.uniform(10, 50) for _ in range(len(flowmeter_columns))]
 
@@ -323,26 +331,31 @@ def display_flowmeter_method_report(bunker_survey, bunkering_happened, debunkeri
         if bunker_survey:
             df.loc['Bunker Survey Correction'] = [np.random.uniform(-10, 10) for _ in range(len(flowmeter_columns))]
 
-        # Calculate Current ROB (example logic for demonstration)
-        df.loc['Current ROB'] = df.loc['Previous ROB'] - df.loc[st.session_state.consumers].sum()
-
+        # Ensure that the consumption data is numeric and calculate Current ROB
+        try:
+            total_consumption = pd.to_numeric(df.loc[st.session_state.consumers].sum(), errors='coerce').fillna(0)
+            df.loc['Current ROB'] = pd.to_numeric(df.loc['Previous ROB'], errors='coerce').fillna(0) - total_consumption
+        except Exception as e:
+            st.error(f"Error in calculating Current ROB: {e}")
+        
         # Apply bunkering and debunkering adjustments
         if bunkering_happened:
-            df.loc['Current ROB'] += df.loc['Bunkered Qty']
+            df.loc['Current ROB'] += pd.to_numeric(df.loc['Bunkered Qty'], errors='coerce').fillna(0)
         if debunkering_happened:
-            df.loc['Current ROB'] -= df.loc['Debunkered Qty']
+            df.loc['Current ROB'] -= pd.to_numeric(df.loc['Debunkered Qty'], errors='coerce').fillna(0)
 
-        # Apply bunker correction if present
+        # Apply bunker correction to Current ROB if present
         if bunker_survey:
-            df.loc['Current ROB'] += df.loc['Bunker Survey Correction']
+            df.loc['Current ROB'] += pd.to_numeric(df.loc['Bunker Survey Correction'], errors='coerce').fillna(0)
 
         return df
 
+    # Create the editable DataFrame for the Flowmeter method
     df = create_editable_dataframe()
     
     st.subheader("Flowmeter Method Fuel Consumption Data")
     
-    # Display table and allow user to edit it
+    # Display the DataFrame in editable format
     edited_df = st.data_editor(
         df,
         use_container_width=True,
