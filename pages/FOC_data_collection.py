@@ -285,53 +285,76 @@ def display_debunkering_details():
         st.session_state.debunkering_entries.append({})
         st.experimental_rerun()
 
-import streamlit as st
-import pandas as pd
-import numpy as np
-import uuid
+def display_flowmeter_method_report(bunker_survey, bunkering_happened, debunkering_happened):
+    def create_editable_dataframe():
+        # Define the index (row names remain the same)
+        index = ['Previous ROB'] + st.session_state.consumers
+        if bunkering_happened:
+            index.append('Bunkered Qty')
+        if debunkering_happened:
+            index.append('Debunkered Qty')
+        if bunker_survey:
+            index.append('Bunker Survey Correction')
+        index.append('Current ROB')
 
-# Existing setup functions here...
-
-# Function to display Flowmeter Method table in tabular format
-def display_flowmeter_method_report():
-    st.subheader("Flowmeter Method Data")
-
-    # Flowmeter columns
-    flowmeter_columns = [
-        "Flowmeter In", "Flowmeter Out", "Temp at flowmeter", 
-        "Density @ 15°C", "Fuel Type", "Total Consumption (mT)"
-    ]
-    
-    # Initialize session state for dynamic rows per consumer
-    if 'flowmeter_rows' not in st.session_state:
-        st.session_state.flowmeter_rows = {consumer: 1 for consumer in st.session_state.consumers}
-    
-    # Create empty DataFrame for the flowmeter data
-    flowmeter_data = pd.DataFrame(columns=flowmeter_columns)
-    
-    # Loop through each consumer and create rows for flowmeter method in tabular format
-    for consumer in st.session_state.consumers:
-        st.markdown(f"**{consumer}**")
+        # Create DataFrame with the new Flowmeter columns
+        flowmeter_columns = [
+            "Flowmeter In", "Flowmeter Out", "Temp at flowmeter", 
+            "Density @ 15°C", "Fuel Type", "Total Consumption (mT)"
+        ]
         
-        for row in range(st.session_state.flowmeter_rows[consumer]):
-            # Add new row in the flowmeter data
-            new_row = {
-                "Flowmeter In": st.number_input(f"{consumer} - Flowmeter In (Row {row+1})", key=f"flow_in_{consumer}_{row}"),
-                "Flowmeter Out": st.number_input(f"{consumer} - Flowmeter Out (Row {row+1})", key=f"flow_out_{consumer}_{row}"),
-                "Temp at flowmeter": st.number_input(f"{consumer} - Temp at Flowmeter (Row {row+1})", key=f"temp_{consumer}_{row}"),
-                "Density @ 15°C": st.number_input(f"{consumer} - Density @ 15°C (Row {row+1})", key=f"density_{consumer}_{row}"),
-                "Fuel Type": st.selectbox(f"{consumer} - Fuel Type (Row {row+1})", st.session_state.fuel_types, key=f"fuel_type_{consumer}_{row}"),
-                "Total Consumption (mT)": st.number_input(f"{consumer} - Total Consumption (mT) (Row {row+1})", key=f"total_consumption_{consumer}_{row}")
-            }
-            flowmeter_data = flowmeter_data.append(new_row, ignore_index=True)
+        # Initialize the DataFrame for the flowmeter method
+        df = pd.DataFrame(0, index=index, columns=flowmeter_columns)
 
-        # Add button to allow adding more rows for the current consumer
-        if st.button(f"➕ Add another row for {consumer}", key=f"add_row_{consumer}"):
-            st.session_state.flowmeter_rows[consumer] += 1
-            st.experimental_rerun()
+        # Fill 'Previous ROB' row (example, you can update with actual logic)
+        df.loc['Previous ROB'] = [np.random.uniform(100, 1000) for _ in range(len(flowmeter_columns))]
 
-    # Display the entire table in tabular format after collecting the data
-    st.dataframe(flowmeter_data)
+        # Fill consumption data for consumers
+        for consumer in st.session_state.consumers:
+            df.loc[consumer] = [np.random.uniform(10, 50) for _ in range(len(flowmeter_columns))]
+
+        # Fill bunkering and debunkering quantities if applicable
+        if bunkering_happened:
+            df.loc['Bunkered Qty'] = [np.random.uniform(50, 100) for _ in range(len(flowmeter_columns))]
+        if debunkering_happened:
+            df.loc['Debunkered Qty'] = [np.random.uniform(10, 50) for _ in range(len(flowmeter_columns))]
+        
+        # Fill bunker survey correction if needed
+        if bunker_survey:
+            df.loc['Bunker Survey Correction'] = [np.random.uniform(-10, 10) for _ in range(len(flowmeter_columns))]
+
+        # Calculate Current ROB (example logic for demonstration)
+        df.loc['Current ROB'] = df.loc['Previous ROB'] - df.loc[st.session_state.consumers].sum()
+
+        # Apply bunkering and debunkering adjustments
+        if bunkering_happened:
+            df.loc['Current ROB'] += df.loc['Bunkered Qty']
+        if debunkering_happened:
+            df.loc['Current ROB'] -= df.loc['Debunkered Qty']
+
+        # Apply bunker correction if present
+        if bunker_survey:
+            df.loc['Current ROB'] += df.loc['Bunker Survey Correction']
+
+        return df
+
+    df = create_editable_dataframe()
+    
+    st.subheader("Flowmeter Method Fuel Consumption Data")
+    
+    # Display table and allow user to edit it
+    edited_df = st.data_editor(
+        df,
+        use_container_width=True,
+        num_rows="dynamic",
+        key=f"flowmeter_consumption_editor_{uuid.uuid4()}"
+    )
+
+    # Update session state based on the edited data
+    st.session_state.consumption_data_flowmeter = edited_df.loc[st.session_state.consumers]
+    st.session_state.previous_rob_flowmeter = edited_df.loc['Previous ROB']
+    if bunker_survey:
+        st.session_state.bunker_survey_correction_flowmeter = edited_df.loc['Bunker Survey Correction']
 
 # Main app functionality
 def main():
@@ -384,7 +407,7 @@ def main():
     elif bdn_view:
         display_bdn_consumption_report(bunker_survey, bunkering_happened, debunkering_happened)
     elif flowmeter_method:
-        display_flowmeter_method_report()
+        display_flowmeter_method_report(bunker_survey, bunkering_happened, debunkering_happened)
 
     # Display additional table with the correct view type
     display_additional_table(fuel_type_view)
