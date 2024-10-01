@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import uuid
+import random
+import string
 
 st.set_page_config(layout="wide", page_title="Fuel Consumption and BDN Report")
 
@@ -77,24 +79,45 @@ def display_fuel_consumption_report(bunker_survey):
         st.session_state.bunker_survey_correction_fuel = edited_df.loc['Bunker Survey Correction']
 
 # BDN based report functionality
+
+def generate_random_bdn_number():
+    """Generates a random alphanumeric BDN number (8 characters)."""
+    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+    
 def display_bdn_consumption_report(bunker_survey):
     def create_editable_dataframe():
-        index = ['Previous ROB'] + st.session_state.consumers
+        index = ['Previous ROB', 'BDN Number'] + st.session_state.consumers
         if bunker_survey:
             index.append('Bunker Survey Correction')
         index.append('Current ROB')
+        
+        # Create DataFrame with an additional BDN number row
         df = pd.DataFrame(index=index, columns=st.session_state.tanks)
+        
+        # Fill 'Previous ROB' row
         df.loc['Previous ROB'] = st.session_state.previous_rob_tank
+        
+        # Fill 'BDN Number' row with random alphanumeric BDN numbers
+        df.loc['BDN Number'] = [generate_random_bdn_number() for _ in st.session_state.tanks]
+        
+        # Fill consumption data for consumers
         df.loc[st.session_state.consumers] = st.session_state.consumption_data_tank
+        
+        # Fill bunker survey correction if needed
         if bunker_survey:
             df.loc['Bunker Survey Correction'] = st.session_state.bunker_survey_correction_tank
+        
+        # Calculate total consumption and current ROB
         total_consumption = df.loc[st.session_state.consumers].sum()
         df.loc['Current ROB'] = df.loc['Previous ROB'] - total_consumption
+        
         if bunker_survey:
             df.loc['Current ROB'] += df.loc['Bunker Survey Correction']
+        
         return df
 
     df = create_editable_dataframe()
+    
     st.subheader("BDN Based Fuel Consumption Data")
     edited_df = st.data_editor(
         df,
@@ -108,6 +131,7 @@ def display_bdn_consumption_report(bunker_survey):
     st.session_state.previous_rob_tank = edited_df.loc['Previous ROB']
     if bunker_survey:
         st.session_state.bunker_survey_correction_tank = edited_df.loc['Bunker Survey Correction']
+
 
 def display_additional_table():
     st.subheader("Additional Consumption Data")
