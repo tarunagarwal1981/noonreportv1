@@ -29,26 +29,24 @@ def initialize_session_state():
         st.session_state.viscosity = {item: np.random.uniform(20, 100) for item in st.session_state.fuel_types + st.session_state.tanks}
     if 'sulfur' not in st.session_state:
         st.session_state.sulfur = {item: np.random.uniform(0.05, 0.49) for item in st.session_state.fuel_types + st.session_state.tanks}
-
+    
     # Initialize separate previous ROBs for fuel types and tanks
     if 'previous_rob_fuel' not in st.session_state:
         st.session_state.previous_rob_fuel = pd.Series({fuel: np.random.uniform(100, 1000) for fuel in st.session_state.fuel_types})
     if 'previous_rob_tank' not in st.session_state:
         st.session_state.previous_rob_tank = pd.Series({tank: np.random.uniform(100, 1000) for tank in st.session_state.tanks})
     
-    # Ensure bunker survey correction is initialized
     if 'bunker_survey_correction_fuel' not in st.session_state:
         st.session_state.bunker_survey_correction_fuel = pd.Series({fuel: 0 for fuel in st.session_state.fuel_types})
     if 'bunker_survey_correction_tank' not in st.session_state:
         st.session_state.bunker_survey_correction_tank = pd.Series({tank: 0 for tank in st.session_state.tanks})
-
+    
     # Initialize consumption data separately for fuel types and tanks
     if 'consumption_data_fuel' not in st.session_state:
         st.session_state.consumption_data_fuel = pd.DataFrame(0, index=st.session_state.consumers, columns=st.session_state.fuel_types)
     if 'consumption_data_tank' not in st.session_state:
         st.session_state.consumption_data_tank = pd.DataFrame(0, index=st.session_state.consumers, columns=st.session_state.tanks)
     
-    # Ensure bunker survey comments are initialized
     if 'bunker_survey_comments' not in st.session_state:
         st.session_state.bunker_survey_comments = ""
 
@@ -389,7 +387,6 @@ def display_fuel_type_summary(bunker_survey, bunkering_happened, debunkering_hap
     st.dataframe(df_summary)
 
 # Main app functionality
-# Main app functionality
 def main():
     initialize_session_state()
 
@@ -436,8 +433,3 @@ def main():
     # Submit button
     if st.button("Submit Report", type="primary"):
         st.success("Report submitted successfully!")
-
-# Add the main function call here
-if __name__ == "__main__":
-    main()
-
