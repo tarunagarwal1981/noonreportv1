@@ -87,19 +87,21 @@ def generate_random_bdn_numbers():
     
 def display_bdn_consumption_report(bunker_survey):
     def create_editable_dataframe():
-        index = ['Previous ROB', 'BDN Number'] + st.session_state.consumers
+        # Define the index (now starting with 'BDN Number')
+        index = ['BDN Number', 'Previous ROB'] + st.session_state.consumers
         if bunker_survey:
             index.append('Bunker Survey Correction')
         index.append('Current ROB')
         
-        # Create DataFrame with an additional BDN number row
+        # Create DataFrame
         df = pd.DataFrame(index=index, columns=st.session_state.tanks)
+        
+        # Generate three random BDN numbers and repeat them across columns
+        bdn_numbers = generate_random_bdn_numbers()
+        df.loc['BDN Number'] = [bdn_numbers[i % 3] for i in range(len(st.session_state.tanks))]
         
         # Fill 'Previous ROB' row
         df.loc['Previous ROB'] = st.session_state.previous_rob_tank
-        
-        # Fill 'BDN Number' row with random alphanumeric BDN numbers
-        df.loc['BDN Number'] = [generate_random_bdn_number() for _ in st.session_state.tanks]
         
         # Fill consumption data for consumers
         df.loc[st.session_state.consumers] = st.session_state.consumption_data_tank
@@ -114,6 +116,25 @@ def display_bdn_consumption_report(bunker_survey):
         
         if bunker_survey:
             df.loc['Current ROB'] += df.loc['Bunker Survey Correction']
+        
+        return df
+
+    df = create_editable_dataframe()
+    
+    st.subheader("BDN Based Fuel Consumption Data")
+    edited_df = st.data_editor(
+        df,
+        use_container_width=True,
+        num_rows="dynamic",
+        key=f"bdn_consumption_editor_{uuid.uuid4()}"
+    )
+
+    # Update session state
+    st.session_state.consumption_data_tank = edited_df.loc[st.session_state.consumers]
+    st.session_state.previous_rob_tank = edited_df.loc['Previous ROB']
+    if bunker_survey:
+        st.session_state.bunker_survey_correction_tank = edited_df.loc['Bunker Survey Correction']
+
         
         return df
 
