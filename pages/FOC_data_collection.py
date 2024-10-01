@@ -14,6 +14,7 @@ def generate_random_bdn_numbers():
 
 # Initialize session state
 def initialize_session_state():
+    # Define consumers
     if 'consumers' not in st.session_state:
         st.session_state.consumers = [
             'Main Engine', 'Aux Engine1', 'Aux Engine2', 'Aux Engine3',
@@ -21,32 +22,50 @@ def initialize_session_state():
             'Boiler 2', '    Boiler 2 - Cargo Heating', '    Boiler 2 - Discharge',
             'IGG', 'Incinerator', 'DPP1', 'DPP2', 'DPP3'
         ]
+
+    # Define fuel types
     if 'fuel_types' not in st.session_state:
         st.session_state.fuel_types = ['HFO', 'LFO', 'MGO/MDO', 'LPG', 'LNG', 'Methanol', 'Ethanol', 'Others', 'Other Fuel Type']
+
+    # Define tanks
     if 'tanks' not in st.session_state:
         st.session_state.tanks = [f'Tank {i}' for i in range(1, 9)]
+
+    # Initialize viscosity and sulfur content
     if 'viscosity' not in st.session_state:
         st.session_state.viscosity = {item: np.random.uniform(20, 100) for item in st.session_state.fuel_types + st.session_state.tanks}
     if 'sulfur' not in st.session_state:
         st.session_state.sulfur = {item: np.random.uniform(0.05, 0.49) for item in st.session_state.fuel_types + st.session_state.tanks}
-    
-    # Initialize separate previous ROBs for fuel types and tanks
+
+    # Initialize ROBs for different methods
     if 'previous_rob_fuel' not in st.session_state:
         st.session_state.previous_rob_fuel = pd.Series({fuel: np.random.uniform(100, 1000) for fuel in st.session_state.fuel_types})
     if 'previous_rob_tank' not in st.session_state:
         st.session_state.previous_rob_tank = pd.Series({tank: np.random.uniform(100, 1000) for tank in st.session_state.tanks})
-    
+    if 'previous_rob_tank_sounding' not in st.session_state:
+        st.session_state.previous_rob_tank_sounding = pd.Series({tank: np.random.uniform(100, 1000) for tank in st.session_state.tanks})
+
+    # Initialize bunker survey corrections
     if 'bunker_survey_correction_fuel' not in st.session_state:
         st.session_state.bunker_survey_correction_fuel = pd.Series({fuel: 0 for fuel in st.session_state.fuel_types})
     if 'bunker_survey_correction_tank' not in st.session_state:
         st.session_state.bunker_survey_correction_tank = pd.Series({tank: 0 for tank in st.session_state.tanks})
-    
-    # Initialize consumption data separately for fuel types and tanks
+    if 'bunker_survey_correction_tank_sounding' not in st.session_state:
+        st.session_state.bunker_survey_correction_tank_sounding = pd.Series({tank: 0 for tank in st.session_state.tanks})
+
+    # Initialize consumption data for different methods
     if 'consumption_data_fuel' not in st.session_state:
         st.session_state.consumption_data_fuel = pd.DataFrame(0, index=st.session_state.consumers, columns=st.session_state.fuel_types)
     if 'consumption_data_tank' not in st.session_state:
         st.session_state.consumption_data_tank = pd.DataFrame(0, index=st.session_state.consumers, columns=st.session_state.tanks)
-    
+    if 'consumption_data_tank_sounding' not in st.session_state:
+        st.session_state.consumption_data_tank_sounding = pd.DataFrame(0, index=st.session_state.consumers, columns=st.session_state.tanks)
+    if 'consumption_data_flowmeter' not in st.session_state:
+        st.session_state.consumption_data_flowmeter = pd.DataFrame(0, index=st.session_state.consumers, 
+                                                                   columns=["Flowmeter In", "Flowmeter Out", "Temp at flowmeter", 
+                                                                            "Density @ 15°C", "Fuel Type", "Total Consumption (mT)"])
+
+    # Initialize bunker survey comments
     if 'bunker_survey_comments' not in st.session_state:
         st.session_state.bunker_survey_comments = ""
 
@@ -361,6 +380,78 @@ def display_flowmeter_method_report(bunker_survey, bunkering_happened, debunkeri
 
     # Update session state based on the edited data
     st.session_state.consumption_data_flowmeter = edited_df
+
+def display_tank_sounding_report(bunker_survey, bunkering_happened, debunkering_happened):
+    def create_editable_dataframe():
+        # Define the index
+        index = ['Fuel Type', 'BDN Number', 'Previous ROB'] + st.session_state.consumers
+        if bunkering_happened:
+            index.append('Bunkered Qty')
+        if debunkering_happened:
+            index.append('Debunkered Qty')
+        if bunker_survey:
+            index.append('Bunker Survey Correction')
+        index.append('Current ROB')
+        
+        # Create DataFrame with tank columns
+        tanks = [f'Tank {i}' for i in range(1, 9)]
+        df = pd.DataFrame(index=index, columns=tanks)
+        
+        # Fill 'Fuel Type' row
+        fuel_types = ["LFO", "MGO", "HFO"]
+        df.loc['Fuel Type'] = [random.choice(fuel_types) for _ in tanks]
+        
+        # Fill 'BDN Number' row
+        bdn_numbers = generate_random_bdn_numbers()
+        df.loc['BDN Number'] = [bdn_numbers[i % 3] for i in range(len(tanks))]
+        
+        # Fill 'Previous ROB' row
+        df.loc['Previous ROB'] = [np.random.uniform(100, 1000) for _ in tanks]
+        
+        # Fill consumption data for consumers
+        for consumer in st.session_state.consumers:
+            df.loc[consumer] = [np.random.uniform(0, 50) for _ in tanks]
+        
+        # Fill bunkering and debunkering quantities if applicable
+        if bunkering_happened:
+            total_bunkered = sum(entry.get('mass', 0) for entry in st.session_state.bunkering_entries)
+            df.loc['Bunkered Qty'] = [total_bunkered / len(tanks)] * len(tanks)
+        if debunkering_happened:
+            total_debunkered = sum(entry.get('quantity', 0) for entry in st.session_state.debunkering_entries)
+            df.loc['Debunkered Qty'] = [total_debunkered / len(tanks)] * len(tanks)
+        
+        # Fill bunker survey correction if needed
+        if bunker_survey:
+            df.loc['Bunker Survey Correction'] = [np.random.uniform(-5, 5) for _ in tanks]
+        
+        # Calculate Current ROB
+        consumption = df.loc[st.session_state.consumers].sum()
+        df.loc['Current ROB'] = df.loc['Previous ROB'] - consumption
+        if bunkering_happened:
+            df.loc['Current ROB'] += df.loc['Bunkered Qty']
+        if debunkering_happened:
+            df.loc['Current ROB'] -= df.loc['Debunkered Qty']
+        if bunker_survey:
+            df.loc['Current ROB'] += df.loc['Bunker Survey Correction']
+        
+        return df
+
+    df = create_editable_dataframe()
+    
+    st.subheader("Tank Sounding Method Fuel Consumption Data")
+    edited_df = st.data_editor(
+        df,
+        use_container_width=True,
+        num_rows="dynamic",
+        key=f"tank_sounding_editor_{uuid.uuid4()}"
+    )
+
+    # Update session state
+    st.session_state.consumption_data_tank_sounding = edited_df.loc[st.session_state.consumers]
+    st.session_state.previous_rob_tank_sounding = edited_df.loc['Previous ROB']
+    if bunker_survey:
+        st.session_state.bunker_survey_correction_tank_sounding = edited_df.loc['Bunker Survey Correction']
+
 # Main app functionality
 def main():
     initialize_session_state()
@@ -368,19 +459,21 @@ def main():
     st.title("Fuel Consumption and BDN Report")
 
     # Checkbox for view selection
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
     with col1:
         fuel_type_view = st.checkbox("Fuel Type based", value=True)
     with col2:
         bdn_view = st.checkbox("BDN based", value=False)
     with col3:
         flowmeter_method = st.checkbox("Flowmeter Method", value=False)
+    with col4:
+        tank_sounding_method = st.checkbox("Tank Sounding Method", value=False)
 
     # Ensure only one view is selected
-    if sum([fuel_type_view, bdn_view, flowmeter_method]) > 1:
+    if sum([fuel_type_view, bdn_view, flowmeter_method, tank_sounding_method]) > 1:
         st.warning("Please select only one view type.")
         st.stop()
-    elif not fuel_type_view and not bdn_view and not flowmeter_method:
+    elif not fuel_type_view and not bdn_view and not flowmeter_method and not tank_sounding_method:
         st.warning("Please select a view type.")
         st.stop()
 
@@ -412,8 +505,10 @@ def main():
     elif bdn_view:
         display_bdn_consumption_report(bunker_survey, bunkering_happened, debunkering_happened)
     elif flowmeter_method:
-        display_flowmeter_method_report(False, False, False) 
-        display_fuel_type_summary(bunker_survey, bunkering_happened, debunkering_happened)   
+        display_flowmeter_method_report(False, False, False)
+        display_fuel_type_summary(bunker_survey, bunkering_happened, debunkering_happened)
+    elif tank_sounding_method:
+        display_tank_sounding_report(bunker_survey, bunkering_happened, debunkering_happened) 
     
     # Display additional table with the correct view type
     display_additional_table(fuel_type_view)
