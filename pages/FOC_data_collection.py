@@ -195,20 +195,57 @@ def display_bdn_consumption_report(bunker_survey, bunkering_happened, debunkerin
     if bunker_survey:
         st.session_state.bunker_survey_correction_tank = edited_df.loc['Bunker Survey Correction']
 
-def display_additional_table():
+def display_additional_table(fuel_type_view):
     st.subheader("Additional Consumption Data")
+    
+    # Determine the last column name based on the selected view
+    last_column_name = "Fuel Type" if fuel_type_view else "Fuel BDN No."
+    
     additional_data = pd.DataFrame({
         'Work': [0, 0, 0, 0],
         'SFOC': [0, 0, 0, ''],
-        'Fuel BDN No.': ['', '', '', '']
+        last_column_name: ['', '', '', '']
     }, index=['Reefer container', 'Cargo cooling', 'Heating/Discharge pump', 'Shore-Side Electricity'])
+    
+    # Create column configuration
+    column_config = {
+        "Work": st.column_config.NumberColumn(
+            "Work",
+            help="Work done in kWh",
+            min_value=0,
+            format="%d kWh"
+        ),
+        "SFOC": st.column_config.NumberColumn(
+            "SFOC",
+            help="Specific Fuel Oil Consumption",
+            min_value=0,
+            format="%.2f"
+        )
+    }
+    
+    # Add configuration for the last column based on the view
+    if fuel_type_view:
+        column_config[last_column_name] = st.column_config.SelectboxColumn(
+            "Fuel Type",
+            help="Select the fuel type",
+            options=st.session_state.fuel_types
+        )
+    else:
+        column_config[last_column_name] = st.column_config.TextColumn(
+            "Fuel BDN No.",
+            help="Enter the Fuel BDN Number",
+            max_chars=50
+        )
     
     edited_additional_data = st.data_editor(
         additional_data,
         use_container_width=True,
         num_rows="dynamic",
+        column_config=column_config,
         key=f"additional_consumption_editor_{uuid.uuid4()}"
     )
+
+    return edited_additional_data
 
 def display_bunkering_details():
     st.markdown("<h4 style='font-size: 18px;'>Bunkering Details</h4>", unsafe_allow_html=True)
@@ -297,8 +334,8 @@ def main():
     elif bdn_view:
         display_bdn_consumption_report(bunker_survey, bunkering_happened, debunkering_happened)
 
-    # Display additional table
-    display_additional_table()
+    # Display additional table with the correct view type
+    display_additional_table(fuel_type_view)
 
     # Submit button
     if st.button("Submit Report", type="primary"):
