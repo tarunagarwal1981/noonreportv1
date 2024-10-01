@@ -80,9 +80,10 @@ def display_fuel_consumption_report(bunker_survey):
 
 # BDN based report functionality
 
-def generate_random_bdn_number():
-    """Generates a random alphanumeric BDN number (8 characters)."""
-    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+def generate_random_bdn_numbers():
+    """Generates three unique random alphanumeric BDN numbers (8 characters)."""
+    bdn_numbers = [''.join(random.choices(string.ascii_uppercase + string.digits, k=8)) for _ in range(3)]
+    return bdn_numbers
     
 def display_bdn_consumption_report(bunker_survey):
     def create_editable_dataframe():
