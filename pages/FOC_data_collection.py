@@ -139,7 +139,7 @@ def display_bdn_view(bunker_survey):
         if bunker_survey:
             index.append('Bunker Survey Correction')
         index.append('Current ROB')
-        df = pd.DataFrame(index=index, columns=st.session_state.tanks)
+        df = pd.DataFrame(0, index=index, columns=st.session_state.tanks)
         df.loc['Previous ROB'] = st.session_state.previous_rob_bdn
         df.loc[st.session_state.consumers] = st.session_state.consumption_data_bdn
         if bunker_survey:
@@ -153,31 +153,19 @@ def display_bdn_view(bunker_survey):
 
     df = create_editable_dataframe()
 
-    st.write("Fuel Consumption Data:")
-    custom_css = """
-    <style>
-        .dataframe td:first-child {
-            font-weight: bold;
-        }
-        .dataframe td.italic-row {
-            font-style: italic;
-        }
-        .dataframe td.boiler-subsection {
-            padding-left: 30px !important;
-            font-style: italic;
-        }
-    </style>
-    """
-    st.markdown(custom_css, unsafe_allow_html=True)
-    df_html = df.to_html(classes='dataframe', escape=False)
-    df_html = df_html.replace('<th>', '<th style="text-align: center;">')
-    italic_rows = ['Boiler 1', 'Boiler 2', 'DPP1', 'DPP2', 'DPP3']
-    for consumer in st.session_state.consumers:
-        if consumer.startswith('    '):
-            df_html = df_html.replace(f'<td>{consumer}</td>', f'<td class="boiler-subsection">{consumer.strip()}</td>')
-        elif consumer in italic_rows:
-            df_html = df_html.replace(f'<td>{consumer}</td>', f'<td class="italic-row">{consumer}</td>')
-    st.markdown(df_html, unsafe_allow_html=True)
+    st.subheader("Fuel Consumption Data")
+    edited_df = st.data_editor(
+        df,
+        use_container_width=True,
+        num_rows="dynamic",
+        key=f"bdn_consumption_editor_{uuid.uuid4()}"
+    )
+
+    # Update session state with edited values
+    st.session_state.consumption_data_bdn = edited_df.loc[st.session_state.consumers]
+    st.session_state.previous_rob_bdn = edited_df.loc['Previous ROB']
+    if bunker_survey:
+        st.session_state.bunker_survey_correction_bdn = edited_df.loc['Bunker Survey Correction']
 
     display_additional_table()
 
@@ -241,10 +229,10 @@ def edit_fuel_properties():
     st.session_state.sulfur = edited_props['Sulfur (%)'].to_dict()
 
 def edit_tank_properties():
-    st.write("Edit tank properties:")
+    st.subheader("Edit Tank Properties")
     tank_props = pd.DataFrame({
-        'Viscosity': st.session_state.viscosity,
-        'Sulfur (%)': st.session_state.sulfur
+        'Viscosity': {tank: st.session_state.viscosity.get(tank, 0) for tank in st.session_state.tanks},
+        'Sulfur (%)': {tank: st.session_state.sulfur.get(tank, 0) for tank in st.session_state.tanks}
     })
     edited_props = st.data_editor(
         tank_props,
@@ -256,10 +244,11 @@ def edit_tank_properties():
             'Sulfur (%)': st.column_config.NumberColumn(
                 'Sulfur (%)', min_value=0.05, max_value=0.49, step=0.01, format="%.2f"
             )
-        }
+        },
+        key=f"tank_properties_editor_{uuid.uuid4()}"
     )
-    st.session_state.viscosity = edited_props['Viscosity'].to_dict()
-    st.session_state.sulfur = edited_props['Sulfur (%)'].to_dict()
+    st.session_state.viscosity.update(edited_props['Viscosity'].to_dict())
+    st.session_state.sulfur.update(edited_props['Sulfur (%)'].to_dict())
 
 if __name__ == "__main__":
     main()
