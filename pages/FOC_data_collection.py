@@ -200,7 +200,7 @@ def display_additional_table():
     additional_data = pd.DataFrame({
         'Work': [0, 0, 0, 0],
         'SFOC': [0, 0, 0, ''],
-        'Fuel Type': ['', '', '', '']
+        'Fuel BDN No.': ['', '', '', '']
     }, index=['Reefer container', 'Cargo cooling', 'Heating/Discharge pump', 'Shore-Side Electricity'])
     
     edited_additional_data = st.data_editor(
