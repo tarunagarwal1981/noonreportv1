@@ -76,13 +76,15 @@ def display_bdn_consumption_report(bunker_survey):
         if bunker_survey:
             df.loc['Bunker Survey Correction'] = st.session_state.bunker_survey_correction_tank
         
-        # Calculate total consumption and current ROB
-        # Ensure only numeric values are used for calculation
-        total_consumption = df.loc[st.session_state.consumers].sum()
-        df.loc['Current ROB'] = pd.to_numeric(df.loc['Previous ROB'], errors='coerce') - total_consumption
+        # Ensure total consumption calculation is numeric
+        total_consumption = pd.to_numeric(df.loc[st.session_state.consumers].sum(), errors='coerce').fillna(0)
         
+        # Calculate Current ROB
+        df.loc['Current ROB'] = pd.to_numeric(df.loc['Previous ROB'], errors='coerce').fillna(0) - total_consumption
+        
+        # Add bunker correction to Current ROB if present
         if bunker_survey:
-            df.loc['Current ROB'] += pd.to_numeric(df.loc['Bunker Survey Correction'], errors='coerce')
+            df.loc['Current ROB'] += pd.to_numeric(df.loc['Bunker Survey Correction'], errors='coerce').fillna(0)
         
         return df
 
