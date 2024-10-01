@@ -5,21 +5,18 @@ import uuid
 
 st.set_page_config(layout="wide", page_title="Fuel Consumption Report")
 
-def main():
+def initialize_session_state():
     if 'consumers' not in st.session_state:
         st.session_state.consumers = [
             'Main Engine', 'Aux Engine1', 'Aux Engine2', 'Aux Engine3',
-            'Boiler 1',
-            '    Boiler 1 - Cargo Heating',
-            '    Boiler 1 - Discharge',
-            'Boiler 2',
-            '    Boiler 2 - Cargo Heating',
-            '    Boiler 2 - Discharge',
-            'IGG', 'Incinerator',
-            'DPP1', 'DPP2', 'DPP3'
+            'Boiler 1', 'Boiler 1 - Cargo Heating', 'Boiler 1 - Discharge',
+            'Boiler 2', 'Boiler 2 - Cargo Heating', 'Boiler 2 - Discharge',
+            'IGG', 'Incinerator', 'DPP1', 'DPP2', 'DPP3'
         ]
     if 'fuel_types' not in st.session_state:
-        st.session_state.fuel_types = ['HFO', 'LFO', 'MGO/MDO', 'LPG', 'LNG', 'Methanol', 'Ethanol', 'Others', 'Other Fuel Type']
+        st.session_state.fuel_types = [
+            'HFO', 'LFO', 'MGO/MDO', 'LPG', 'LNG', 'Methanol', 'Ethanol', 'Others', 'Other Fuel Type'
+        ]
     if 'tanks' not in st.session_state:
         st.session_state.tanks = [f'Tank {i}' for i in range(1, 9)]
     if 'consumption_data' not in st.session_state:
@@ -41,6 +38,9 @@ def main():
     if 'bunker_survey_comments' not in st.session_state:
         st.session_state.bunker_survey_comments = ""
 
+def main():
+    initialize_session_state()
+
     st.title('Fuel Consumption Report')
 
     # Add view selection checkboxes
@@ -61,7 +61,7 @@ def main():
     # Add bunker survey checkbox
     bunker_survey = st.checkbox("Bunker Survey")
 
-    # Add comment box right after the checkbox
+    # Add comment box for bunker survey
     if bunker_survey:
         st.session_state.bunker_survey_comments = st.text_area(
             "Bunker Survey Comments",
@@ -83,8 +83,8 @@ def display_fuel_type_view(bunker_survey):
         if bunker_survey:
             index.append('Bunker Survey Correction')
         index.append('Current ROB')
-        
-        # Create DataFrame with explicit float type
+
+        # Create DataFrame and ensure numeric types
         df = pd.DataFrame(0.0, index=index, columns=st.session_state.fuel_types, dtype=float)
         df.loc['Previous ROB'] = st.session_state.previous_rob
         df.loc[st.session_state.consumers] = st.session_state.consumption_data
@@ -94,13 +94,12 @@ def display_fuel_type_view(bunker_survey):
         df.loc['Current ROB'] = df.loc['Previous ROB'] - total_consumption
         if bunker_survey:
             df.loc['Current ROB'] += df.loc['Bunker Survey Correction']
-        return df
+        return df.fillna(0.0).astype(float)
 
     df = create_editable_dataframe()
 
     st.subheader("Fuel Consumption Data")
 
-    # Create column config
     column_config = {
         fuel: st.column_config.NumberColumn(
             fuel,
@@ -123,7 +122,7 @@ def display_fuel_type_view(bunker_survey):
         key=f"fuel_consumption_editor_{uuid.uuid4()}"
     )
 
-    # Update session state with edited values
+    # Update session state
     st.session_state.consumption_data = edited_df.loc[st.session_state.consumers]
     st.session_state.previous_rob = edited_df.loc['Previous ROB']
     if bunker_survey:
@@ -140,8 +139,8 @@ def display_bdn_view(bunker_survey):
         if bunker_survey:
             index.append('Bunker Survey Correction')
         index.append('Current ROB')
-        
-        # Create DataFrame with explicit float type
+
+        # Create DataFrame and ensure numeric types
         df = pd.DataFrame(0.0, index=index, columns=st.session_state.tanks, dtype=float)
         df.loc['Previous ROB'] = st.session_state.previous_rob_bdn
         df.loc[st.session_state.consumers] = st.session_state.consumption_data_bdn
@@ -151,13 +150,12 @@ def display_bdn_view(bunker_survey):
         df.loc['Current ROB'] = df.loc['Previous ROB'] - total_consumption
         if bunker_survey:
             df.loc['Current ROB'] += df.loc['Bunker Survey Correction']
-        return df
+        return df.fillna(0.0).astype(float)
 
     df = create_editable_dataframe()
 
     st.subheader("Fuel Consumption Data")
 
-    # Create column config
     column_config = {
         tank: st.column_config.NumberColumn(
             tank,
@@ -175,7 +173,7 @@ def display_bdn_view(bunker_survey):
         key=f"bdn_consumption_editor_{uuid.uuid4()}"
     )
 
-    # Update session state with edited values
+    # Update session state
     st.session_state.consumption_data_bdn = edited_df.loc[st.session_state.consumers]
     st.session_state.previous_rob_bdn = edited_df.loc['Previous ROB']
     if bunker_survey:
