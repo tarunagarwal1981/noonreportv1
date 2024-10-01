@@ -270,13 +270,14 @@ def main():
         st.stop()
 
     # Additional checkboxes for bunkering, debunkering, and bunker survey
+    st.markdown("### Additional Options")
     col1, col2, col3 = st.columns(3)
     with col1:
-        bunkering_happened = st.checkbox("Bunkering Happened")
+        bunkering_happened = st.checkbox("Bunkering Happened", key="bunkering_checkbox")
     with col2:
-        debunkering_happened = st.checkbox("Debunkering Happened")
+        debunkering_happened = st.checkbox("Debunkering Happened", key="debunkering_checkbox")
     with col3:
-        bunker_survey = st.checkbox("Bunker Survey")
+        bunker_survey = st.checkbox("Bunker Survey", key="bunker_survey_checkbox")
 
     # Display bunkering details if bunkering happened
     if bunkering_happened:
