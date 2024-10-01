@@ -285,12 +285,38 @@ def display_debunkering_details():
         st.session_state.debunkering_entries.append({})
         st.experimental_rerun()
 
-import streamlit as st
-import pandas as pd
-import numpy as np
-import uuid
-
-# Existing setup functions here...
+def display_fuel_type_summary(bunker_survey, bunkering_happened, debunkering_happened):
+    st.subheader("Fuel Type Summary")
+    
+    # Define row names and column names
+    row_names = ["HFO", "LFO", "MGO", "MDO", "LPG", "LNG", "Methanol", "Ethanol"]
+    columns = ["Previous ROB (mT)", "Current ROB (mT)"]
+    
+    # Dynamically adjust columns based on bunker survey, bunkering, or debunkering
+    if bunker_survey:
+        columns.insert(1, "Survey Correction (mT)")
+    elif bunkering_happened:
+        columns.insert(1, "Bunkered Qty (mT)")
+    elif debunkering_happened:
+        columns.insert(1, "Debunkered Qty (mT)")
+    
+    # Initialize the DataFrame for the summary table
+    df_summary = pd.DataFrame(0, index=row_names, columns=columns)
+    
+    # Fill the table with random data (replace with actual data logic)
+    df_summary["Previous ROB (mT)"] = [np.random.uniform(100, 500) for _ in range(len(row_names))]
+    df_summary["Current ROB (mT)"] = [np.random.uniform(50, 450) for _ in range(len(row_names))]
+    
+    # Fill Bunkered Qty / Survey Correction / Debunkered Qty if applicable
+    if "Survey Correction (mT)" in columns:
+        df_summary["Survey Correction (mT)"] = [np.random.uniform(-5, 5) for _ in range(len(row_names))]
+    elif "Bunkered Qty (mT)" in columns:
+        df_summary["Bunkered Qty (mT)"] = [np.random.uniform(10, 50) for _ in range(len(row_names))]
+    elif "Debunkered Qty (mT)" in columns:
+        df_summary["Debunkered Qty (mT)"] = [np.random.uniform(10, 30) for _ in range(len(row_names))]
+    
+    # Display the summary table
+    st.dataframe(df_summary)
 
 # Function to display Flowmeter Method table similar to BDN-based method
 def display_flowmeter_method_report(bunker_survey, bunkering_happened, debunkering_happened):
@@ -380,7 +406,8 @@ def main():
         display_bdn_consumption_report(bunker_survey, bunkering_happened, debunkering_happened)
     elif flowmeter_method:
         display_flowmeter_method_report(False, False, False) 
-
+        display_fuel_type_summary(bunker_survey, bunkering_happened, debunkering_happened)   
+    
     # Display additional table with the correct view type
     display_additional_table(fuel_type_view)
 
