@@ -319,6 +319,7 @@ def display_fuel_type_summary(bunker_survey, bunkering_happened, debunkering_hap
     st.dataframe(df_summary)
 
 # Function to display Flowmeter Method table similar to BDN-based method
+
 def display_flowmeter_method_report(bunker_survey, bunkering_happened, debunkering_happened):
     def create_editable_dataframe():
         # Define the index (only consumers)
@@ -333,9 +334,15 @@ def display_flowmeter_method_report(bunker_survey, bunkering_happened, debunkeri
         # Initialize the DataFrame for the flowmeter method with zeros
         df = pd.DataFrame(0, index=index, columns=flowmeter_columns)
 
-        # Fill consumption data for consumers with random data (replace with actual data logic)
+        # List of fuel types to randomly choose from
+        fuel_types = ["LFO", "MGO", "HFO"]
+
+        # Fill consumption data for consumers with random data
         for consumer in st.session_state.consumers:
-            df.loc[consumer] = [np.random.uniform(10, 50) for _ in range(len(flowmeter_columns))]
+            row_data = [np.random.uniform(10, 50) for _ in range(len(flowmeter_columns) - 2)]  # -2 because we'll set Fuel Type and Total Consumption separately
+            row_data.append(random.choice(fuel_types))  # Randomly choose a fuel type
+            row_data.append(np.random.uniform(1, 10))  # Random Total Consumption
+            df.loc[consumer] = row_data
 
         return df
 
