@@ -285,46 +285,53 @@ def display_debunkering_details():
         st.session_state.debunkering_entries.append({})
         st.experimental_rerun()
 
+import streamlit as st
+import pandas as pd
+import numpy as np
+import uuid
+
+# Existing setup functions here...
+
+# Function to display Flowmeter Method table in tabular format
 def display_flowmeter_method_report():
     st.subheader("Flowmeter Method Data")
-    
+
     # Flowmeter columns
     flowmeter_columns = [
         "Flowmeter In", "Flowmeter Out", "Temp at flowmeter", 
         "Density @ 15°C", "Fuel Type", "Total Consumption (mT)"
     ]
     
-    # Initialize an empty DataFrame for flowmeter data
-    flowmeter_data = pd.DataFrame(columns=flowmeter_columns)
-    
     # Initialize session state for dynamic rows per consumer
     if 'flowmeter_rows' not in st.session_state:
         st.session_state.flowmeter_rows = {consumer: 1 for consumer in st.session_state.consumers}
     
-    # Loop through each consumer and create rows for flowmeter method
+    # Create empty DataFrame for the flowmeter data
+    flowmeter_data = pd.DataFrame(columns=flowmeter_columns)
+    
+    # Loop through each consumer and create rows for flowmeter method in tabular format
     for consumer in st.session_state.consumers:
         st.markdown(f"**{consumer}**")
         
-        # Allow dynamic row addition for each consumer
         for row in range(st.session_state.flowmeter_rows[consumer]):
-            col1, col2, col3, col4, col5, col6 = st.columns(6)
-            with col1:
-                flow_in = st.number_input(f"{consumer} - Flowmeter In (Row {row+1})", key=f"flow_in_{consumer}_{row}")
-            with col2:
-                flow_out = st.number_input(f"{consumer} - Flowmeter Out (Row {row+1})", key=f"flow_out_{consumer}_{row}")
-            with col3:
-                temp_at_flowmeter = st.number_input(f"{consumer} - Temp at Flowmeter (Row {row+1})", key=f"temp_{consumer}_{row}")
-            with col4:
-                density_at_15 = st.number_input(f"{consumer} - Density @ 15°C (Row {row+1})", key=f"density_{consumer}_{row}")
-            with col5:
-                fuel_type = st.selectbox(f"{consumer} - Fuel Type (Row {row+1})", st.session_state.fuel_types, key=f"fuel_type_{consumer}_{row}")
-            with col6:
-                total_consumption = st.number_input(f"{consumer} - Total Consumption (mT) (Row {row+1})", key=f"total_consumption_{consumer}_{row}")
-        
+            # Add new row in the flowmeter data
+            new_row = {
+                "Flowmeter In": st.number_input(f"{consumer} - Flowmeter In (Row {row+1})", key=f"flow_in_{consumer}_{row}"),
+                "Flowmeter Out": st.number_input(f"{consumer} - Flowmeter Out (Row {row+1})", key=f"flow_out_{consumer}_{row}"),
+                "Temp at flowmeter": st.number_input(f"{consumer} - Temp at Flowmeter (Row {row+1})", key=f"temp_{consumer}_{row}"),
+                "Density @ 15°C": st.number_input(f"{consumer} - Density @ 15°C (Row {row+1})", key=f"density_{consumer}_{row}"),
+                "Fuel Type": st.selectbox(f"{consumer} - Fuel Type (Row {row+1})", st.session_state.fuel_types, key=f"fuel_type_{consumer}_{row}"),
+                "Total Consumption (mT)": st.number_input(f"{consumer} - Total Consumption (mT) (Row {row+1})", key=f"total_consumption_{consumer}_{row}")
+            }
+            flowmeter_data = flowmeter_data.append(new_row, ignore_index=True)
+
         # Add button to allow adding more rows for the current consumer
         if st.button(f"➕ Add another row for {consumer}", key=f"add_row_{consumer}"):
             st.session_state.flowmeter_rows[consumer] += 1
             st.experimental_rerun()
+
+    # Display the entire table in tabular format after collecting the data
+    st.dataframe(flowmeter_data)
 
 # Main app functionality
 def main():
