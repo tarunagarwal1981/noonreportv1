@@ -1,9 +1,9 @@
+import streamlit as st
 import pandas as pd
 import numpy as np
 import random
 import string
 import uuid
-import streamlit as st
 
 st.set_page_config(layout="wide", page_title="Fuel Consumption and BDN Report")
 
@@ -426,9 +426,10 @@ def main():
         display_bdn_consumption_report(bunker_survey, bunkering_happened, debunkering_happened)
     elif flowmeter_method:
         display_flowmeter_method_report(bunker_survey, bunkering_happened, debunkering_happened)
-        
-    # Always display the additional table for all views
+
+    # Additional table for all three views
     display_additional_table(fuel_type_view)
+
     # Submit button
     if st.button("Submit Report", type="primary"):
         st.success("Report submitted successfully!")
