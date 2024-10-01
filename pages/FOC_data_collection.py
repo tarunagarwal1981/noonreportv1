@@ -295,58 +295,21 @@ import uuid
 # Function to display Flowmeter Method table similar to BDN-based method
 def display_flowmeter_method_report(bunker_survey, bunkering_happened, debunkering_happened):
     def create_editable_dataframe():
-        # Define the index (row names remain the same)
-        index = ['Previous ROB'] + st.session_state.consumers
-        if bunkering_happened:
-            index.append('Bunkered Qty')
-        if debunkering_happened:
-            index.append('Debunkered Qty')
-        if bunker_survey:
-            index.append('Bunker Survey Correction')
-        index.append('Current ROB')
+        # Define the index (only consumers)
+        index = st.session_state.consumers
 
-        # Create DataFrame with the new Flowmeter columns
+        # Create DataFrame with the Flowmeter columns
         flowmeter_columns = [
             "Flowmeter In", "Flowmeter Out", "Temp at flowmeter", 
             "Density @ 15°C", "Fuel Type", "Total Consumption (mT)"
         ]
         
-        # Initialize the DataFrame for the flowmeter method with zeros to avoid errors
+        # Initialize the DataFrame for the flowmeter method with zeros
         df = pd.DataFrame(0, index=index, columns=flowmeter_columns)
-
-        # Fill 'Previous ROB' row with random data for demonstration (replace with actual data logic)
-        df.loc['Previous ROB'] = [np.random.uniform(100, 1000) for _ in range(len(flowmeter_columns))]
 
         # Fill consumption data for consumers with random data (replace with actual data logic)
         for consumer in st.session_state.consumers:
             df.loc[consumer] = [np.random.uniform(10, 50) for _ in range(len(flowmeter_columns))]
-
-        # Fill bunkering and debunkering quantities if applicable
-        if bunkering_happened:
-            df.loc['Bunkered Qty'] = [np.random.uniform(50, 100) for _ in range(len(flowmeter_columns))]
-        if debunkering_happened:
-            df.loc['Debunkered Qty'] = [np.random.uniform(10, 50) for _ in range(len(flowmeter_columns))]
-        
-        # Fill bunker survey correction if needed
-        if bunker_survey:
-            df.loc['Bunker Survey Correction'] = [np.random.uniform(-10, 10) for _ in range(len(flowmeter_columns))]
-
-        # Ensure that the consumption data is numeric and calculate Current ROB
-        try:
-            total_consumption = pd.to_numeric(df.loc[st.session_state.consumers].sum(), errors='coerce').fillna(0)
-            df.loc['Current ROB'] = pd.to_numeric(df.loc['Previous ROB'], errors='coerce').fillna(0) - total_consumption
-        except Exception as e:
-            st.error(f"Error in calculating Current ROB: {e}")
-        
-        # Apply bunkering and debunkering adjustments
-        if bunkering_happened:
-            df.loc['Current ROB'] += pd.to_numeric(df.loc['Bunkered Qty'], errors='coerce').fillna(0)
-        if debunkering_happened:
-            df.loc['Current ROB'] -= pd.to_numeric(df.loc['Debunkered Qty'], errors='coerce').fillna(0)
-
-        # Apply bunker correction to Current ROB if present
-        if bunker_survey:
-            df.loc['Current ROB'] += pd.to_numeric(df.loc['Bunker Survey Correction'], errors='coerce').fillna(0)
 
         return df
 
@@ -359,16 +322,12 @@ def display_flowmeter_method_report(bunker_survey, bunkering_happened, debunkeri
     edited_df = st.data_editor(
         df,
         use_container_width=True,
-        num_rows="dynamic",
+        num_rows="fixed",  # This ensures no new rows can be added
         key=f"flowmeter_consumption_editor_{uuid.uuid4()}"
     )
 
     # Update session state based on the edited data
-    st.session_state.consumption_data_flowmeter = edited_df.loc[st.session_state.consumers]
-    st.session_state.previous_rob_flowmeter = edited_df.loc['Previous ROB']
-    if bunker_survey:
-        st.session_state.bunker_survey_correction_flowmeter = edited_df.loc['Bunker Survey Correction']
-
+    st.session_state.consumption_data_flowmeter = edited_df
 # Main app functionality
 def main():
     initialize_session_state()
@@ -420,7 +379,7 @@ def main():
     elif bdn_view:
         display_bdn_consumption_report(bunker_survey, bunkering_happened, debunkering_happened)
     elif flowmeter_method:
-        display_flowmeter_method_report(bunker_survey, bunkering_happened, debunkering_happened)
+        display_flowmeter_method_report(False, False, False) 
 
     # Display additional table with the correct view type
     display_additional_table(fuel_type_view)
