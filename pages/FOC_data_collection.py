@@ -75,6 +75,9 @@ def initialize_session_state():
     if 'debunkering_entries' not in st.session_state:
         st.session_state.debunkering_entries = [{}]
 
+    if 'tanks' not in st.session_state:
+        st.session_state.tanks = [f'Tank {i}' for i in range(1, 9)]
+
 # Fuel based report functionality
 def display_fuel_consumption_report(bunker_survey, bunkering_happened, debunkering_happened):
     def create_editable_dataframe():
@@ -285,6 +288,10 @@ def display_bunkering_details():
             entry['imo_ghg_intensity'] = st.number_input("IMO GHG emission intensity (gCO2eq/MJ)", min_value=0.0, step=0.1, key=f"imo_ghg_intensity_{i}")
             entry['lcv_eu'] = st.number_input("Lower Calorific Value (EU) (MJ/kg)", min_value=0.0, step=0.1, key=f"lcv_eu_{i}")
             entry['sustainability'] = st.text_input("Sustainability", key=f"sustainability_{i}")
+        
+        # Add tank selection
+        entry['tanks'] = st.multiselect("Select Tanks", st.session_state.tanks, key=f"bunkering_tanks_{i}")
+
     if st.button("➕ Add Bunkering Entry"):
         st.session_state.bunkering_entries.append({})
         st.experimental_rerun()
@@ -300,9 +307,15 @@ def display_debunkering_details():
         with col2:
             entry['bdn_number'] = st.text_input("BDN Number of Debunkered Oil", key=f"debunker_bdn_{i}")
             entry['receipt_file'] = st.file_uploader("Upload Receipt", type=['pdf', 'jpg', 'png'], key=f"receipt_file_{i}")
+        
+        # Add tank selection
+        entry['tanks'] = st.multiselect("Select Tanks", st.session_state.tanks, key=f"debunkering_tanks_{i}")
+
     if st.button("➕ Add Debunkering Entry"):
         st.session_state.debunkering_entries.append({})
         st.experimental_rerun()
+
+
 
 def display_fuel_type_summary(bunker_survey, bunkering_happened, debunkering_happened):
     st.subheader("Fuel Type Summary")
