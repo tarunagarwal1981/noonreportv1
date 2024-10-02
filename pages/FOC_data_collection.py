@@ -452,6 +452,65 @@ def display_tank_sounding_report(bunker_survey, bunkering_happened, debunkering_
     if bunker_survey:
         st.session_state.bunker_survey_correction_tank_sounding = edited_df.loc['Bunker Survey Correction']
 
+def display_ctms_method_report(bunker_survey, bunkering_happened, debunkering_happened):
+    def create_editable_dataframe():
+        index = ['Previous ROB'] + st.session_state.consumers
+        if bunkering_happened:
+            index.append('Bunkered Qty')
+        if debunkering_happened:
+            index.append('Debunkered Qty')
+        if bunker_survey:
+            index.append('Bunker Survey Correction')
+        index.append('Current ROB')
+        
+        columns = ['HFO', 'LFO', 'MGO/MDO', 'LPG', 'CTMS LNG qty (m3)', 'Density', 'N2 adjustment (mT)', 'LNG consumed (mT)', 'LNG loaded (m3)', 'LNG discharged (m3)']
+        
+        df = pd.DataFrame(0, index=index, columns=columns)
+        
+        # Fill 'Previous ROB' row
+        df.loc['Previous ROB'] = [np.random.uniform(100, 1000) for _ in range(len(columns))]
+        
+        # Fill consumption data for consumers with random data
+        for consumer in st.session_state.consumers:
+            df.loc[consumer] = [np.random.uniform(0, 50) for _ in range(len(columns))]
+        
+        # Fill bunkering and debunkering quantities if applicable
+        if bunkering_happened:
+            df.loc['Bunkered Qty'] = [np.random.uniform(50, 200) for _ in range(len(columns))]
+        if debunkering_happened:
+            df.loc['Debunkered Qty'] = [np.random.uniform(10, 50) for _ in range(len(columns))]
+        
+        # Fill bunker survey correction if needed
+        if bunker_survey:
+            df.loc['Bunker Survey Correction'] = [np.random.uniform(-5, 5) for _ in range(len(columns))]
+        
+        # Calculate Current ROB
+        df.loc['Current ROB'] = df.loc['Previous ROB'] - df.loc[st.session_state.consumers].sum()
+        if bunkering_happened:
+            df.loc['Current ROB'] += df.loc['Bunkered Qty']
+        if debunkering_happened:
+            df.loc['Current ROB'] -= df.loc['Debunkered Qty']
+        if bunker_survey:
+            df.loc['Current ROB'] += df.loc['Bunker Survey Correction']
+        
+        return df
+
+    df = create_editable_dataframe()
+    
+    st.subheader("CTMS Method Fuel Consumption Data")
+    edited_df = st.data_editor(
+        df,
+        use_container_width=True,
+        num_rows="dynamic",
+        key=f"ctms_method_editor_{uuid.uuid4()}"
+    )
+
+    # Update session state (you may want to create new session state variables for CTMS method)
+    st.session_state.consumption_data_ctms = edited_df.loc[st.session_state.consumers]
+    st.session_state.previous_rob_ctms = edited_df.loc['Previous ROB']
+    if bunker_survey:
+        st.session_state.bunker_survey_correction_ctms = edited_df.loc['Bunker Survey Correction']
+
 # Main app functionality
 def main():
     initialize_session_state()
@@ -459,7 +518,7 @@ def main():
     st.title("Fuel Consumption and BDN Report")
 
     # Checkbox for view selection
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3, col4, col5 = st.columns(5)
     with col1:
         fuel_type_view = st.checkbox("Fuel Type based", value=True)
     with col2:
@@ -468,15 +527,17 @@ def main():
         flowmeter_method = st.checkbox("Flowmeter Method", value=False)
     with col4:
         tank_sounding_method = st.checkbox("Tank Sounding Method", value=False)
+    with col5:
+        ctms_method = st.checkbox("CTMS Method", value=False)
 
     # Ensure only one view is selected
-    if sum([fuel_type_view, bdn_view, flowmeter_method, tank_sounding_method]) > 1:
+    if sum([fuel_type_view, bdn_view, flowmeter_method, tank_sounding_method, ctms_method]) > 1:
         st.warning("Please select only one view type.")
         st.stop()
-    elif not fuel_type_view and not bdn_view and not flowmeter_method and not tank_sounding_method:
+    elif not fuel_type_view and not bdn_view and not flowmeter_method and not tank_sounding_method and not ctms_method:
         st.warning("Please select a view type.")
         st.stop()
-
+        
     # Additional checkboxes for bunkering, debunkering, and bunker survey
     st.markdown("### Additional Options")
     col1, col2, col3 = st.columns(3)
@@ -508,7 +569,9 @@ def main():
         display_flowmeter_method_report(False, False, False)
         display_fuel_type_summary(bunker_survey, bunkering_happened, debunkering_happened)
     elif tank_sounding_method:
-        display_tank_sounding_report(bunker_survey, bunkering_happened, debunkering_happened) 
+        display_tank_sounding_report(bunker_survey, bunkering_happened, debunkering_happened)
+    elif ctms_method:
+        display_ctms_method_report(bunker_survey, bunkering_happened, debunkering_happened)
     
     # Display additional table with the correct view type
     display_additional_table(fuel_type_view)
