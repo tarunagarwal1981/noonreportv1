@@ -463,14 +463,14 @@ def display_ctms_method_report(bunker_survey, bunkering_happened, debunkering_ha
             index.append('Bunker Survey Correction')
         index.append('Current ROB')
         
-        columns = ['HFO', 'LFO', 'MGO/MDO', 'LPG', 'CTMS LNG qty (m3)', 'Density', 'N2 adjustment (mT)', 'LNG consumed (mT)', 'LNG loaded (m3)', 'LNG discharged (m3)']
+        columns = ['HFO', 'LFO', 'MGO/MDO']
         
         df = pd.DataFrame(0, index=index, columns=columns)
         
         # Fill 'Previous ROB' row
         df.loc['Previous ROB'] = [np.random.uniform(100, 1000) for _ in range(len(columns))]
         
-        # Fill consumption data for consumers with random data
+        # Fill consumption data for consumers
         for consumer in st.session_state.consumers:
             df.loc[consumer] = [np.random.uniform(0, 50) for _ in range(len(columns))]
         
@@ -495,22 +495,52 @@ def display_ctms_method_report(bunker_survey, bunkering_happened, debunkering_ha
         
         return df
 
-    df = create_editable_dataframe()
-    
+    def create_ctms_specific_dataframe():
+        index = ['CTMS qty (m3)', 'Cargo loaded (m3)', 'Cargo discharged (m3)', 'Density', 'N2 correction', 'Total LNG consumption (mT)']
+        df = pd.DataFrame(0, index=index, columns=['Value'])
+        
+        # Fill with random data for demonstration
+        df.loc['CTMS qty (m3)'] = np.random.uniform(1000, 5000)
+        df.loc['Cargo loaded (m3)'] = np.random.uniform(500, 2000)
+        df.loc['Cargo discharged (m3)'] = np.random.uniform(500, 2000)
+        df.loc['Density'] = np.random.uniform(0.4, 0.5)
+        df.loc['N2 correction'] = np.random.uniform(-5, 5)
+        df.loc['Total LNG consumption (mT)'] = np.random.uniform(50, 200)
+        
+        return df
+
     st.subheader("CTMS Method Fuel Consumption Data")
-    edited_df = st.data_editor(
-        df,
-        use_container_width=True,
-        num_rows="dynamic",
-        key=f"ctms_method_editor_{uuid.uuid4()}"
-    )
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        df = create_editable_dataframe()
+        edited_df = st.data_editor(
+            df,
+            use_container_width=True,
+            num_rows="dynamic",
+            key=f"ctms_method_editor_{uuid.uuid4()}"
+        )
 
-    # Update session state (you may want to create new session state variables for CTMS method)
-    st.session_state.consumption_data_ctms = edited_df.loc[st.session_state.consumers]
-    st.session_state.previous_rob_ctms = edited_df.loc['Previous ROB']
-    if bunker_survey:
-        st.session_state.bunker_survey_correction_ctms = edited_df.loc['Bunker Survey Correction']
+        # Update session state
+        st.session_state.consumption_data_ctms = edited_df.loc[st.session_state.consumers]
+        st.session_state.previous_rob_ctms = edited_df.loc['Previous ROB']
+        if bunker_survey:
+            st.session_state.bunker_survey_correction_ctms = edited_df.loc['Bunker Survey Correction']
 
+    with col2:
+        ctms_df = create_ctms_specific_dataframe()
+        edited_ctms_df = st.data_editor(
+            ctms_df,
+            use_container_width=True,
+            num_rows="fixed",
+            key=f"ctms_specific_editor_{uuid.uuid4()}"
+        )
+
+        # Update session state for CTMS specific data
+        st.session_state.ctms_specific_data = edited_ctms_df
+
+    return edited_df, edited_ctms_df
 # Main app functionality
 def main():
     initialize_session_state()
