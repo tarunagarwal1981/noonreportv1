@@ -430,7 +430,7 @@ def display_tank_sounding_report(bunker_survey, bunkering_happened, debunkering_
             df.loc['Bunkered Qty'] = [total_bunkered / len(tanks)] * len(tanks)
         if debunkering_happened:
             total_debunkered = sum(entry.get('quantity', 0) for entry in st.session_state.debunkering_entries)
-            df.loc['Debunkered Qty'] = [total_debunkered / len(tanks)] * len(tanks)]
+            df.loc['Debunkered Qty'] = [total_debunkered / len(tanks)] * len(tanks)
         
         # Fill bunker survey correction if needed
         if bunker_survey:
@@ -583,6 +583,7 @@ def edit_tank_properties():
     for i in range(1, 9):
         st.session_state.viscosity[f'Tank {i}'] = edited_props.loc[i - 1, 'Viscosity']
         st.session_state.sulfur[f'Tank {i}'] = edited_props.loc[i - 1, 'Sulfur (%)']
+
 # Main app functionality
 def main():
     initialize_session_state()
@@ -653,4 +654,8 @@ def main():
         edit_tank_properties()
 
     # Submit button
-    if st.button
+    if st.button("Submit Report", type="primary"):
+        st.success("Report submitted successfully!")
+
+if __name__ == "__main__":
+    main()
