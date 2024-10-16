@@ -254,15 +254,57 @@ def display_ctms_method_report():
 
     return edited_df, edited_ctms_df
 
+def display_bunkering_details():
+    st.markdown("<h4 style='font-size: 18px;'>Bunkering Details</h4>", unsafe_allow_html=True)
+    if 'bunkering_entries' not in st.session_state:
+        st.session_state.bunkering_entries = [{}]
+    for i, entry in enumerate(st.session_state.bunkering_entries):
+        st.markdown(f"<h5 style='font-size: 16px;'>Bunkering Entry {i+1}</h5>", unsafe_allow_html=True)
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            entry['bdn_number'] = st.text_input("Bunker Delivery Note Number", key=f"bdn_number_{i}")
+            entry['delivery_date'] = st.date_input("Bunker Delivery Date", key=f"delivery_date_{i}")
+            entry['delivery_time'] = st.time_input("Bunker Delivery Time", key=f"delivery_time_{i}")
+        with col2:
+            entry['imo_number'] = st.text_input("IMO number", key=f"imo_number_{i}")
+            entry['fuel_type'] = st.text_input("Fuel Type", key=f"fuel_type_{i}")
+            entry['mass'] = st.number_input("Mass (mt)", min_value=0.0, step=0.1, key=f"mass_{i}")
+        with col3:
+            entry['lower_heating_value'] = st.number_input("Lower heating value (MJ/kg)", min_value=0.0, step=0.1, key=f"lower_heating_value_{i}")
+            entry['eu_ghg_intensity'] = st.number_input("EU GHG emission intensity (gCO2eq/MJ)", min_value=0.0, step=0.1, key=f"eu_ghg_intensity_{i}")
+            entry['imo_ghg_intensity'] = st.number_input("IMO GHG emission intensity (gCO2eq/MJ)", min_value=0.0, step=0.1, key=f"imo_ghg_intensity_{i}")
+            entry['lcv_eu'] = st.number_input("Lower Calorific Value (EU) (MJ/kg)", min_value=0.0, step=0.1, key=f"lcv_eu_{i}")
+            entry['sustainability'] = st.text_input("Sustainability", key=f"sustainability_{i}")
+        
+        # Add tank selection
+        entry['tanks'] = st.multiselect("Select Tanks", st.session_state.tanks, key=f"bunkering_tanks_{i}")
+    if st.button("➕ Add Bunkering Entry"):
+        st.session_state.bunkering_entries.append({})
+        st.experimental_rerun()
+
 def edit_tank_properties():
     st.write("Edit tank properties:")
     
+    # Add checkboxes for bunkering record, debunkering record, and Bunker Survey
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        bunkering_record = st.checkbox("Bunkering Record")
+    with col2:
+        debunkering_record = st.checkbox("Debunkering Record")
+    with col3:
+        bunker_survey = st.checkbox("Bunker Survey")
+
+    # Display bunkering details if bunkering record is checked
+    if bunkering_record:
+        display_bunkering_details()
+
     fuel_grade_options = ['VLSFO', 'MGO', 'HFO']
     
     tank_props = pd.DataFrame({
         'Fuel Grade': [random.choice(fuel_grade_options) for _ in range(8)],
         'Viscosity': [st.session_state.viscosity[f'Tank {i}'] for i in range(1, 9)],
         'Sulfur (%)': [st.session_state.sulfur[f'Tank {i}'] for i in range(1, 9)],
+        'Bunkered qty(mT)': [0.0] * 8,  # New column
         'Current ROB': [np.random.uniform(50, 500) for _ in range(8)]
     }, index=[f'Tank {i}' for i in range(1, 9)])
 
@@ -283,6 +325,9 @@ def edit_tank_properties():
         ),
         'Sulfur (%)': st.column_config.NumberColumn(
             'Sulfur (%)', min_value=0.05, max_value=0.49, step=0.01, format="%.2f"
+        ),
+        'Bunkered qty(mT)': st.column_config.NumberColumn(
+            'Bunkered qty(mT)', min_value=0.0, step=0.1, format="%.1f"
         ),
         'Current ROB': st.column_config.NumberColumn(
             'Current ROB', min_value=0.0, step=0.1, format="%.1f"
@@ -332,6 +377,7 @@ def edit_tank_properties():
 
     return edited_props
 
+# Update the main function to include the new edit_tank_properties function
 def main():
     initialize_session_state()
 
