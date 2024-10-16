@@ -556,6 +556,8 @@ def display_ctms_method_report(bunker_survey, bunkering_happened, debunkering_ha
 
 import random
 
+import random
+
 def edit_tank_properties():
     st.write("Edit tank properties:")
     
@@ -566,25 +568,48 @@ def edit_tank_properties():
     tank_props = pd.DataFrame({
         'Fuel Grade': [random.choice(fuel_grade_options) for _ in range(8)],
         'Viscosity': [st.session_state.viscosity[f'Tank {i}'] for i in range(1, 9)],
-        'Sulfur (%)': [st.session_state.sulfur[f'Tank {i}'] for i in range(1, 9)]
+        'Sulfur (%)': [st.session_state.sulfur[f'Tank {i}'] for i in range(1, 9)],
+        'Current ROB': [np.random.uniform(50, 500) for _ in range(8)]  # Add Current ROB column
     }, index=[f'Tank {i}' for i in range(1, 9)])
+
+    # Add tank-to-tank transfer checkbox
+    tank_transfer = st.checkbox("Enable Tank-to-Tank Transfer")
+
+    if tank_transfer:
+        tank_props['Qty (mT) Transferred From Tank'] = [0.0] * 8
+        tank_props['Qty (mT) Transferred To Tank'] = [0.0] * 8
+
+    column_config = {
+        'Fuel Grade': st.column_config.SelectboxColumn(
+            'Fuel Grade',
+            options=fuel_grade_options,
+            required=True
+        ),
+        'Viscosity': st.column_config.NumberColumn(
+            'Viscosity', min_value=20.0, max_value=100.0, step=0.1, format="%.1f"
+        ),
+        'Sulfur (%)': st.column_config.NumberColumn(
+            'Sulfur (%)', min_value=0.05, max_value=0.49, step=0.01, format="%.2f"
+        ),
+        'Current ROB': st.column_config.NumberColumn(
+            'Current ROB', min_value=0.0, step=0.1, format="%.1f"
+        )
+    }
+
+    if tank_transfer:
+        column_config.update({
+            'Qty (mT) Transferred From Tank': st.column_config.NumberColumn(
+                'Transferred From', min_value=0.0, step=0.1, format="%.1f"
+            ),
+            'Qty (mT) Transferred To Tank': st.column_config.NumberColumn(
+                'Transferred To', min_value=0.0, step=0.1, format="%.1f"
+            )
+        })
 
     edited_props = st.data_editor(
         tank_props,
         use_container_width=True,
-        column_config={
-            'Fuel Grade': st.column_config.SelectboxColumn(
-                'Fuel Grade',
-                options=fuel_grade_options,
-                required=True
-            ),
-            'Viscosity': st.column_config.NumberColumn(
-                'Viscosity', min_value=20.0, max_value=100.0, step=0.1, format="%.1f"
-            ),
-            'Sulfur (%)': st.column_config.NumberColumn(
-                'Sulfur (%)', min_value=0.05, max_value=0.49, step=0.01, format="%.2f"
-            )
-        },
+        column_config=column_config,
         key=f"edit_tank_properties_editor_{uuid.uuid4()}"
     )
     
@@ -599,7 +624,25 @@ def edit_tank_properties():
         st.session_state.fuel_grades = {}
     for tank_name, row in edited_props.iterrows():
         st.session_state.fuel_grades[tank_name] = row['Fuel Grade']
+
+    # Store Current ROB in session state
+    if 'current_rob' not in st.session_state:
+        st.session_state.current_rob = {}
+    for tank_name, row in edited_props.iterrows():
+        st.session_state.current_rob[tank_name] = row['Current ROB']
+
+    # Handle tank-to-tank transfers
+    if tank_transfer:
+        transfers_from = edited_props['Qty (mT) Transferred From Tank']
+        transfers_to = edited_props['Qty (mT) Transferred To Tank']
         
+        if transfers_from.sum() != transfers_to.sum():
+            st.warning("The total quantity transferred from tanks must equal the total quantity transferred to tanks.")
+        else:
+            st.success(f"Total quantity transferred: {transfers_from.sum()} mT")
+
+    return edited_props
+    
 # Main app functionality
 def main():
     initialize_session_state()
