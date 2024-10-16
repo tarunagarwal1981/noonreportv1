@@ -554,6 +554,28 @@ def display_ctms_method_report(bunker_survey, bunkering_happened, debunkering_ha
         st.session_state.ctms_specific_data = edited_ctms_df
 
     return edited_df, edited_ctms_df
+
+def edit_tank_properties():
+    st.write("Edit tank properties:")
+    tank_props = pd.DataFrame({
+        'Viscosity': st.session_state.viscosity,
+        'Sulfur (%)': st.session_state.sulfur
+    })
+    edited_props = st.data_editor(
+        tank_props,
+        use_container_width=True,
+        column_config={
+            'Viscosity': st.column_config.NumberColumn(
+                'Viscosity', min_value=20.0, max_value=100.0, step=0.1, format="%.1f"
+            ),
+            'Sulfur (%)': st.column_config.NumberColumn(
+                'Sulfur (%)', min_value=0.05, max_value=0.49, step=0.01, format="%.2f"
+            )
+        }
+    )
+    st.session_state.viscosity = edited_props['Viscosity'].to_dict()
+    st.session_state.sulfur = edited_props['Sulfur (%)'].to_dict()
+
 # Main app functionality
 def main():
     initialize_session_state()
@@ -584,44 +606,4 @@ def main():
     # Additional checkboxes for bunkering, debunkering, and bunker survey
     st.markdown("### Additional Options")
     col1, col2, col3 = st.columns(3)
-    with col1:
-        bunkering_happened = st.checkbox("Bunkering Happened", key="bunkering_checkbox")
-    with col2:
-        debunkering_happened = st.checkbox("Debunkering Happened", key="debunkering_checkbox")
-    with col3:
-        bunker_survey = st.checkbox("Bunker Survey", key="bunker_survey_checkbox")
-
-    # Display bunkering details if bunkering happened
-    if bunkering_happened:
-        display_bunkering_details()
-
-    # Display debunkering details if debunkering happened
-    if debunkering_happened:
-        display_debunkering_details()
-
-    # Bunker survey comments
-    if bunker_survey:
-        st.session_state.bunker_survey_comments = st.text_area("Bunker Survey Comments", value=st.session_state.bunker_survey_comments, height=100)
-
-    # Display corresponding report based on the selected view
-    if fuel_type_view:
-        display_fuel_consumption_report(bunker_survey, bunkering_happened, debunkering_happened)
-    elif bdn_view:
-        display_bdn_consumption_report(bunker_survey, bunkering_happened, debunkering_happened)
-    elif flowmeter_method:
-        display_flowmeter_method_report(False, False, False)
-        display_fuel_type_summary(bunker_survey, bunkering_happened, debunkering_happened)
-    elif tank_sounding_method:
-        display_tank_sounding_report(bunker_survey, bunkering_happened, debunkering_happened)
-    elif ctms_method:
-        display_ctms_method_report(bunker_survey, bunkering_happened, debunkering_happened)
-    
-    # Display additional table with the correct view type
-    display_additional_table(fuel_type_view)
-
-    # Submit button
-    if st.button("Submit Report", type="primary"):
-        st.success("Report submitted successfully!")
-
-if __name__ == "__main__":
-    main()
+    with col1
