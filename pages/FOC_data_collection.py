@@ -282,6 +282,26 @@ def display_bunkering_details():
         st.session_state.bunkering_entries.append({})
         st.experimental_rerun()
 
+def display_debunkering_details():
+    st.markdown("<h4 style='font-size: 18px;'>Debunkering Details</h4>", unsafe_allow_html=True)
+    if 'debunkering_entries' not in st.session_state:
+        st.session_state.debunkering_entries = [{}]
+    for i, entry in enumerate(st.session_state.debunkering_entries):
+        st.markdown(f"<h5 style='font-size: 16px;'>Debunkering Entry {i+1}</h5>", unsafe_allow_html=True)
+        col1, col2 = st.columns(2)
+        with col1:
+            entry['date'] = st.date_input("Date of Debunkering", key=f"debunker_date_{i}")
+            entry['quantity'] = st.number_input("Quantity Debunkered (mt)", min_value=0.0, step=0.1, key=f"debunker_qty_{i}")
+        with col2:
+            entry['bdn_number'] = st.text_input("BDN Number of Debunkered Oil", key=f"debunker_bdn_{i}")
+            entry['receipt_file'] = st.file_uploader("Upload Receipt", type=['pdf', 'jpg', 'png'], key=f"receipt_file_{i}")
+        
+        # Add tank selection
+        entry['tanks'] = st.multiselect("Select Tanks", st.session_state.tanks, key=f"debunkering_tanks_{i}")
+    if st.button("➕ Add Debunkering Entry"):
+        st.session_state.debunkering_entries.append({})
+        st.experimental_rerun()
+
 def edit_tank_properties():
     st.write("Edit tank properties:")
     
@@ -298,15 +318,27 @@ def edit_tank_properties():
     if bunkering_record:
         display_bunkering_details()
 
+    # Display debunkering details if debunkering record is checked
+    if debunkering_record:
+        display_debunkering_details()
+
     fuel_grade_options = ['VLSFO', 'MGO', 'HFO']
     
+    # Create the base DataFrame
     tank_props = pd.DataFrame({
         'Fuel Grade': [random.choice(fuel_grade_options) for _ in range(8)],
         'Viscosity': [st.session_state.viscosity[f'Tank {i}'] for i in range(1, 9)],
         'Sulfur (%)': [st.session_state.sulfur[f'Tank {i}'] for i in range(1, 9)],
-        'Bunkered qty(mT)': [0.0] * 8,  # New column
         'Current ROB': [np.random.uniform(50, 500) for _ in range(8)]
     }, index=[f'Tank {i}' for i in range(1, 9)])
+
+    # Add columns based on checked options
+    if bunkering_record:
+        tank_props.insert(3, 'Bunkered qty(mT)', [0.0] * 8)
+    if debunkering_record:
+        tank_props.insert(3, 'Debunkered qty(mT)', [0.0] * 8)
+    if bunker_survey:
+        tank_props.insert(3, 'Survey Correction qty(mT)', [0.0] * 8)
 
     tank_transfer = st.checkbox("Enable Tank-to-Tank Transfer")
 
@@ -326,13 +358,23 @@ def edit_tank_properties():
         'Sulfur (%)': st.column_config.NumberColumn(
             'Sulfur (%)', min_value=0.05, max_value=0.49, step=0.01, format="%.2f"
         ),
-        'Bunkered qty(mT)': st.column_config.NumberColumn(
-            'Bunkered qty(mT)', min_value=0.0, step=0.1, format="%.1f"
-        ),
         'Current ROB': st.column_config.NumberColumn(
             'Current ROB', min_value=0.0, step=0.1, format="%.1f"
         )
     }
+
+    if bunkering_record:
+        column_config['Bunkered qty(mT)'] = st.column_config.NumberColumn(
+            'Bunkered qty(mT)', min_value=0.0, step=0.1, format="%.1f"
+        )
+    if debunkering_record:
+        column_config['Debunkered qty(mT)'] = st.column_config.NumberColumn(
+            'Debunkered qty(mT)', min_value=0.0, step=0.1, format="%.1f"
+        )
+    if bunker_survey:
+        column_config['Survey Correction qty(mT)'] = st.column_config.NumberColumn(
+            'Survey Correction qty(mT)', min_value=-100.0, max_value=100.0, step=0.1, format="%.1f"
+        )
 
     if tank_transfer:
         column_config.update({
@@ -376,6 +418,7 @@ def edit_tank_properties():
             st.success(f"Total quantity transferred: {transfers_from.sum()} mT")
 
     return edited_props
+
 
 # Update the main function to include the new edit_tank_properties function
 def main():
