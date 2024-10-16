@@ -565,6 +565,10 @@ def edit_tank_properties():
         tank_props,
         use_container_width=True,
         column_config={
+            'Tank': st.column_config.TextColumn(
+                'Tank',
+                disabled=True
+            ),
             'Viscosity': st.column_config.NumberColumn(
                 'Viscosity', min_value=20.0, max_value=100.0, step=0.1, format="%.1f"
             ),
@@ -579,7 +583,6 @@ def edit_tank_properties():
     for i in range(1, 9):
         st.session_state.viscosity[f'Tank {i}'] = edited_props.loc[i - 1, 'Viscosity']
         st.session_state.sulfur[f'Tank {i}'] = edited_props.loc[i - 1, 'Sulfur (%)']
-
 # Main app functionality
 def main():
     initialize_session_state()
