@@ -122,32 +122,43 @@ def edit_tank_properties():
 def display_fuel_consumption_report(edited_props, bunkering_happened, debunkering_happened, bunker_survey):
     st.subheader("Fuel Consumption Data")
 
-    fuel_consumption = edited_props.groupby('Fuel Grade').agg({
-        'Current ROB': 'sum',
-        'Bunkered Qty (mT)': 'sum' if 'Bunkered Qty (mT)' in edited_props.columns else (lambda x: 0),
-        'Debunkered Qty (mT)': 'sum' if 'Debunkered Qty (mT)' in edited_props.columns else (lambda x: 0),
-        'Correction Qty (mT)': 'sum' if 'Correction Qty (mT)' in edited_props.columns else (lambda x: 0)
-    }).reset_index()
+    # Define the aggregation dictionary
+    agg_dict = {'Current ROB': 'sum'}
+    
+    # Add optional columns to the aggregation dictionary if they exist
+    if 'Bunkered Qty (mT)' in edited_props.columns:
+        agg_dict['Bunkered Qty (mT)'] = 'sum'
+    if 'Debunkered Qty (mT)' in edited_props.columns:
+        agg_dict['Debunkered Qty (mT)'] = 'sum'
+    if 'Correction Qty (mT)' in edited_props.columns:
+        agg_dict['Correction Qty (mT)'] = 'sum'
 
-    fuel_consumption['Previous ROB'] = (
-        fuel_consumption['Current ROB'] - 
-        fuel_consumption['Bunkered Qty (mT)'] + 
-        fuel_consumption['Debunkered Qty (mT)'] - 
-        fuel_consumption['Correction Qty (mT)']
-    )
+    # Perform the groupby and aggregation
+    fuel_consumption = edited_props.groupby('Fuel Grade').agg(agg_dict).reset_index()
 
+    # Calculate Previous ROB
+    fuel_consumption['Previous ROB'] = fuel_consumption['Current ROB']
+    if 'Bunkered Qty (mT)' in fuel_consumption.columns:
+        fuel_consumption['Previous ROB'] -= fuel_consumption['Bunkered Qty (mT)']
+    if 'Debunkered Qty (mT)' in fuel_consumption.columns:
+        fuel_consumption['Previous ROB'] += fuel_consumption['Debunkered Qty (mT)']
+    if 'Correction Qty (mT)' in fuel_consumption.columns:
+        fuel_consumption['Previous ROB'] -= fuel_consumption['Correction Qty (mT)']
+
+    # Define the column order
     columns = ['Fuel Grade', 'Previous ROB']
-    if bunkering_happened:
+    if bunkering_happened and 'Bunkered Qty (mT)' in fuel_consumption.columns:
         columns.append('Bunkered Qty (mT)')
-    if debunkering_happened:
+    if debunkering_happened and 'Debunkered Qty (mT)' in fuel_consumption.columns:
         columns.append('Debunkered Qty (mT)')
-    if bunker_survey:
+    if bunker_survey and 'Correction Qty (mT)' in fuel_consumption.columns:
         columns.append('Correction Qty (mT)')
     columns.append('Current ROB')
 
+    # Reorder the columns
     fuel_consumption = fuel_consumption[columns]
-    st.dataframe(fuel_consumption, use_container_width=True)
 
+    st.dataframe(fuel_consumption, use_container_width=True)
 def display_bdn_consumption_report(edited_props, bunkering_happened, debunkering_happened, bunker_survey):
     st.subheader("BDN Based Fuel Consumption Data")
     
