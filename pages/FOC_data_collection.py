@@ -556,18 +556,25 @@ def display_ctms_method_report(bunker_survey, bunkering_happened, debunkering_ha
 
 def edit_tank_properties():
     st.write("Edit tank properties:")
+    
+    # Define fuel grade options
+    fuel_grade_options = ['VLSFO', 'HSFO', 'MGO', 'MDO', 'LNG', 'LPG', 'Methanol', 'Other']
+    
+    # Create DataFrame with tank names as index
     tank_props = pd.DataFrame({
-        'Tank': [f'Tank {i}' for i in range(1, 9)],
+        'Fuel Grade': ['VLSFO'] * 8,  # Default to VLSFO, can be changed by user
         'Viscosity': [st.session_state.viscosity[f'Tank {i}'] for i in range(1, 9)],
         'Sulfur (%)': [st.session_state.sulfur[f'Tank {i}'] for i in range(1, 9)]
-    })
+    }, index=[f'Tank {i}' for i in range(1, 9)])
+
     edited_props = st.data_editor(
         tank_props,
         use_container_width=True,
         column_config={
-            'Tank': st.column_config.TextColumn(
-                'Tank',
-                disabled=True
+            'Fuel Grade': st.column_config.SelectboxColumn(
+                'Fuel Grade',
+                options=fuel_grade_options,
+                required=True
             ),
             'Viscosity': st.column_config.NumberColumn(
                 'Viscosity', min_value=20.0, max_value=100.0, step=0.1, format="%.1f"
@@ -581,9 +588,15 @@ def edit_tank_properties():
     
     # Update session state with edited values
     for i in range(1, 9):
-        st.session_state.viscosity[f'Tank {i}'] = edited_props.loc[i - 1, 'Viscosity']
-        st.session_state.sulfur[f'Tank {i}'] = edited_props.loc[i - 1, 'Sulfur (%)']
-
+        tank_name = f'Tank {i}'
+        st.session_state.viscosity[tank_name] = edited_props.loc[tank_name, 'Viscosity']
+        st.session_state.sulfur[tank_name] = edited_props.loc[tank_name, 'Sulfur (%)']
+    
+    # If you want to store the fuel grade information, you can add it to the session state
+    if 'fuel_grades' not in st.session_state:
+        st.session_state.fuel_grades = {}
+    for tank_name, row in edited_props.iterrows():
+        st.session_state.fuel_grades[tank_name] = row['Fuel Grade']
 # Main app functionality
 def main():
     initialize_session_state()
