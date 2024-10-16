@@ -430,7 +430,7 @@ def display_tank_sounding_report(bunker_survey, bunkering_happened, debunkering_
             df.loc['Bunkered Qty'] = [total_bunkered / len(tanks)] * len(tanks)
         if debunkering_happened:
             total_debunkered = sum(entry.get('quantity', 0) for entry in st.session_state.debunkering_entries)
-            df.loc['Debunkered Qty'] = [total_debunkered / len(tanks)] * len(tanks)
+            df.loc['Debunkered Qty'] = [total_debunkered / len(tanks)] * len(tanks)]
         
         # Fill bunker survey correction if needed
         if bunker_survey:
