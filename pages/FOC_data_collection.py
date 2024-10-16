@@ -430,7 +430,7 @@ def display_tank_sounding_report(bunker_survey, bunkering_happened, debunkering_
             df.loc['Bunkered Qty'] = [total_bunkered / len(tanks)] * len(tanks)
         if debunkering_happened:
             total_debunkered = sum(entry.get('quantity', 0) for entry in st.session_state.debunkering_entries)
-            df.loc['Debunkered Qty'] = [total_debunkered / len(tanks)] * len(tanks)
+            df.loc['Debunkered Qty'] = [total_debunkered / len(tanks)] * len(tanks]
         
         # Fill bunker survey correction if needed
         if bunker_survey:
@@ -557,8 +557,9 @@ def display_ctms_method_report(bunker_survey, bunkering_happened, debunkering_ha
 def edit_tank_properties():
     st.write("Edit tank properties:")
     tank_props = pd.DataFrame({
-        'Viscosity': st.session_state.viscosity,
-        'Sulfur (%)': st.session_state.sulfur
+        'Tank': [f'Tank {i}' for i in range(1, 9)],
+        'Viscosity': [st.session_state.viscosity[f'Tank {i}'] for i in range(1, 9)],
+        'Sulfur (%)': [st.session_state.sulfur[f'Tank {i}'] for i in range(1, 9)]
     })
     edited_props = st.data_editor(
         tank_props,
@@ -570,10 +571,14 @@ def edit_tank_properties():
             'Sulfur (%)': st.column_config.NumberColumn(
                 'Sulfur (%)', min_value=0.05, max_value=0.49, step=0.01, format="%.2f"
             )
-        }
+        },
+        key=f"edit_tank_properties_editor_{uuid.uuid4()}"
     )
-    st.session_state.viscosity = edited_props['Viscosity'].to_dict()
-    st.session_state.sulfur = edited_props['Sulfur (%)'].to_dict()
+    
+    # Update session state with edited values
+    for i in range(1, 9):
+        st.session_state.viscosity[f'Tank {i}'] = edited_props.loc[i - 1, 'Viscosity']
+        st.session_state.sulfur[f'Tank {i}'] = edited_props.loc[i - 1, 'Sulfur (%)']
 
 # Main app functionality
 def main():
@@ -645,8 +650,4 @@ def main():
         edit_tank_properties()
 
     # Submit button
-    if st.button("Submit Report", type="primary"):
-        st.success("Report submitted successfully!")
-
-if __name__ == "__main__":
-    main()
+    if st.button
