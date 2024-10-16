@@ -569,15 +569,33 @@ def edit_tank_properties():
         'Fuel Grade': [random.choice(fuel_grade_options) for _ in range(8)],
         'Viscosity': [st.session_state.viscosity[f'Tank {i}'] for i in range(1, 9)],
         'Sulfur (%)': [st.session_state.sulfur[f'Tank {i}'] for i in range(1, 9)],
-        'Current ROB': [np.random.uniform(50, 500) for _ in range(8)]  # Add Current ROB column
     }, index=[f'Tank {i}' for i in range(1, 9)])
+
+    # Add checkboxes for bunkering, debunkering, and bunker survey
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        bunkering_happened = st.checkbox("Bunkering Happened", key="bunkering_checkbox")
+    with col2:
+        debunkering_happened = st.checkbox("Debunkering Happened", key="debunkering_checkbox")
+    with col3:
+        bunker_survey = st.checkbox("Bunker Survey", key="bunker_survey_checkbox")
 
     # Add tank-to-tank transfer checkbox
     tank_transfer = st.checkbox("Enable Tank-to-Tank Transfer")
 
+    # Add columns based on checkboxes
+    if bunkering_happened:
+        tank_props['Bunkered Qty (mT)'] = [0.0] * 8
+    if debunkering_happened:
+        tank_props['Debunkered Qty (mT)'] = [0.0] * 8
+    if bunker_survey:
+        tank_props['Correction Qty (mT)'] = [0.0] * 8
     if tank_transfer:
         tank_props['Qty (mT) Transferred From Tank'] = [0.0] * 8
         tank_props['Qty (mT) Transferred To Tank'] = [0.0] * 8
+
+    # Add Current ROB column
+    tank_props['Current ROB'] = [np.random.uniform(50, 500) for _ in range(8)]
 
     column_config = {
         'Fuel Grade': st.column_config.SelectboxColumn(
@@ -596,6 +614,18 @@ def edit_tank_properties():
         )
     }
 
+    if bunkering_happened:
+        column_config['Bunkered Qty (mT)'] = st.column_config.NumberColumn(
+            'Bunkered Qty (mT)', min_value=0.0, step=0.1, format="%.1f"
+        )
+    if debunkering_happened:
+        column_config['Debunkered Qty (mT)'] = st.column_config.NumberColumn(
+            'Debunkered Qty (mT)', min_value=0.0, step=0.1, format="%.1f"
+        )
+    if bunker_survey:
+        column_config['Correction Qty (mT)'] = st.column_config.NumberColumn(
+            'Correction Qty (mT)', min_value=-100.0, max_value=100.0, step=0.1, format="%.1f"
+        )
     if tank_transfer:
         column_config.update({
             'Qty (mT) Transferred From Tank': st.column_config.NumberColumn(
@@ -641,7 +671,7 @@ def edit_tank_properties():
         else:
             st.success(f"Total quantity transferred: {transfers_from.sum()} mT")
 
-    return edited_props
+    return edited_props, bunkering_happened, debunkering_happened, bunker_survey
     
 # Main app functionality
 def main():
@@ -669,48 +699,25 @@ def main():
     elif not fuel_type_view and not bdn_view and not flowmeter_method and not tank_sounding_method and not ctms_method:
         st.warning("Please select a view type.")
         st.stop()
-        
-    # Additional checkboxes for bunkering, debunkering, and bunker survey
-    st.markdown("### Additional Options")
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        bunkering_happened = st.checkbox("Bunkering Happened", key="bunkering_checkbox")
-    with col2:
-        debunkering_happened = st.checkbox("Debunkering Happened", key="debunkering_checkbox")
-    with col3:
-        bunker_survey = st.checkbox("Bunker Survey", key="bunker_survey_checkbox")
 
-    # Display bunkering details if bunkering happened
-    if bunkering_happened:
-        display_bunkering_details()
-
-    # Display debunkering details if debunkering happened
-    if debunkering_happened:
-        display_debunkering_details()
-
-    # Bunker survey comments
-    if bunker_survey:
-        st.session_state.bunker_survey_comments = st.text_area("Bunker Survey Comments", value=st.session_state.bunker_survey_comments, height=100)
+    # Edit tank properties
+    edited_props, bunkering_happened, debunkering_happened, bunker_survey = edit_tank_properties()
 
     # Display corresponding report based on the selected view
     if fuel_type_view:
-        display_fuel_consumption_report(bunker_survey, bunkering_happened, debunkering_happened)
+        display_fuel_consumption_report(edited_props, bunkering_happened, debunkering_happened, bunker_survey)
     elif bdn_view:
-        display_bdn_consumption_report(bunker_survey, bunkering_happened, debunkering_happened)
+        display_bdn_consumption_report(edited_props, bunkering_happened, debunkering_happened, bunker_survey)
     elif flowmeter_method:
-        display_flowmeter_method_report(False, False, False)
-        display_fuel_type_summary(bunker_survey, bunkering_happened, debunkering_happened)
+        display_flowmeter_method_report(edited_props, bunkering_happened, debunkering_happened, bunker_survey)
+        display_fuel_type_summary(edited_props, bunkering_happened, debunkering_happened, bunker_survey)
     elif tank_sounding_method:
-        display_tank_sounding_report(bunker_survey, bunkering_happened, debunkering_happened)
+        display_tank_sounding_report(edited_props, bunkering_happened, debunkering_happened, bunker_survey)
     elif ctms_method:
-        display_ctms_method_report(bunker_survey, bunkering_happened, debunkering_happened)
+        display_ctms_method_report(edited_props, bunkering_happened, debunkering_happened, bunker_survey)
     
     # Display additional table with the correct view type
     display_additional_table(fuel_type_view)
-
-    # Edit tank properties if selected
-    if st.checkbox("Edit Tank Properties"):
-        edit_tank_properties()
 
     # Submit button
     if st.button("Submit Report", type="primary"):
