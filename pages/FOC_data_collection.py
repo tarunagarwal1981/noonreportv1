@@ -206,7 +206,7 @@ def display_tank_sounding_report():
 def display_ctms_method_report():
     def create_editable_dataframe():
         index = ['Previous ROB'] + st.session_state.consumers + ['Current ROB']
-        columns = ['HFO', 'LFO', 'MGO/MDO']
+        columns = ['HFO', 'LFO', 'MGO/MDO', 'LNG']
         df = pd.DataFrame(0, index=index, columns=columns)
         df.loc['Previous ROB'] = [np.random.uniform(100, 1000) for _ in range(len(columns))]
         for consumer in st.session_state.consumers:
