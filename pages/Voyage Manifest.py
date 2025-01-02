@@ -29,8 +29,28 @@ def create_new_voyage():
             "Actual COSP", "Berth/Terminal Name"
         ]),
         'general_info': {},
-        'charterer_info': [],
-        'agent_info': [],
+        'charterer_info': [  # Initialize with one empty charterer
+            {
+                'type': '',
+                'name': '',
+                'phone': '',
+                'email': '',
+                'address_1': '',
+                'address_2': '',
+                'mobile': ''
+            }
+        ],
+        'agent_info': [  # Initialize with one empty agent
+            {
+                'type': '',
+                'name': '',
+                'phone': '',
+                'email': '',
+                'address_1': '',
+                'address_2': '',
+                'mobile': ''
+            }
+        ],
         'leg_details': {},
         'log': {
             'created_by': 'System',
