@@ -31,7 +31,11 @@ def create_new_voyage():
             "Displacement (mT)", "Freeboard (mtr)"
         ]),
         'general_info': {},
-        'additional_info': {},
+        'additional_info': {
+            "optimization_objective": "",
+            "instructed_speed": 0.0,
+            "min_voyage_cost": 0.0
+        },
         'charterer_info': [],
         'agent_info': [],
         'log': {
@@ -169,6 +173,14 @@ def segment_details():
 def additional_information():
     voyage = st.session_state.current_voyage
     edit_mode = st.session_state.edit_mode
+
+    # Ensure 'additional_info' is initialized
+    if 'additional_info' not in voyage or voyage['additional_info'] is None:
+        voyage['additional_info'] = {
+            "optimization_objective": "",
+            "instructed_speed": 0.0,
+            "min_voyage_cost": 0.0
+        }
 
     st.subheader("Additional Information")
     col1, col2, col3, col4 = st.columns(4)
