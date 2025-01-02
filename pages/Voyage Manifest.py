@@ -27,7 +27,7 @@ def create_new_voyage():
             "Actual Departure", "Actual COSP", "Berth/Terminal Name"
         ]),
         'segment_details': pd.DataFrame(columns=[
-            "Lat", "Long", "Cargo qty (mT/m3)", "Fwd draft", "Aft Draft", "Roll period (sec)", "GM (mtr)", 
+            "Lat", "Long", "Cargo qty (mT/m3)", "Fwd draft", "Aft Draft", "Roll period (sec)", "GM (mtr)",
             "Displacement (mT)", "Freeboard (mtr)"
         ]),
         'general_info': {},
@@ -147,6 +147,13 @@ def voyage_itinerary():
 def segment_details():
     voyage = st.session_state.current_voyage
     edit_mode = st.session_state.edit_mode
+
+    # Ensure 'segment_details' is initialized
+    if 'segment_details' not in voyage or voyage['segment_details'] is None:
+        voyage['segment_details'] = pd.DataFrame(columns=[
+            "Lat", "Long", "Cargo qty (mT/m3)", "Fwd draft", "Aft Draft", "Roll period (sec)", "GM (mtr)",
+            "Displacement (mT)", "Freeboard (mtr)"
+        ])
 
     st.subheader("Segment Details")
 
