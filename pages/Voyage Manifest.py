@@ -341,3 +341,35 @@ def display_voyage_manifest():
 
     with st.expander("Log", expanded=False):
         log()
+
+def display_past_voyages():
+    st.subheader("Past Voyages")
+    for voyage in st.session_state.voyages:
+        if voyage != st.session_state.current_voyage:
+            col1, col2, col3, col4 = st.columns(4)
+            with col1:
+                st.write(f"Voyage ID: {voyage['id']}")
+            with col2:
+                st.write(f"Status: {voyage['status']}")
+            with col3:
+                st.write(f"Last Modified: {voyage['log']['last_modified_datetime']}")
+            with col4:
+                if st.button("View", key=f"view_{voyage['id']}"):
+                    st.session_state.current_voyage = voyage
+                    st.experimental_rerun()
+
+def main():
+    st.title("Voyage Manifest")
+
+    if st.session_state.current_voyage is None:
+        st.write("No active voyage. Start a new voyage manifest.")
+        if st.button("Start New Voyage Manifest"):
+            create_new_voyage()
+            st.success(f"New Voyage Manifest started in Draft mode!")
+    else:
+        display_voyage_manifest()
+
+    display_past_voyages()
+
+if __name__ == "__main__":
+    main()
