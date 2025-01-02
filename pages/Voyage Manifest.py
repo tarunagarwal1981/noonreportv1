@@ -31,6 +31,7 @@ def create_new_voyage():
         'general_info': {},
         'charterer_info': [],
         'agent_info': [],
+        'leg_details': {},
         'log': {
             'created_by': 'System',
             'created_date': datetime.date.today(),
@@ -41,11 +42,12 @@ def create_new_voyage():
     st.session_state.voyages.append(new_voyage)
     st.session_state.current_voyage = new_voyage
 
-def display_voyage_manifest():
+def voyage_info():
     voyage = st.session_state.current_voyage
-    st.write(f"Voyage ID: {voyage['id']}")
-    st.write(f"Current Voyage Status: {voyage['status']}")
-
+    edit_mode = st.session_state.edit_mode
+    
+    st.subheader("Voyage Information")
+    
     col1, col2, col3, col4, col5 = st.columns(5)
     with col1:
         if st.button("Start New Voyage Manifest"):
@@ -103,12 +105,40 @@ def display_voyage_manifest():
     with st.expander("Log", expanded=False):
         log()
 
-def voyage_info():
-    voyage = st.session_state.current_voyage
-    edit_mode = st.session_state.edit_mode
-    
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
+def display_past_voyages():
+    st.subheader("Past Voyages")
+    if len(st.session_state.voyages) > 1:  # More than just the current voyage
+        for voyage in st.session_state.voyages:
+            if voyage != st.session_state.current_voyage:
+                col1, col2, col3, col4 = st.columns([2,2,1,1])
+                with col1:
+                    st.write(f"Voyage ID: {voyage['id']}")
+                with col2:
+                    st.write(f"Status: {voyage['status']}")
+                with col3:
+                    st.write(f"Created: {voyage['log']['created_date']}")
+                with col4:
+                    if st.button("View", key=f"view_{voyage['id']}"):
+                        st.session_state.current_voyage = voyage
+                        st.experimental_rerun()
+    else:
+        st.write("No past voyages available.")
+
+def main():
+    st.title("Voyage Manifest")
+
+    if st.session_state.current_voyage is None:
+        st.write("No active voyage. Start a new voyage manifest.")
+        if st.button("Start New Voyage Manifest"):
+            create_new_voyage()
+            st.success(f"New Voyage Manifest started in Draft mode!")
+    else:
+        display_voyage_manifest()
+        st.markdown("---")
+        display_past_voyages()
+
+if __name__ == "__main__":
+    main()
         voyage['general_info']['vessel_code'] = st.text_input(
             "Vessel Code", 
             value=voyage['general_info'].get('vessel_code', ''), 
@@ -144,15 +174,18 @@ def voyage_info():
             disabled=not edit_mode or voyage['status'] == 'Closed'
         )
 
-    voyage['general_info']['comments'] = st.text_area(
-        "Comments",
-        value=voyage['general_info'].get('comments', ''),
-        disabled=not edit_mode or voyage['status'] == 'Closed'
-    )
+    with col4:
+        voyage['general_info']['comments'] = st.text_area(
+            "Comments",
+            value=voyage['general_info'].get('comments', ''),
+            disabled=not edit_mode or voyage['status'] == 'Closed'
+        )
 
 def voyage_itinerary():
     voyage = st.session_state.current_voyage
     edit_mode = st.session_state.edit_mode
+
+    st.subheader("Voyage Itinerary")
 
     if len(voyage['itinerary']) == 0:
         voyage['itinerary'] = pd.DataFrame([
@@ -168,42 +201,65 @@ def voyage_itinerary():
 
     voyage['itinerary'] = edited_df
 
-    show_segment_details = st.checkbox(
-        "Show Segment Details",
-        value=voyage.get('show_segment_details', False)
-    )
+    # Add intermediate leg functionality
+    if edit_mode and voyage['status'] != 'Closed':
+        col1, col2 = st.columns([1, 3])
+        with col1:
+            insert_index = st.number_input("Insert after leg:", min_value=0, max_value=len(voyage['itinerary'])-1, value=0, step=1)
+        with col2:
+            if st.button("Add Intermediate Leg"):
+                new_row = pd.DataFrame([{"Leg ID": insert_index + 0.5}])
+                voyage['itinerary'] = pd.concat([voyage['itinerary'].iloc[:insert_index+1], new_row, voyage['itinerary'].iloc[insert_index+1:]], ignore_index=True)
+                voyage['itinerary']['Leg ID'] = range(len(voyage['itinerary']))
+                st.experimental_rerun()
 
-    if show_segment_details:
-        segment_details()
+    # Display leg details
+    show_leg_details = st.checkbox("Show Leg Details", value=voyage.get('show_leg_details', False))
+    voyage['show_leg_details'] = show_leg_details
 
-def segment_details():
+    if show_leg_details:
+        st.subheader("Leg Details")
+        leg_options = [f"Leg {index} - {row['Port Name']}" for index, row in voyage['itinerary'].iterrows()]
+        selected_leg = st.selectbox("Select a leg to view details:", leg_options)
+        
+        if selected_leg:
+            leg_index = int(selected_leg.split(" - ")[0].split(" ")[1])
+            leg_details(leg_index)
+
+def leg_details(leg_id):
     voyage = st.session_state.current_voyage
     edit_mode = st.session_state.edit_mode
     
-    if 'segment_details' not in voyage:
-        voyage['segment_details'] = {}
+    if 'leg_details' not in voyage:
+        voyage['leg_details'] = {}
     
-    col1, col2, col3 = st.columns(3)
+    if leg_id not in voyage['leg_details']:
+        voyage['leg_details'][leg_id] = {}
+    
+    leg_info = voyage['leg_details'][leg_id]
+    
+    st.write(f"Detailed Information for Leg {leg_id}")
+    
+    col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.text_input("Latitude")
-        st.number_input("Forward Draft (mtr)")
-        st.number_input("Roll Period (sec)")
-        
+        leg_info['latitude'] = st.text_input("Latitude", value=leg_info.get('latitude', ''), key=f"lat_{leg_id}")
+        leg_info['forward_draft'] = st.number_input("Forward Draft (mtr)", value=float(leg_info.get('forward_draft', 0)), format="%.2f", key=f"fwd_draft_{leg_id}")
+        leg_info['gm'] = st.number_input("GM (mtr)", value=float(leg_info.get('gm', 0)), format="%.2f", key=f"gm_{leg_id}")
     with col2:
-        st.text_input("Longitude")
-        st.number_input("After Draft (mtr)")
-        st.number_input("GM (mtr)")
-        
+        leg_info['longitude'] = st.text_input("Longitude", value=leg_info.get('longitude', ''), key=f"long_{leg_id}")
+        leg_info['after_draft'] = st.number_input("After Draft (mtr)", value=float(leg_info.get('after_draft', 0)), format="%.2f", key=f"aft_draft_{leg_id}")
+        leg_info['roll_period'] = st.number_input("Roll Period (sec)", value=float(leg_info.get('roll_period', 0)), format="%.2f", key=f"roll_{leg_id}")
     with col3:
-        st.number_input("Cargo Quantity (mt)")
-        st.number_input("Displacement (MT)")
-        st.number_input("Freeboard (mtr)")
+        leg_info['cargo_quantity'] = st.number_input("Cargo Quantity (mt)", value=float(leg_info.get('cargo_quantity', 0)), format="%.2f", key=f"cargo_{leg_id}")
+        leg_info['displacement'] = st.number_input("Displacement (MT)", value=float(leg_info.get('displacement', 0)), format="%.2f", key=f"disp_{leg_id}")
+        leg_info['freeboard'] = st.number_input("Freeboard (mtr)", value=float(leg_info.get('freeboard', 0)), format="%.2f", key=f"freeboard_{leg_id}")
+    with col4:
+        leg_info['additional_notes'] = st.text_area("Additional Notes", value=leg_info.get('additional_notes', ''), key=f"notes_{leg_id}")
 
 def additional_info():
     voyage = st.session_state.current_voyage
     edit_mode = st.session_state.edit_mode
 
-    # MCR/RPM Ranges
     st.subheader("MCR/RPM Ranges")
     
     for range_type in [
@@ -211,102 +267,109 @@ def additional_info():
         "Prohibited Range 2", "Ultra Slow Steaming"
     ]:
         st.write(range_type)
-        col1, col2 = st.columns(2)
+        col1, col2, col3, col4 = st.columns(4)
         with col1:
             st.number_input(f"Min kW", key=f"{range_type}_min_kw")
-            st.number_input(f"Max kW", key=f"{range_type}_max_kw")
         with col2:
+            st.number_input(f"Max kW", key=f"{range_type}_max_kw")
+        with col3:
             st.number_input(f"Min RPM", key=f"{range_type}_min_rpm")
+        with col4:
             st.number_input(f"Max RPM", key=f"{range_type}_max_rpm")
 
-    # Additional Parameters
     st.subheader("Additional Parameters")
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
+    
     with col1:
         st.text_input("Optimization Objective")
         st.number_input("Min Voyage Cost (Hire + Bunker)")
         st.number_input("Vertex Limit")
+        st.number_input("Instructed Speed")
         
     with col2:
-        st.number_input("Instructed Speed")
         st.text_input("Required Time to Arrive")
         st.number_input("Estimated ROBs on Dep Berth")
-        
-    with col3:
         st.number_input("USD Cost")
         st.number_input("Limit FOC in Rough Wx")
+        
+    with col3:
         st.text_input("Variable Speed")
         st.number_input("Fuel Used")
         st.number_input("Min FOC")
         st.text_input("Control Mode")
+        
+    with col4:
         st.number_input("Biofuel")
+        st.text_area("Additional Notes")
 
 def charterer_info():
     voyage = st.session_state.current_voyage
     edit_mode = st.session_state.edit_mode
     
+    st.subheader("Charterer Information")
+    
     for i, charterer in enumerate(voyage['charterer_info']):
         st.markdown(f"**Charterer {i+1}**")
-        col1, col2 = st.columns(2)
+        col1, col2, col3, col4 = st.columns(4)
         with col1:
-            st.text_input("Type", key=f"charterer_type_{i}")
-            st.text_input("Name", key=f"charterer_name_{i}")
-            st.text_input("Phone No", key=f"charterer_phone_{i}")
-            st.text_input("Email Id", key=f"charterer_email_{i}")
-            
+            charterer['type'] = st.text_input("Type", value=charterer.get('type', ''), key=f"charterer_type_{i}")
+            charterer['name'] = st.text_input("Name", value=charterer.get('name', ''), key=f"charterer_name_{i}")
         with col2:
-            st.text_input("Address 1", key=f"charterer_addr1_{i}")
-            st.text_input("Address 2", key=f"charterer_addr2_{i}")
-            st.text_input("Mobile No", key=f"charterer_mobile_{i}")
+            charterer['phone'] = st.text_input("Phone No", value=charterer.get('phone', ''), key=f"charterer_phone_{i}")
+            charterer['email'] = st.text_input("Email Id", value=charterer.get('email', ''), key=f"charterer_email_{i}")
+        with col3:
+            charterer['address_1'] = st.text_input("Address 1", value=charterer.get('address_1', ''), key=f"charterer_addr1_{i}")
+            charterer['address_2'] = st.text_input("Address 2", value=charterer.get('address_2', ''), key=f"charterer_addr2_{i}")
+        with col4:
+            charterer['mobile'] = st.text_input("Mobile No", value=charterer.get('mobile', ''), key=f"charterer_mobile_{i}")
         
         st.markdown("---")
 
-    if edit_mode and st.button("Add Charterer"):
+    if edit_mode and voyage['status'] != 'Closed' and st.button("Add Charterer"):
         voyage['charterer_info'].append({})
 
 def agent_info():
     voyage = st.session_state.current_voyage
     edit_mode = st.session_state.edit_mode
     
+    st.subheader("Agent Information")
+    
     for i, agent in enumerate(voyage['agent_info']):
         st.markdown(f"**Agent {i+1}**")
-        col1, col2 = st.columns(2)
+        col1, col2, col3, col4 = st.columns(4)
         with col1:
-            st.text_input("Type", key=f"agent_type_{i}")
-            st.text_input("Name", key=f"agent_name_{i}")
-            st.text_input("Phone No", key=f"agent_phone_{i}")
-            st.text_input("Email Id", key=f"agent_email_{i}")
-            
+            agent['type'] = st.text_input("Type", value=agent.get('type', ''), key=f"agent_type_{i}")
+            agent['name'] = st.text_input("Name", value=agent.get('name', ''), key=f"agent_name_{i}")
         with col2:
-            st.text_input("Address 1", key=f"agent_addr1_{i}")
-            st.text_input("Address 2", key=f"agent_addr2_{i}")
-            st.text_input("Mobile No", key=f"agent_mobile_{i}")
+            agent['phone'] = st.text_input("Phone No", value=agent.get('phone', ''), key=f"agent_phone_{i}")
+            agent['email'] = st.text_input("Email Id", value=agent.get('email', ''), key=f"agent_email_{i}")
+        with col3:
+            agent['address_1'] = st.text_input("Address 1", value=agent.get('address_1', ''), key=f"agent_addr1_{i}")
+            agent['address_2'] = st.text_input("Address 2", value=agent.get('address_2', ''), key=f"agent_addr2_{i}")
+        with col4:
+            agent['mobile'] = st.text_input("Mobile No", value=agent.get('mobile', ''), key=f"agent_mobile_{i}")
         
         st.markdown("---")
 
-    if edit_mode and st.button("Add Agent"):
+    if edit_mode and voyage['status'] != 'Closed' and st.button("Add Agent"):
         voyage['agent_info'].append({})
 
 def log():
     voyage = st.session_state.current_voyage
-    col1, col2 = st.columns(2)
+    col1, col2, col3, col4 = st.columns(4)
     with col1:
         st.text_input("Created By", value=voyage['log']['created_by'], disabled=True)
-        st.date_input("Created Date", value=voyage['log']['created_date'], disabled=True)
     with col2:
+        st.date_input("Created Date", value=voyage['log']['created_date'], disabled=True)
+    with col3:
         st.text_input("Last Modified by", value=voyage['log']['last_modified_by'], disabled=True)
+    with col4:
         st.text_input("Last Modified Datetime", value=voyage['log']['last_modified_datetime'], disabled=True)
 
-def main():
-    st.title("Voyage Manifest")
+def display_voyage_manifest():
+    voyage = st.session_state.current_voyage
+    st.write(f"Voyage ID: {voyage['id']}")
+    st.write(f"Current Voyage Status: {voyage['status']}")
 
-    if st.session_state.current_voyage is None:
-        st.write("No active voyage. Start a new voyage manifest.")
-        if st.button("Start New Voyage Manifest"):
-            create_new_voyage()
-            st.success(f"New Voyage Manifest started in Draft mode!")
-    else:
-        display_voyage_manifest()
-
-if __name__ == "__main__":
-    main()
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
