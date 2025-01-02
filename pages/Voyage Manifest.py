@@ -48,97 +48,8 @@ def voyage_info():
     
     st.subheader("Voyage Information")
     
-    col1, col2, col3, col4, col5 = st.columns(5)
+    col1, col2, col3, col4 = st.columns(4)
     with col1:
-        if st.button("Start New Voyage Manifest"):
-            if voyage['status'] == 'Closed':
-                create_new_voyage()
-                st.success(f"New Voyage Manifest started in Draft mode!")
-            else:
-                st.error("Cannot start a new voyage. Current voyage is not closed.")
-
-    with col2:
-        if st.button("Toggle Edit Mode"):
-            st.session_state.edit_mode = not st.session_state.edit_mode
-            st.experimental_rerun()
-
-    with col3:
-        if st.button("Open Voyage"):
-            if voyage['status'] == 'Draft':
-                voyage['status'] = 'Open'
-                st.success("Voyage opened successfully!")
-            else:
-                st.error("Can only open a voyage in Draft status.")
-
-    with col4:
-        if st.button("Close Voyage"):
-            if voyage['status'] == 'Open':
-                voyage['status'] = 'Closed'
-                st.success("Voyage closed successfully!")
-            else:
-                st.error("Can only close an open voyage.")
-
-    with col5:
-        if st.button("Save Draft"):
-            if voyage['status'] == 'Draft':
-                voyage['log']['last_modified_by'] = 'User'
-                voyage['log']['last_modified_datetime'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                st.success("Draft saved successfully!")
-            else:
-                st.error("Can only save drafts for voyages in Draft status.")
-
-    with st.expander("Voyage Information", expanded=False):
-        voyage_info()
-
-    with st.expander("Voyage Itinerary", expanded=False):
-        voyage_itinerary()
-
-    with st.expander("Additional Information", expanded=False):
-        additional_info()
-    
-    with st.expander("Charterer Information", expanded=False):
-        charterer_info()
-
-    with st.expander("Agent Information", expanded=False):
-        agent_info()
-
-    with st.expander("Log", expanded=False):
-        log()
-
-def display_past_voyages():
-    st.subheader("Past Voyages")
-    if len(st.session_state.voyages) > 1:  # More than just the current voyage
-        for voyage in st.session_state.voyages:
-            if voyage != st.session_state.current_voyage:
-                col1, col2, col3, col4 = st.columns([2,2,1,1])
-                with col1:
-                    st.write(f"Voyage ID: {voyage['id']}")
-                with col2:
-                    st.write(f"Status: {voyage['status']}")
-                with col3:
-                    st.write(f"Created: {voyage['log']['created_date']}")
-                with col4:
-                    if st.button("View", key=f"view_{voyage['id']}"):
-                        st.session_state.current_voyage = voyage
-                        st.experimental_rerun()
-    else:
-        st.write("No past voyages available.")
-
-def main():
-    st.title("Voyage Manifest")
-
-    if st.session_state.current_voyage is None:
-        st.write("No active voyage. Start a new voyage manifest.")
-        if st.button("Start New Voyage Manifest"):
-            create_new_voyage()
-            st.success(f"New Voyage Manifest started in Draft mode!")
-    else:
-        display_voyage_manifest()
-        st.markdown("---")
-        display_past_voyages()
-
-if __name__ == "__main__":
-    main()
         voyage['general_info']['vessel_code'] = st.text_input(
             "Vessel Code", 
             value=voyage['general_info'].get('vessel_code', ''), 
@@ -371,5 +282,62 @@ def display_voyage_manifest():
     st.write(f"Voyage ID: {voyage['id']}")
     st.write(f"Current Voyage Status: {voyage['status']}")
 
+    # Action buttons in header
     col1, col2, col3, col4 = st.columns(4)
     with col1:
+        if st.button("Start New Voyage Manifest"):
+            if voyage['status'] == 'Closed':
+                create_new_voyage()
+                st.success("New Voyage Manifest started in Draft mode!")
+            else:
+                st.error("Cannot start a new voyage. Current voyage is not closed.")
+
+    with col2:
+        if st.button("Toggle Edit Mode"):
+            st.session_state.edit_mode = not st.session_state.edit_mode
+            st.experimental_rerun()
+
+    with col3:
+        if st.button("Open Voyage"):
+            if voyage['status'] == 'Draft':
+                voyage['status'] = 'Open'
+                st.success("Voyage opened successfully!")
+            else:
+                st.error("Can only open a voyage in Draft status.")
+
+    with col4:
+        col4_1, col4_2 = st.columns(2)
+        with col4_1:
+            if st.button("Close Voyage"):
+                if voyage['status'] == 'Open':
+                    voyage['status'] = 'Closed'
+                    st.success("Voyage closed successfully!")
+                else:
+                    st.error("Can only close an open voyage.")
+        with col4_2:
+            if st.button("Save Draft"):
+                if voyage['status'] == 'Draft':
+                    voyage['log']['last_modified_by'] = 'User'
+                    voyage['log']['last_modified_datetime'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    st.success("Draft saved successfully!")
+                else:
+                    st.error("Can only save drafts for voyages in Draft status.")
+
+    # Main content sections
+    with st.expander("Voyage Information", expanded=False):
+        voyage_info()
+
+    with st.expander("Voyage Itinerary", expanded=False):
+        voyage_itinerary()
+
+    with st.expander("Additional Information", expanded=False):
+        additional_info()
+    
+    with st.expander("Charterer Information", expanded=False):
+        charterer_info()
+
+    with st.expander("Agent Information", expanded=False):
+        agent_info()
+
+    with st.expander("Log", expanded=False):
+        log()
