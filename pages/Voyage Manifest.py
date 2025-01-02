@@ -22,14 +22,18 @@ def create_new_voyage():
         'id': generate_voyage_id(),
         'status': 'Draft',
         'itinerary': pd.DataFrame(columns=[
-            "Segment ID", "Port Code", "Port Name", "Transit Port", "ETA", "ETB", "ETD", 
-            "Actual Arrival(EOSP)", "Arrival Date(AB)", "Departure Date(DB)", "Actual Departure(COSP)"
+            "Leg ID", "Vessel Status", "Port Code", "Port Name", "Charter Party Speed", "Charter Party Consumption",
+            "Transit Port", "Time Zone", "ETA (LT)", "ETB (LT)", "ETD (LT)", "Actual EOSP", "Actual Arrival Berth",
+            "Actual Departure", "Actual COSP", "Berth/Terminal Name"
+        ]),
+        'segment_details': pd.DataFrame(columns=[
+            "Lat", "Long", "Cargo qty (mT/m3)", "Fwd draft", "Aft Draft", "Roll period (sec)", "GM (mtr)", 
+            "Displacement (mT)", "Freeboard (mtr)"
         ]),
         'general_info': {},
+        'additional_info': {},
         'charterer_info': [],
         'agent_info': [],
-        'zones': {},
-        'port_details': {},
         'log': {
             'created_by': 'System',
             'created_date': datetime.date.today(),
@@ -90,17 +94,17 @@ def display_voyage_manifest():
     with st.expander("Voyage Itinerary", expanded=False):
         voyage_itinerary()
 
-    with st.expander("Additional Data", expanded=False):
-        additional_data()
-    
-    with st.expander("Charterer Info", expanded=False):
+    with st.expander("Segment Details", expanded=False):
+        segment_details()
+
+    with st.expander("Additional Information", expanded=False):
+        additional_information()
+
+    with st.expander("Charterer Information", expanded=False):
         charterer_info()
 
-    with st.expander("Agent Info", expanded=False):
+    with st.expander("Agent Information", expanded=False):
         agent_info()
-
-    with st.expander("Zones", expanded=False):
-        zones()
 
     with st.expander("Log", expanded=False):
         log()
@@ -110,50 +114,22 @@ def general_info():
     edit_mode = st.session_state.edit_mode
     
     st.subheader("General Information")
-    
     col1, col2, col3, col4 = st.columns(4)
     with col1:
         voyage['general_info']['vessel_code'] = st.text_input("Vessel Code", value=voyage['general_info'].get('vessel_code', ''), key="vessel_code", disabled=not edit_mode or voyage['status'] == 'Closed')
-        voyage['general_info']['voyage_start'] = st.date_input("Voyage Start", value=voyage['general_info'].get('voyage_start', datetime.date.today()), key="voyage_start", disabled=not edit_mode or voyage['status'] == 'Closed')
+        voyage['general_info']['voyage_id'] = st.text_input("Voyage ID", value=voyage['general_info'].get('voyage_id', ''), key="voyage_id", disabled=True)
     with col2:
         voyage['general_info']['vessel_name'] = st.text_input("Vessel Name", value=voyage['general_info'].get('vessel_name', ''), key="vessel_name", disabled=not edit_mode or voyage['status'] == 'Closed')
-        voyage['general_info']['charter_party_speed'] = st.number_input("Charter Party Speed", value=float(voyage['general_info'].get('charter_party_speed', 0)), format="%.2f", key="charter_party_speed", disabled=not edit_mode or voyage['status'] == 'Closed')
+        voyage['general_info']['revision_no'] = st.number_input("Revision No", value=int(voyage['general_info'].get('revision_no', 0)), key="revision_no", disabled=not edit_mode or voyage['status'] == 'Closed')
     with col3:
-        voyage['general_info']['voyage_no'] = st.text_input("Voyage No", value=voyage['general_info'].get('voyage_no', ''), key="voyage_no", disabled=not edit_mode or voyage['status'] == 'Closed')
-        voyage['general_info']['charter_party_consumption'] = st.number_input("Charter Party Consumption", value=float(voyage['general_info'].get('charter_party_consumption', 0)), format="%.2f", key="charter_party_consumption", disabled=not edit_mode or voyage['status'] == 'Closed')
-    with col4:
-        voyage['general_info']['vessel_status'] = st.selectbox("Vessel Status", ["Laden", "Ballast"], index=0 if voyage['general_info'].get('vessel_status', '') == 'Laden' else 1, key="vessel_status", disabled=not edit_mode or voyage['status'] == 'Closed')
-        voyage['general_info']['revision_no'] = st.number_input("Revision No", value=int(voyage['general_info'].get('revision_no', 0)), format="%d", key="revision_no", disabled=not edit_mode or voyage['status'] == 'Closed')
+        voyage['general_info']['voyage_no'] = st.text_input("Voyage No.", value=voyage['general_info'].get('voyage_no', ''), key="voyage_no", disabled=not edit_mode or voyage['status'] == 'Closed')
         voyage['general_info']['revision_date'] = st.date_input("Revision Date", value=voyage['general_info'].get('revision_date', datetime.date.today()), key="revision_date", disabled=not edit_mode or voyage['status'] == 'Closed')
-    
-    voyage['general_info']['comments'] = st.text_area("Comments", value=voyage['general_info'].get('comments', ''), key="comments", disabled=not edit_mode or voyage['status'] == 'Closed')
-
-    show_additional_info = st.checkbox("Show Additional Information", value=voyage['general_info'].get('show_additional_info', False), key="show_additional_info")
-    voyage['general_info']['show_additional_info'] = show_additional_info
-
-    if show_additional_info:
-        st.subheader("Additional Information")
-        st.write("MCR/RPM Range")
-
-        for range_type in ["Continuous Operable Range", "Prohibited Range", "Prohibited Range-2", "Ultra slow steaming range"]:
-            st.write(range_type)
-            col1, col2 = st.columns(2)
-            with col1:
-                voyage['general_info'][f'{range_type.lower().replace(" ", "_")}_kw_min'] = st.number_input(f"Min kW", value=float(voyage['general_info'].get(f'{range_type.lower().replace(" ", "_")}_kw_min', 0)), format="%.2f", key=f"{range_type.lower().replace(' ', '_')}_kw_min", disabled=not edit_mode or voyage['status'] == 'Closed')
-                voyage['general_info'][f'{range_type.lower().replace(" ", "_")}_kw_max'] = st.number_input(f"Max kW", value=float(voyage['general_info'].get(f'{range_type.lower().replace(" ", "_")}_kw_max', 0)), format="%.2f", key=f"{range_type.lower().replace(' ', '_')}_kw_max", disabled=not edit_mode or voyage['status'] == 'Closed')
-            with col2:
-                voyage['general_info'][f'{range_type.lower().replace(" ", "_")}_rpm_min'] = st.number_input(f"Min RPM", value=float(voyage['general_info'].get(f'{range_type.lower().replace(" ", "_")}_rpm_min', 0)), format="%.2f", key=f"{range_type.lower().replace(' ', '_')}_rpm_min", disabled=not edit_mode or voyage['status'] == 'Closed')
-                voyage['general_info'][f'{range_type.lower().replace(" ", "_")}_rpm_max'] = st.number_input(f"Max RPM", value=float(voyage['general_info'].get(f'{range_type.lower().replace(" ", "_")}_rpm_max', 0)), format="%.2f", key=f"{range_type.lower().replace(' ', '_')}_rpm_max", disabled=not edit_mode or voyage['status'] == 'Closed')
+    with col4:
+        voyage['general_info']['comments'] = st.text_area("Comments", value=voyage['general_info'].get('comments', ''), key="comments", disabled=not edit_mode or voyage['status'] == 'Closed')
 
 def voyage_itinerary():
     voyage = st.session_state.current_voyage
     edit_mode = st.session_state.edit_mode
-
-    if len(voyage['itinerary']) == 0:
-        voyage['itinerary'] = pd.DataFrame([
-            {"Segment ID": 0, "Port Code": "", "Port Name": "", "Transit Port": False, "ETA": "", "ETB": "", "ETD": "", "Actual Arrival(EOSP)": "", "Arrival Date(AB)": "", "Departure Date(DB)": "", "Actual Departure(COSP)": ""},
-            {"Segment ID": 1, "Port Code": "", "Port Name": "", "Transit Port": False, "ETA": "", "ETB": "", "ETD": "", "Actual Arrival(EOSP)": "", "Arrival Date(AB)": "", "Departure Date(DB)": "", "Actual Departure(COSP)": ""}
-        ])
 
     st.subheader("Voyage Itinerary")
 
@@ -168,183 +144,63 @@ def voyage_itinerary():
     # Update the voyage itinerary with edited data
     voyage['itinerary'] = edited_df
 
-    # Add intermediate port functionality
-    if edit_mode and voyage['status'] != 'Closed':
-        col1, col2 = st.columns([1, 3])
-        with col1:
-            insert_index = st.number_input("Insert after row:", min_value=0, max_value=len(voyage['itinerary'])-1, value=0, step=1)
-        with col2:
-            if st.button("Add Intermediate Port"):
-                new_row = pd.DataFrame([{"Segment ID": insert_index + 0.5}])
-                voyage['itinerary'] = pd.concat([voyage['itinerary'].iloc[:insert_index+1], new_row, voyage['itinerary'].iloc[insert_index+1:]], ignore_index=True)
-                voyage['itinerary']['Segment ID'] = range(len(voyage['itinerary']))
-                st.experimental_rerun()
-
-    # Display segment details
-    show_segment_details = st.checkbox("Show Segment Details", value=voyage.get('show_segment_details', False), key="show_segment_details")
-    voyage['show_segment_details'] = show_segment_details
-
-    if show_segment_details:
-        st.subheader("Segment Details")
-        segment_options = [f"Segment {index} - {row['Port Name']}" for index, row in voyage['itinerary'].iterrows()]
-        selected_segment = st.selectbox("Select a segment to view details:", segment_options)
-        
-        if selected_segment:
-            segment_index = int(selected_segment.split(" - ")[0].split(" ")[1])
-            segment_details(segment_index)
-
-def additional_data():
+def segment_details():
     voyage = st.session_state.current_voyage
     edit_mode = st.session_state.edit_mode
 
-    if 'additional_data' not in voyage:
-        voyage['additional_data'] = {}
+    st.subheader("Segment Details")
 
-    st.subheader("Additional Data")
+    edited_df = st.data_editor(
+        voyage['segment_details'],
+        disabled=not edit_mode or voyage['status'] == 'Closed',
+        num_rows="dynamic",
+        key="segment_details_editor"
+    )
 
+    voyage['segment_details'] = edited_df
+
+def additional_information():
+    voyage = st.session_state.current_voyage
+    edit_mode = st.session_state.edit_mode
+
+    st.subheader("Additional Information")
     col1, col2, col3, col4 = st.columns(4)
-    
-    with col1:
-        voyage['additional_data']['optimization_objective'] = st.text_input("Optimization Objective", value=voyage['additional_data'].get('optimization_objective', ''), key="optimization_objective", disabled=not edit_mode or voyage['status'] == 'Closed')
-        voyage['additional_data']['instructed_speed'] = st.number_input("Instructed speed", value=float(voyage['additional_data'].get('instructed_speed', 0)), format="%.2f", key="instructed_speed", disabled=not edit_mode or voyage['status'] == 'Closed')
-        voyage['additional_data']['limit_foc_rough_wx'] = st.number_input("Limit FOC in rough WX", value=float(voyage['additional_data'].get('limit_foc_rough_wx', 0)), format="%.2f", key="limit_foc_rough_wx", disabled=not edit_mode or voyage['status'] == 'Closed')
-        voyage['additional_data']['min_foc'] = st.number_input("Min FOC", value=float(voyage['additional_data'].get('min_foc', 0)), format="%.2f", key="min_foc", disabled=not edit_mode or voyage['status'] == 'Closed')
 
-    with col2:
-        voyage['additional_data']['min_voyage_cost'] = st.number_input("Min Voyage Cost (Hire + Bunker)", value=float(voyage['additional_data'].get('min_voyage_cost', 0)), format="%.2f", key="min_voyage_cost", disabled=not edit_mode or voyage['status'] == 'Closed')
-        voyage['additional_data']['required_time_to_arrive'] = st.text_input("Required Time to Arrive", value=voyage['additional_data'].get('required_time_to_arrive', ''), key="required_time_to_arrive", disabled=not edit_mode or voyage['status'] == 'Closed')
-        voyage['additional_data']['variable_speed'] = st.text_input("Variable speed", value=voyage['additional_data'].get('variable_speed', ''), key="variable_speed", disabled=not edit_mode or voyage['status'] == 'Closed')
-        voyage['additional_data']['control_mode'] = st.text_input("Control Mode", value=voyage['additional_data'].get('control_mode', ''), key="control_mode", disabled=not edit_mode or voyage['status'] == 'Closed')
+    voyage['additional_info']['optimization_objective'] = st.text_input("Optimization Objective", value=voyage['additional_info'].get('optimization_objective', ''), key="optimization_objective", disabled=not edit_mode or voyage['status'] == 'Closed')
+    voyage['additional_info']['instructed_speed'] = st.number_input("Instructed Speed", value=float(voyage['additional_info'].get('instructed_speed', 0)), format="%.2f", key="instructed_speed", disabled=not edit_mode or voyage['status'] == 'Closed')
+    voyage['additional_info']['min_voyage_cost'] = st.number_input("Min Voyage Cost (Hire + Bunker)", value=float(voyage['additional_info'].get('min_voyage_cost', 0)), format="%.2f", key="min_voyage_cost", disabled=not edit_mode or voyage['status'] == 'Closed')
 
-    with col3:
-        voyage['additional_data']['vertex_limit'] = st.number_input("Vertex Limit", value=float(voyage['additional_data'].get('vertex_limit', 0)), format="%.2f", key="vertex_limit", disabled=not edit_mode or voyage['status'] == 'Closed')
-        voyage['additional_data']['estimated_robs_departure'] = st.number_input("Estimated ROBs on Departure Berth", value=float(voyage['additional_data'].get('estimated_robs_departure', 0)), format="%.2f", key="estimated_robs_departure", disabled=not edit_mode or voyage['status'] == 'Closed')
-        voyage['additional_data']['fuel_used'] = st.number_input("Fuel Used", value=float(voyage['additional_data'].get('fuel_used', 0)), format="%.2f", key="fuel_used", disabled=not edit_mode or voyage['status'] == 'Closed')
-        voyage['additional_data']['bio_fuel'] = st.number_input("Bio Fuel", value=float(voyage['additional_data'].get('bio_fuel', 0)), format="%.2f", key="bio_fuel", disabled=not edit_mode or voyage['status'] == 'Closed')
-
-    with col4:
-        voyage['additional_data']['zone_eca'] = st.text_input("Zone ECA", value=voyage['additional_data'].get('zone_eca', ''), key="zone_eca", disabled=not edit_mode or voyage['status'] == 'Closed')
-        voyage['additional_data']['usd_cost'] = st.number_input("USD Cost", value=float(voyage['additional_data'].get('usd_cost', 0)), format="%.2f", key="usd_cost", disabled=not edit_mode or voyage['status'] == 'Closed')
-
-
-def segment_details(segment_id):
-    voyage = st.session_state.current_voyage
-    edit_mode = st.session_state.edit_mode
-    
-    if 'segment_details' not in voyage:
-        voyage['segment_details'] = {}
-    
-    if segment_id not in voyage['segment_details']:
-        voyage['segment_details'][segment_id] = {}
-    
-    segment_info = voyage['segment_details'][segment_id]
-    
-    st.write(f"Detailed Information for Segment {segment_id}")
-    
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        segment_info['latitude'] = st.text_input("Latitude", value=segment_info.get('latitude', ''), key=f"lat_{segment_id}", disabled=not edit_mode or voyage['status'] == 'Closed')
-        segment_info['forward_draft'] = st.number_input("Forward Draft (mtr)", value=float(segment_info.get('forward_draft', 0)), format="%.2f", key=f"fwd_draft_{segment_id}", disabled=not edit_mode or voyage['status'] == 'Closed')
-        segment_info['gm'] = st.number_input("GM (mtr)", value=float(segment_info.get('gm', 0)), format="%.2f", key=f"gm_{segment_id}", disabled=not edit_mode or voyage['status'] == 'Closed')
-    with col2:
-        segment_info['longitude'] = st.text_input("Longitude", value=segment_info.get('longitude', ''), key=f"long_{segment_id}", disabled=not edit_mode or voyage['status'] == 'Closed')
-        segment_info['after_draft'] = st.number_input("After Draft (mtr)", value=float(segment_info.get('after_draft', 0)), format="%.2f", key=f"aft_draft_{segment_id}", disabled=not edit_mode or voyage['status'] == 'Closed')
-        segment_info['displacement'] = st.number_input("Displacement (MT)", value=float(segment_info.get('displacement', 0)), format="%.2f", key=f"disp_{segment_id}", disabled=not edit_mode or voyage['status'] == 'Closed')
-    with col3:
-        segment_info['cargo_quantity'] = st.number_input("Cargo Quantity (mt)", value=float(segment_info.get('cargo_quantity', 0)), format="%.2f", key=f"cargo_{segment_id}", disabled=not edit_mode or voyage['status'] == 'Closed')
-        segment_info['roll_period'] = st.number_input("Roll Period (sec)", value=float(segment_info.get('roll_period', 0)), format="%.2f", key=f"roll_{segment_id}", disabled=not edit_mode or voyage['status'] == 'Closed')
-        segment_info['freeboard'] = st.number_input("Freeboard (mtr)", value=float(segment_info.get('freeboard', 0)), format="%.2f", key=f"freeboard_{segment_id}", disabled=not edit_mode or voyage['status'] == 'Closed')
-        
 def charterer_info():
     voyage = st.session_state.current_voyage
     edit_mode = st.session_state.edit_mode
-    st.subheader("Charterer Information")
-    
-    for i, charterer in enumerate(voyage['charterer_info']):
-        st.markdown(f"**Charterer {i+1}**")
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            charterer['type'] = st.text_input("Type", value=charterer.get('type', ''), key=f"charterer_type_{i}", disabled=not edit_mode or voyage['status'] == 'Closed')
-            charterer['address_1'] = st.text_input("Address 1", value=charterer.get('address_1', ''), key=f"charterer_address1_{i}", disabled=not edit_mode or voyage['status'] == 'Closed')
-        with col2:
-            charterer['name'] = st.text_input("Name", value=charterer.get('name', ''), key=f"charterer_name_{i}", disabled=not edit_mode or voyage['status'] == 'Closed')
-            charterer['address_2'] = st.text_input("Address 2", value=charterer.get('address_2', ''), key=f"charterer_address2_{i}", disabled=not edit_mode or voyage['status'] == 'Closed')
-        with col3:
-            charterer['phone'] = st.text_input("Phone No", value=charterer.get('phone', ''), key=f"charterer_phone_{i}", disabled=not edit_mode or voyage['status'] == 'Closed')
-            charterer['mobile'] = st.text_input("Mobile No", value=charterer.get('mobile', ''), key=f"charterer_mobile_{i}", disabled=not edit_mode or voyage['status'] == 'Closed')
-        with col4:
-            charterer['email'] = st.text_input("Email Id", value=charterer.get('email', ''), key=f"charterer_email_{i}", disabled=not edit_mode or voyage['status'] == 'Closed')
-        st.markdown("---")
 
-    if edit_mode and voyage['status'] != 'Closed' and st.button("Add Charterer", key="add_charterer"):
+    st.subheader("Charterer Information")
+    if edit_mode and st.button("Add Charterer"):
         voyage['charterer_info'].append({})
+
+    for idx, charterer in enumerate(voyage['charterer_info']):
+        col1, col2 = st.columns(2)
+        charterer['name'] = st.text_input(f"Name {idx + 1}", value=charterer.get('name', ''), key=f"charterer_name_{idx}", disabled=not edit_mode)
+        charterer['type'] = st.text_input(f"Type {idx + 1}", value=charterer.get('type', ''), key=f"charterer_type_{idx}", disabled=not edit_mode)
 
 def agent_info():
     voyage = st.session_state.current_voyage
     edit_mode = st.session_state.edit_mode
-    st.subheader("Agent Information")
-    
-    for i, agent in enumerate(voyage['agent_info']):
-        st.markdown(f"**Agent {i+1}**")
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            agent['type'] = st.text_input("Type", value=agent.get('type', ''), key=f"agent_type_{i}", disabled=not edit_mode or voyage['status'] == 'Closed')
-            agent['address_1'] = st.text_input("Address 1", value=agent.get('address_1', ''), key=f"agent_address1_{i}", disabled=not edit_mode or voyage['status'] == 'Closed')
-        with col2:
-            agent['name'] = st.text_input("Name", value=agent.get('name', ''), key=f"agent_name_{i}", disabled=not edit_mode or voyage['status'] == 'Closed')
-            agent['address_2'] = st.text_input("Address 2", value=agent.get('address_2', ''), key=f"agent_address2_{i}", disabled=not edit_mode or voyage['status'] == 'Closed')
-        with col3:
-            agent['phone'] = st.text_input("Phone No", value=agent.get('phone', ''), key=f"agent_phone_{i}", disabled=not edit_mode or voyage['status'] == 'Closed')
-            agent['mobile'] = st.text_input("Mobile No", value=agent.get('mobile', ''), key=f"agent_mobile_{i}", disabled=not edit_mode or voyage['status'] == 'Closed')
-        with col4:
-            agent['email'] = st.text_input("Email Id", value=agent.get('email', ''), key=f"agent_email_{i}", disabled=not edit_mode or voyage['status'] == 'Closed')
-        st.markdown("---")
 
-    if edit_mode and voyage['status'] != 'Closed' and st.button("Add Agent", key="add_agent"):
+    st.subheader("Agent Information")
+    if edit_mode and st.button("Add Agent"):
         voyage['agent_info'].append({})
 
-def zones():
-    voyage = st.session_state.current_voyage
-    edit_mode = st.session_state.edit_mode
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        voyage['zones']['zone'] = st.text_input("Zone", value=voyage['zones'].get('zone', ''), key="zone", disabled=not edit_mode or voyage['status'] == 'Closed')
-        voyage['zones']['eta'] = st.text_input("ETA", value=voyage['zones'].get('eta', ''), key="eta", disabled=not edit_mode or voyage['status'] == 'Closed')
-    with col2:
-        voyage['zones']['area'] = st.text_input("Area", value=voyage['zones'].get('area', ''), key="area", disabled=not edit_mode or voyage['status'] == 'Closed')
-        voyage['zones']['etd'] = st.text_input("ETD", value=voyage['zones'].get('etd', ''), key="etd", disabled=not edit_mode or voyage['status'] == 'Closed')
-    with col3:
-        voyage['zones']['latitude_entry'] = st.text_input("Latitude(Entry Point)", value=voyage['zones'].get('latitude_entry', ''), key="lat_entry", disabled=not edit_mode or voyage['status'] == 'Closed')
-        voyage['zones']['latitude_exit'] = st.text_input("Latitude(Exit Point)", value=voyage['zones'].get('latitude_exit', ''), key="lat_exit", disabled=not edit_mode or voyage['status'] == 'Closed')
-    with col4:
-        voyage['zones']['longitude_entry'] = st.text_input("Longitude(Entry Point)", value=voyage['zones'].get('longitude_entry', ''), key="long_entry", disabled=not edit_mode or voyage['status'] == 'Closed')
-        voyage['zones']['longitude_exit'] = st.text_input("Longitude(Exit Point)", value=voyage['zones'].get('longitude_exit', ''), key="long_exit", disabled=not edit_mode or voyage['status'] == 'Closed')
+    for idx, agent in enumerate(voyage['agent_info']):
+        col1, col2 = st.columns(2)
+        agent['name'] = st.text_input(f"Name {idx + 1}", value=agent.get('name', ''), key=f"agent_name_{idx}", disabled=not edit_mode)
+        agent['type'] = st.text_input(f"Type {idx + 1}", value=agent.get('type', ''), key=f"agent_type_{idx}", disabled=not edit_mode)
 
 def log():
     voyage = st.session_state.current_voyage
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        st.text_input("Created By", value=voyage['log'].get('created_by', ''), key="created_by", disabled=True)
-    with col2:
-        st.date_input("Created Date", value=voyage['log'].get('created_date', datetime.date.today()), key="created_date", disabled=True)
-    with col3:
-        st.text_input("Last Modified by", value=voyage['log'].get('last_modified_by', ''), key="last_modified_by", disabled=True)
-    with col4:
-        st.text_input("Last Modified Datetime", value=voyage['log'].get('last_modified_datetime', ''), key="last_modified_datetime", disabled=True)
-
-def display_past_voyages():
-    st.subheader("Past Voyages")
-    for voyage in st.session_state.voyages:
-        if voyage != st.session_state.current_voyage:
-            col1, col2, col3 = st.columns([2,2,1])
-            with col1:
-                st.write(f"Voyage ID: {voyage['id']}")
-            with col2:
-                st.write(f"Status: {voyage['status']}")
-            with col3:
-                if st.button("View", key=f"view_{voyage['id']}"):
-                    st.session_state.current_voyage = voyage
-                    st.experimental_rerun()
+    st.text_input("Created By", value=voyage['log'].get('created_by', ''), disabled=True)
+    st.text_input("Last Modified By", value=voyage['log'].get('last_modified_by', ''), disabled=True)
+    st.text_input("Last Modified Datetime", value=voyage['log'].get('last_modified_datetime', ''), disabled=True)
 
 def main():
     st.title("Voyage Manifest")
@@ -356,8 +212,6 @@ def main():
             st.success(f"New Voyage Manifest started in Draft mode! Voyage ID: {st.session_state.current_voyage['id']}")
     else:
         display_voyage_manifest()
-
-    display_past_voyages()
 
 if __name__ == "__main__":
     main()
