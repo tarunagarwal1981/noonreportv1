@@ -30,11 +30,45 @@ def create_new_voyage():
             "Lat", "Long", "Cargo qty (mT/m3)", "Fwd draft", "Aft Draft", "Roll period (sec)", "GM (mtr)",
             "Displacement (mT)", "Freeboard (mtr)"
         ]),
-        'general_info': {},
+        'general_info': {
+            "vessel_code": "",
+            "vessel_name": "",
+            "voyage_id": "",
+            "voyage_no": "",
+            "revision_no": 0,
+            "revision_date": datetime.date.today(),
+            "comments": ""
+        },
         'additional_info': {
+            "continuous_operable_range_min_kw": 0.0,
+            "continuous_operable_range_min_rpm": 0.0,
+            "continuous_operable_range_max_kw": 0.0,
+            "continuous_operable_range_max_rpm": 0.0,
+            "prohibited_range_1_min_kw": 0.0,
+            "prohibited_range_1_min_rpm": 0.0,
+            "prohibited_range_1_max_kw": 0.0,
+            "prohibited_range_1_max_rpm": 0.0,
+            "prohibited_range_2_min_kw": 0.0,
+            "prohibited_range_2_min_rpm": 0.0,
+            "prohibited_range_2_max_kw": 0.0,
+            "prohibited_range_2_max_rpm": 0.0,
+            "ultra_slow_steaming_min_kw": 0.0,
+            "ultra_slow_steaming_min_rpm": 0.0,
+            "ultra_slow_steaming_max_kw": 0.0,
+            "ultra_slow_steaming_max_rpm": 0.0,
             "optimization_objective": "",
+            "min_voyage_cost": 0.0,
+            "vertex_limit": 0.0,
             "instructed_speed": 0.0,
-            "min_voyage_cost": 0.0
+            "required_time_to_arrive": "",
+            "estimated_robs_departure": 0.0,
+            "usd_cost": 0.0,
+            "limit_foc_rough_wx": 0.0,
+            "variable_speed": "",
+            "fuel_used": 0.0,
+            "min_foc": 0.0,
+            "control_mode": "",
+            "biofuel": 0.0
         },
         'charterer_info': [],
         'agent_info': [],
@@ -177,9 +211,35 @@ def additional_information():
     # Ensure 'additional_info' is initialized
     if 'additional_info' not in voyage or voyage['additional_info'] is None:
         voyage['additional_info'] = {
+            "continuous_operable_range_min_kw": 0.0,
+            "continuous_operable_range_min_rpm": 0.0,
+            "continuous_operable_range_max_kw": 0.0,
+            "continuous_operable_range_max_rpm": 0.0,
+            "prohibited_range_1_min_kw": 0.0,
+            "prohibited_range_1_min_rpm": 0.0,
+            "prohibited_range_1_max_kw": 0.0,
+            "prohibited_range_1_max_rpm": 0.0,
+            "prohibited_range_2_min_kw": 0.0,
+            "prohibited_range_2_min_rpm": 0.0,
+            "prohibited_range_2_max_kw": 0.0,
+            "prohibited_range_2_max_rpm": 0.0,
+            "ultra_slow_steaming_min_kw": 0.0,
+            "ultra_slow_steaming_min_rpm": 0.0,
+            "ultra_slow_steaming_max_kw": 0.0,
+            "ultra_slow_steaming_max_rpm": 0.0,
             "optimization_objective": "",
+            "min_voyage_cost": 0.0,
+            "vertex_limit": 0.0,
             "instructed_speed": 0.0,
-            "min_voyage_cost": 0.0
+            "required_time_to_arrive": "",
+            "estimated_robs_departure": 0.0,
+            "usd_cost": 0.0,
+            "limit_foc_rough_wx": 0.0,
+            "variable_speed": "",
+            "fuel_used": 0.0,
+            "min_foc": 0.0,
+            "control_mode": "",
+            "biofuel": 0.0
         }
 
     st.subheader("Additional Information")
@@ -188,6 +248,8 @@ def additional_information():
     voyage['additional_info']['optimization_objective'] = st.text_input("Optimization Objective", value=voyage['additional_info'].get('optimization_objective', ''), key="optimization_objective", disabled=not edit_mode or voyage['status'] == 'Closed')
     voyage['additional_info']['instructed_speed'] = st.number_input("Instructed Speed", value=float(voyage['additional_info'].get('instructed_speed', 0)), format="%.2f", key="instructed_speed", disabled=not edit_mode or voyage['status'] == 'Closed')
     voyage['additional_info']['min_voyage_cost'] = st.number_input("Min Voyage Cost (Hire + Bunker)", value=float(voyage['additional_info'].get('min_voyage_cost', 0)), format="%.2f", key="min_voyage_cost", disabled=not edit_mode or voyage['status'] == 'Closed')
+    voyage['additional_info']['fuel_used'] = st.number_input("Fuel Used", value=float(voyage['additional_info'].get('fuel_used', 0)), format="%.2f", key="fuel_used", disabled=not edit_mode or voyage['status'] == 'Closed')
+    voyage['additional_info']['usd_cost'] = st.number_input("USD Cost", value=float(voyage['additional_info'].get('usd_cost', 0)), format="%.2f", key="usd_cost", disabled=not edit_mode or voyage['status'] == 'Closed')
 
 def charterer_info():
     voyage = st.session_state.current_voyage
