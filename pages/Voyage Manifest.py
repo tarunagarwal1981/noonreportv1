@@ -22,54 +22,13 @@ def create_new_voyage():
         'id': generate_voyage_id(),
         'status': 'Draft',
         'itinerary': pd.DataFrame(columns=[
-            "Leg ID", "Vessel Status", "Port Code", "Port Name", "Charter Party Speed", "Charter Party Consumption",
-            "Transit Port", "Time Zone", "ETA (LT)", "ETB (LT)", "ETD (LT)", "Actual EOSP", "Actual Arrival Berth",
-            "Actual Departure", "Actual COSP", "Berth/Terminal Name"
+            "Leg ID", "Vessel Status", "Port Code", "Port Name", 
+            "Charter Party Speed", "Charter Party Consumption", "Transit Port",
+            "Time Zone", "ETA (LT)", "ETB (LT)", "ETD (LT)", 
+            "Actual EOSP", "Actual Arrival Berth", "Actual Departure", 
+            "Actual COSP", "Berth/Terminal Name"
         ]),
-        'segment_details': pd.DataFrame(columns=[
-            "Lat", "Long", "Cargo qty (mT/m3)", "Fwd draft", "Aft Draft", "Roll period (sec)", "GM (mtr)",
-            "Displacement (mT)", "Freeboard (mtr)"
-        ]),
-        'general_info': {
-            "vessel_code": "",
-            "vessel_name": "",
-            "voyage_id": "",
-            "voyage_no": "",
-            "revision_no": 0,
-            "revision_date": datetime.date.today(),
-            "comments": ""
-        },
-        'additional_info': {
-            "continuous_operable_range_min_kw": 0.0,
-            "continuous_operable_range_min_rpm": 0.0,
-            "continuous_operable_range_max_kw": 0.0,
-            "continuous_operable_range_max_rpm": 0.0,
-            "prohibited_range_1_min_kw": 0.0,
-            "prohibited_range_1_min_rpm": 0.0,
-            "prohibited_range_1_max_kw": 0.0,
-            "prohibited_range_1_max_rpm": 0.0,
-            "prohibited_range_2_min_kw": 0.0,
-            "prohibited_range_2_min_rpm": 0.0,
-            "prohibited_range_2_max_kw": 0.0,
-            "prohibited_range_2_max_rpm": 0.0,
-            "ultra_slow_steaming_min_kw": 0.0,
-            "ultra_slow_steaming_min_rpm": 0.0,
-            "ultra_slow_steaming_max_kw": 0.0,
-            "ultra_slow_steaming_max_rpm": 0.0,
-            "optimization_objective": "",
-            "min_voyage_cost": 0.0,
-            "vertex_limit": 0.0,
-            "instructed_speed": 0.0,
-            "required_time_to_arrive": "",
-            "estimated_robs_departure": 0.0,
-            "usd_cost": 0.0,
-            "limit_foc_rough_wx": 0.0,
-            "variable_speed": "",
-            "fuel_used": 0.0,
-            "min_foc": 0.0,
-            "control_mode": "",
-            "biofuel": 0.0
-        },
+        'general_info': {},
         'charterer_info': [],
         'agent_info': [],
         'log': {
@@ -92,7 +51,7 @@ def display_voyage_manifest():
         if st.button("Start New Voyage Manifest"):
             if voyage['status'] == 'Closed':
                 create_new_voyage()
-                st.success(f"New Voyage Manifest started in Draft mode! Voyage ID: {st.session_state.current_voyage['id']}")
+                st.success(f"New Voyage Manifest started in Draft mode!")
             else:
                 st.error("Cannot start a new voyage. Current voyage is not closed.")
 
@@ -120,24 +79,21 @@ def display_voyage_manifest():
     with col5:
         if st.button("Save Draft"):
             if voyage['status'] == 'Draft':
-                voyage['log']['last_modified_by'] = 'User'  # Replace with actual user info
+                voyage['log']['last_modified_by'] = 'User'
                 voyage['log']['last_modified_datetime'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 st.success("Draft saved successfully!")
             else:
                 st.error("Can only save drafts for voyages in Draft status.")
 
-    with st.expander("General Information", expanded=False):
-        general_info()
+    with st.expander("Voyage Information", expanded=False):
+        voyage_info()
 
     with st.expander("Voyage Itinerary", expanded=False):
         voyage_itinerary()
 
-    with st.expander("Segment Details", expanded=False):
-        segment_details()
-
     with st.expander("Additional Information", expanded=False):
-        additional_information()
-
+        additional_info()
+    
     with st.expander("Charterer Information", expanded=False):
         charterer_info()
 
@@ -147,141 +103,199 @@ def display_voyage_manifest():
     with st.expander("Log", expanded=False):
         log()
 
-def general_info():
+def voyage_info():
     voyage = st.session_state.current_voyage
     edit_mode = st.session_state.edit_mode
     
-    st.subheader("General Information")
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        voyage['general_info']['vessel_code'] = st.text_input("Vessel Code", value=voyage['general_info'].get('vessel_code', ''), key="vessel_code", disabled=not edit_mode or voyage['status'] == 'Closed')
-        voyage['general_info']['voyage_id'] = st.text_input("Voyage ID", value=voyage['general_info'].get('voyage_id', ''), key="voyage_id", disabled=True)
+        voyage['general_info']['vessel_code'] = st.text_input(
+            "Vessel Code", 
+            value=voyage['general_info'].get('vessel_code', ''), 
+            disabled=not edit_mode or voyage['status'] == 'Closed'
+        )
+        voyage['general_info']['vessel_name'] = st.text_input(
+            "Vessel Name",
+            value=voyage['general_info'].get('vessel_name', ''),
+            disabled=not edit_mode or voyage['status'] == 'Closed'
+        )
+
     with col2:
-        voyage['general_info']['vessel_name'] = st.text_input("Vessel Name", value=voyage['general_info'].get('vessel_name', ''), key="vessel_name", disabled=not edit_mode or voyage['status'] == 'Closed')
-        voyage['general_info']['revision_no'] = st.number_input("Revision No", value=int(voyage['general_info'].get('revision_no', 0)), key="revision_no", disabled=not edit_mode or voyage['status'] == 'Closed')
+        voyage['general_info']['voyage_id'] = st.text_input(
+            "Voyage ID",
+            value=voyage['general_info'].get('voyage_id', ''),
+            disabled=not edit_mode or voyage['status'] == 'Closed'
+        )
+        voyage['general_info']['voyage_no'] = st.text_input(
+            "Voyage No.",
+            value=voyage['general_info'].get('voyage_no', ''),
+            disabled=not edit_mode or voyage['status'] == 'Closed'
+        )
+
     with col3:
-        voyage['general_info']['voyage_no'] = st.text_input("Voyage No.", value=voyage['general_info'].get('voyage_no', ''), key="voyage_no", disabled=not edit_mode or voyage['status'] == 'Closed')
-        voyage['general_info']['revision_date'] = st.date_input("Revision Date", value=voyage['general_info'].get('revision_date', datetime.date.today()), key="revision_date", disabled=not edit_mode or voyage['status'] == 'Closed')
-    with col4:
-        voyage['general_info']['comments'] = st.text_area("Comments", value=voyage['general_info'].get('comments', ''), key="comments", disabled=not edit_mode or voyage['status'] == 'Closed')
+        voyage['general_info']['revision_no'] = st.number_input(
+            "Revision No",
+            value=int(voyage['general_info'].get('revision_no', 0)),
+            disabled=not edit_mode or voyage['status'] == 'Closed'
+        )
+        voyage['general_info']['revision_date'] = st.date_input(
+            "Revision Date",
+            value=voyage['general_info'].get('revision_date', datetime.date.today()),
+            disabled=not edit_mode or voyage['status'] == 'Closed'
+        )
+
+    voyage['general_info']['comments'] = st.text_area(
+        "Comments",
+        value=voyage['general_info'].get('comments', ''),
+        disabled=not edit_mode or voyage['status'] == 'Closed'
+    )
 
 def voyage_itinerary():
     voyage = st.session_state.current_voyage
     edit_mode = st.session_state.edit_mode
 
-    st.subheader("Voyage Itinerary")
+    if len(voyage['itinerary']) == 0:
+        voyage['itinerary'] = pd.DataFrame([
+            {col: "" for col in voyage['itinerary'].columns}
+            for _ in range(2)
+        ])
 
-    # Display the itinerary table
     edited_df = st.data_editor(
         voyage['itinerary'],
         disabled=not edit_mode or voyage['status'] == 'Closed',
-        num_rows="dynamic",
-        key="itinerary_editor"
+        num_rows="dynamic"
     )
 
-    # Update the voyage itinerary with edited data
     voyage['itinerary'] = edited_df
+
+    show_segment_details = st.checkbox(
+        "Show Segment Details",
+        value=voyage.get('show_segment_details', False)
+    )
+
+    if show_segment_details:
+        segment_details()
 
 def segment_details():
     voyage = st.session_state.current_voyage
     edit_mode = st.session_state.edit_mode
+    
+    if 'segment_details' not in voyage:
+        voyage['segment_details'] = {}
+    
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.text_input("Latitude")
+        st.number_input("Forward Draft (mtr)")
+        st.number_input("Roll Period (sec)")
+        
+    with col2:
+        st.text_input("Longitude")
+        st.number_input("After Draft (mtr)")
+        st.number_input("GM (mtr)")
+        
+    with col3:
+        st.number_input("Cargo Quantity (mt)")
+        st.number_input("Displacement (MT)")
+        st.number_input("Freeboard (mtr)")
 
-    # Ensure 'segment_details' is initialized
-    if 'segment_details' not in voyage or voyage['segment_details'] is None:
-        voyage['segment_details'] = pd.DataFrame(columns=[
-            "Lat", "Long", "Cargo qty (mT/m3)", "Fwd draft", "Aft Draft", "Roll period (sec)", "GM (mtr)",
-            "Displacement (mT)", "Freeboard (mtr)"
-        ])
-
-    st.subheader("Segment Details")
-
-    edited_df = st.data_editor(
-        voyage['segment_details'],
-        disabled=not edit_mode or voyage['status'] == 'Closed',
-        num_rows="dynamic",
-        key="segment_details_editor"
-    )
-
-    voyage['segment_details'] = edited_df
-
-def additional_information():
+def additional_info():
     voyage = st.session_state.current_voyage
     edit_mode = st.session_state.edit_mode
 
-    # Ensure 'additional_info' is initialized
-    if 'additional_info' not in voyage or voyage['additional_info'] is None:
-        voyage['additional_info'] = {
-            "continuous_operable_range_min_kw": 0.0,
-            "continuous_operable_range_min_rpm": 0.0,
-            "continuous_operable_range_max_kw": 0.0,
-            "continuous_operable_range_max_rpm": 0.0,
-            "prohibited_range_1_min_kw": 0.0,
-            "prohibited_range_1_min_rpm": 0.0,
-            "prohibited_range_1_max_kw": 0.0,
-            "prohibited_range_1_max_rpm": 0.0,
-            "prohibited_range_2_min_kw": 0.0,
-            "prohibited_range_2_min_rpm": 0.0,
-            "prohibited_range_2_max_kw": 0.0,
-            "prohibited_range_2_max_rpm": 0.0,
-            "ultra_slow_steaming_min_kw": 0.0,
-            "ultra_slow_steaming_min_rpm": 0.0,
-            "ultra_slow_steaming_max_kw": 0.0,
-            "ultra_slow_steaming_max_rpm": 0.0,
-            "optimization_objective": "",
-            "min_voyage_cost": 0.0,
-            "vertex_limit": 0.0,
-            "instructed_speed": 0.0,
-            "required_time_to_arrive": "",
-            "estimated_robs_departure": 0.0,
-            "usd_cost": 0.0,
-            "limit_foc_rough_wx": 0.0,
-            "variable_speed": "",
-            "fuel_used": 0.0,
-            "min_foc": 0.0,
-            "control_mode": "",
-            "biofuel": 0.0
-        }
+    # MCR/RPM Ranges
+    st.subheader("MCR/RPM Ranges")
+    
+    for range_type in [
+        "Continuous Operable Range", "Prohibited Range 1",
+        "Prohibited Range 2", "Ultra Slow Steaming"
+    ]:
+        st.write(range_type)
+        col1, col2 = st.columns(2)
+        with col1:
+            st.number_input(f"Min kW", key=f"{range_type}_min_kw")
+            st.number_input(f"Max kW", key=f"{range_type}_max_kw")
+        with col2:
+            st.number_input(f"Min RPM", key=f"{range_type}_min_rpm")
+            st.number_input(f"Max RPM", key=f"{range_type}_max_rpm")
 
-    st.subheader("Additional Information")
-    col1, col2, col3, col4 = st.columns(4)
-
-    voyage['additional_info']['optimization_objective'] = st.text_input("Optimization Objective", value=voyage['additional_info'].get('optimization_objective', ''), key="optimization_objective", disabled=not edit_mode or voyage['status'] == 'Closed')
-    voyage['additional_info']['instructed_speed'] = st.number_input("Instructed Speed", value=float(voyage['additional_info'].get('instructed_speed', 0)), format="%.2f", key="instructed_speed", disabled=not edit_mode or voyage['status'] == 'Closed')
-    voyage['additional_info']['min_voyage_cost'] = st.number_input("Min Voyage Cost (Hire + Bunker)", value=float(voyage['additional_info'].get('min_voyage_cost', 0)), format="%.2f", key="min_voyage_cost", disabled=not edit_mode or voyage['status'] == 'Closed')
-    voyage['additional_info']['fuel_used'] = st.number_input("Fuel Used", value=float(voyage['additional_info'].get('fuel_used', 0)), format="%.2f", key="fuel_used", disabled=not edit_mode or voyage['status'] == 'Closed')
-    voyage['additional_info']['usd_cost'] = st.number_input("USD Cost", value=float(voyage['additional_info'].get('usd_cost', 0)), format="%.2f", key="usd_cost", disabled=not edit_mode or voyage['status'] == 'Closed')
+    # Additional Parameters
+    st.subheader("Additional Parameters")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.text_input("Optimization Objective")
+        st.number_input("Min Voyage Cost (Hire + Bunker)")
+        st.number_input("Vertex Limit")
+        
+    with col2:
+        st.number_input("Instructed Speed")
+        st.text_input("Required Time to Arrive")
+        st.number_input("Estimated ROBs on Dep Berth")
+        
+    with col3:
+        st.number_input("USD Cost")
+        st.number_input("Limit FOC in Rough Wx")
+        st.text_input("Variable Speed")
+        st.number_input("Fuel Used")
+        st.number_input("Min FOC")
+        st.text_input("Control Mode")
+        st.number_input("Biofuel")
 
 def charterer_info():
     voyage = st.session_state.current_voyage
     edit_mode = st.session_state.edit_mode
+    
+    for i, charterer in enumerate(voyage['charterer_info']):
+        st.markdown(f"**Charterer {i+1}**")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.text_input("Type", key=f"charterer_type_{i}")
+            st.text_input("Name", key=f"charterer_name_{i}")
+            st.text_input("Phone No", key=f"charterer_phone_{i}")
+            st.text_input("Email Id", key=f"charterer_email_{i}")
+            
+        with col2:
+            st.text_input("Address 1", key=f"charterer_addr1_{i}")
+            st.text_input("Address 2", key=f"charterer_addr2_{i}")
+            st.text_input("Mobile No", key=f"charterer_mobile_{i}")
+        
+        st.markdown("---")
 
-    st.subheader("Charterer Information")
     if edit_mode and st.button("Add Charterer"):
         voyage['charterer_info'].append({})
-
-    for idx, charterer in enumerate(voyage['charterer_info']):
-        col1, col2 = st.columns(2)
-        charterer['name'] = st.text_input(f"Name {idx + 1}", value=charterer.get('name', ''), key=f"charterer_name_{idx}", disabled=not edit_mode)
-        charterer['type'] = st.text_input(f"Type {idx + 1}", value=charterer.get('type', ''), key=f"charterer_type_{idx}", disabled=not edit_mode)
 
 def agent_info():
     voyage = st.session_state.current_voyage
     edit_mode = st.session_state.edit_mode
+    
+    for i, agent in enumerate(voyage['agent_info']):
+        st.markdown(f"**Agent {i+1}**")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.text_input("Type", key=f"agent_type_{i}")
+            st.text_input("Name", key=f"agent_name_{i}")
+            st.text_input("Phone No", key=f"agent_phone_{i}")
+            st.text_input("Email Id", key=f"agent_email_{i}")
+            
+        with col2:
+            st.text_input("Address 1", key=f"agent_addr1_{i}")
+            st.text_input("Address 2", key=f"agent_addr2_{i}")
+            st.text_input("Mobile No", key=f"agent_mobile_{i}")
+        
+        st.markdown("---")
 
-    st.subheader("Agent Information")
     if edit_mode and st.button("Add Agent"):
         voyage['agent_info'].append({})
 
-    for idx, agent in enumerate(voyage['agent_info']):
-        col1, col2 = st.columns(2)
-        agent['name'] = st.text_input(f"Name {idx + 1}", value=agent.get('name', ''), key=f"agent_name_{idx}", disabled=not edit_mode)
-        agent['type'] = st.text_input(f"Type {idx + 1}", value=agent.get('type', ''), key=f"agent_type_{idx}", disabled=not edit_mode)
-
 def log():
     voyage = st.session_state.current_voyage
-    st.text_input("Created By", value=voyage['log'].get('created_by', ''), disabled=True)
-    st.text_input("Last Modified By", value=voyage['log'].get('last_modified_by', ''), disabled=True)
-    st.text_input("Last Modified Datetime", value=voyage['log'].get('last_modified_datetime', ''), disabled=True)
+    col1, col2 = st.columns(2)
+    with col1:
+        st.text_input("Created By", value=voyage['log']['created_by'], disabled=True)
+        st.date_input("Created Date", value=voyage['log']['created_date'], disabled=True)
+    with col2:
+        st.text_input("Last Modified by", value=voyage['log']['last_modified_by'], disabled=True)
+        st.text_input("Last Modified Datetime", value=voyage['log']['last_modified_datetime'], disabled=True)
 
 def main():
     st.title("Voyage Manifest")
@@ -290,7 +304,7 @@ def main():
         st.write("No active voyage. Start a new voyage manifest.")
         if st.button("Start New Voyage Manifest"):
             create_new_voyage()
-            st.success(f"New Voyage Manifest started in Draft mode! Voyage ID: {st.session_state.current_voyage['id']}")
+            st.success(f"New Voyage Manifest started in Draft mode!")
     else:
         display_voyage_manifest()
 
