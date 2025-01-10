@@ -26,21 +26,24 @@ def initialize_session_state():
 
 def create_editable_dataframe(bunkering=False, debunkering=False, bunker_survey=False):
     """Create dataframe with proper row structure based on operation type."""
+    # Base rows
     index = [
         'Fuel Type', 
         'BDN Number',
-        'Viscosity/Density/Sulphur',  # New combined properties row
+        'Viscosity/Density/Sulphur',  # Combined properties row
         'Previous ROB'
     ] + st.session_state.consumers
     
-    # Add additional rows based on operations
+    # Add operation-specific rows before Current ROB
     if bunkering:
         index.append('Bunker Qty (mT)')
     if debunkering:
         index.append('Debunkered Qty (mT)')
     if bunker_survey:
         index.append('Survey Qty (mT)')
-        index.append('Current ROB')  # Added back Current ROB after Survey Qty
+        
+    # Always add Current ROB as the last row
+    index.append('Current ROB')
         
     tanks = st.session_state.tanks
     df = pd.DataFrame(index=index, columns=tanks)
