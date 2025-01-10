@@ -26,7 +26,12 @@ def initialize_session_state():
 
 def create_editable_dataframe(bunkering=False, debunkering=False, bunker_survey=False):
     """Create dataframe with proper row structure based on operation type."""
-    index = ['Fuel Type', 'BDN Number', 'Previous ROB'] + st.session_state.consumers
+    index = [
+        'Fuel Type', 
+        'BDN Number',
+        'Viscosity/Density/Sulphur',  # New combined properties row
+        'Previous ROB'
+    ] + st.session_state.consumers
     
     # Add additional rows based on operations
     if bunkering:
@@ -35,8 +40,7 @@ def create_editable_dataframe(bunkering=False, debunkering=False, bunker_survey=
         index.append('Debunkered Qty (mT)')
     if bunker_survey:
         index.append('Survey Qty (mT)')
-    if not bunker_survey:  # Only add Current ROB if not bunker survey
-        index.append('Current ROB')
+        index.append('Current ROB')  # Added back Current ROB after Survey Qty
         
     tanks = st.session_state.tanks
     df = pd.DataFrame(index=index, columns=tanks)
@@ -46,13 +50,25 @@ def create_editable_dataframe(bunkering=False, debunkering=False, bunker_survey=
     bdn_numbers = generate_random_bdn_numbers()
     df.loc['Fuel Type'] = [random.choice(fuel_types) for _ in tanks]
     df.loc['BDN Number'] = [bdn_numbers[i % 3] for i in range(len(tanks))]
-    df.loc['Previous ROB'] = [np.random.uniform(100, 1000) for _ in tanks]
     
+    # Initialize properties with random values (1 decimal place)
+    properties = [
+        f"{round(random.uniform(100, 500), 1)}cSt/{round(random.uniform(900, 1000), 1)}kg/m³/{round(random.uniform(0.1, 0.5), 1)}%" 
+        for _ in tanks
+    ]
+    df.loc['Viscosity/Density/Sulphur'] = properties
+    
+    # Initialize ROB with 1 decimal place
+    df.loc['Previous ROB'] = [round(np.random.uniform(100, 1000), 1) for _ in tanks]
+    
+    # Initialize consumption values with 1 decimal place
     for consumer in st.session_state.consumers:
-        df.loc[consumer] = [np.random.uniform(0, 50) for _ in tanks]
+        df.loc[consumer] = [round(np.random.uniform(0, 50), 1) for _ in tanks]
         
+    # Calculate current ROB if applicable
     if 'Current ROB' in df.index:
-        df.loc['Current ROB'] = df.loc['Previous ROB'] - df.loc[st.session_state.consumers].sum()
+        consumption = df.loc[st.session_state.consumers].sum()
+        df.loc['Current ROB'] = (df.loc['Previous ROB'] - consumption).round(1)
         
     return df
 
@@ -90,13 +106,17 @@ def display_tank_sounding_report():
             with col2:
                 entry['imo_number'] = st.text_input("IMO number", key=f"imo_number_{i}")
                 entry['fuel_type'] = st.text_input("Fuel Type", key=f"fuel_type_{i}")
-                entry['mass'] = st.number_input("Mass (mt)", min_value=0.0, step=0.1, key=f"mass_{i}")
+                entry['mass'] = st.number_input("Mass (mt)", min_value=0.0, step=0.1, format="%.1f", key=f"mass_{i}")
+                # Add new fields
+                entry['viscosity'] = st.number_input("Viscosity (cSt)", min_value=0.0, step=0.1, format="%.1f", key=f"viscosity_{i}")
+                entry['density'] = st.number_input("Density (kg/m³)", min_value=0.0, step=0.1, format="%.1f", key=f"density_{i}")
+                entry['sulphur'] = st.number_input("Sulphur (%)", min_value=0.0, max_value=100.0, step=0.01, format="%.2f", key=f"sulphur_{i}")
                 
             with col3:
-                entry['lower_heating_value'] = st.number_input("Lower heating value (MJ/kg)", min_value=0.0, step=0.1, key=f"lower_heating_value_{i}")
-                entry['eu_ghg_intensity'] = st.number_input("EU GHG emission intensity (gCO2eq/MJ)", min_value=0.0, step=0.1, key=f"eu_ghg_intensity_{i}")
-                entry['imo_ghg_intensity'] = st.number_input("IMO GHG emission intensity (gCO2eq/MJ)", min_value=0.0, step=0.1, key=f"imo_ghg_intensity_{i}")
-                entry['lcv_eu'] = st.number_input("Lower Calorific Value (EU) (MJ/kg)", min_value=0.0, step=0.1, key=f"lcv_eu_{i}")
+                entry['lower_heating_value'] = st.number_input("Lower heating value (MJ/kg)", min_value=0.0, step=0.1, format="%.1f", key=f"lower_heating_value_{i}")
+                entry['eu_ghg_intensity'] = st.number_input("EU GHG emission intensity (gCO2eq/MJ)", min_value=0.0, step=0.1, format="%.1f", key=f"eu_ghg_intensity_{i}")
+                entry['imo_ghg_intensity'] = st.number_input("IMO GHG emission intensity (gCO2eq/MJ)", min_value=0.0, step=0.1, format="%.1f", key=f"imo_ghg_intensity_{i}")
+                entry['lcv_eu'] = st.number_input("Lower Calorific Value (EU) (MJ/kg)", min_value=0.0, step=0.1, format="%.1f", key=f"lcv_eu_{i}")
                 entry['sustainability'] = st.text_input("Sustainability", key=f"sustainability_{i}")
                 
             entry['tanks'] = st.multiselect("Select Tanks", st.session_state.tanks, key=f"bunkering_tanks_{i}")
@@ -116,7 +136,7 @@ def display_tank_sounding_report():
             col1, col2 = st.columns(2)
             with col1:
                 entry['date'] = st.date_input("Date of Debunkering", key=f"debunker_date_{i}")
-                entry['quantity'] = st.number_input("Quantity Debunkered (mt)", min_value=0.0, step=0.1, key=f"debunker_qty_{i}")
+                entry['quantity'] = st.number_input("Quantity Debunkered (mt)", min_value=0.0, step=0.1, format="%.1f", key=f"debunker_qty_{i}")
             with col2:
                 entry['bdn_number'] = st.text_input("BDN Number of Debunkered Oil", key=f"debunker_bdn_{i}")
                 entry['receipt_file'] = st.file_uploader("Upload Receipt", type=['pdf', 'jpg', 'png'], key=f"receipt_file_{i}")
@@ -191,7 +211,7 @@ def display_tank_sounding_report():
                 "SFOC",
                 help="Specific Fuel Oil Consumption",
                 min_value=0,
-                format="%.2f"
+                format="%.1f"
             ),
             "Tank Name": st.column_config.TextColumn(
                 "Tank Name",
