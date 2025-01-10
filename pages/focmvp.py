@@ -7,9 +7,9 @@ import uuid
 
 st.set_page_config(layout="wide", page_title="Tank Sounding Method")
 
-def generate_random_bdn_numbers():
-    """Generates three unique random alphanumeric BDN numbers (8 characters)."""
-    return [''.join(random.choices(string.ascii_uppercase + string.digits, k=8)) for _ in range(3)]
+def generate_random_bdn_numbers(count):
+    """Generates the specified number of unique random alphanumeric BDN numbers (8 characters)."""
+    return [''.join(random.choices(string.ascii_uppercase + string.digits, k=8)) for _ in range(count)]
 
 def round_to_one(value):
     """Round a number to one decimal place."""
@@ -32,9 +32,10 @@ def display_tank_sounding_report():
 
     # Tank metadata section
     st.subheader("Tank Information")
+    num_tanks = len(st.session_state.tanks)
     tank_info = pd.DataFrame({
-        'Fuel Type': ["VLSFO", "MGO", "HFO", "VLSFO", "MGO", "HFO", "VLSFO", "MGO"],
-        'BDN Number': generate_random_bdn_numbers() * 3,
+        'Fuel Type': ["VLSFO", "MGO", "HFO", "VLSFO", "MGO", "HFO", "VLSFO", "MGO"][:num_tanks],
+        'BDN Number': generate_random_bdn_numbers(num_tanks)
     }, index=st.session_state.tanks)
     
     edited_tank_info = st.data_editor(
@@ -46,13 +47,13 @@ def display_tank_sounding_report():
     # Tank sounding measurements section
     st.subheader("Tank Sounding Measurements")
     sounding_data = pd.DataFrame({
-        'Sounding Level (m)': [round_to_one(np.random.uniform(1, 10)) for _ in range(8)],
-        'Temperature (°C)': [round_to_one(np.random.uniform(20, 40)) for _ in range(8)],
-        'Density @ 15°C': [round_to_one(np.random.uniform(0.9, 1.0)) for _ in range(8)],
-        'Volume (m³)': [round_to_one(np.random.uniform(50, 200)) for _ in range(8)],
-        'Mass (MT)': [0.0] * 8,  # Will be calculated
-        'Previous ROB (MT)': [round_to_one(np.random.uniform(100, 1000)) for _ in range(8)],
-        'Current ROB (MT)': [0.0] * 8,  # Will be calculated
+        'Sounding Level (m)': [round_to_one(np.random.uniform(1, 10)) for _ in range(num_tanks)],
+        'Temperature (°C)': [round_to_one(np.random.uniform(20, 40)) for _ in range(num_tanks)],
+        'Density @ 15°C': [round_to_one(np.random.uniform(0.9, 1.0)) for _ in range(num_tanks)],
+        'Volume (m³)': [round_to_one(np.random.uniform(50, 200)) for _ in range(num_tanks)],
+        'Mass (MT)': [0.0] * num_tanks,  # Will be calculated
+        'Previous ROB (MT)': [round_to_one(np.random.uniform(100, 1000)) for _ in range(num_tanks)],
+        'Current ROB (MT)': [0.0] * num_tanks,  # Will be calculated
     }, index=st.session_state.tanks)
 
     # Convert columns to numeric and format to one decimal
@@ -76,7 +77,7 @@ def display_tank_sounding_report():
     # Consumer consumption section
     st.subheader("Consumer Consumption Data")
     consumption_df = pd.DataFrame(
-        np.round(np.random.uniform(0, 5, size=(len(st.session_state.consumers), len(st.session_state.tanks))), 1),
+        np.round(np.random.uniform(0, 5, size=(len(st.session_state.consumers), num_tanks)), 1),
         index=st.session_state.consumers,
         columns=st.session_state.tanks
     )
