@@ -150,7 +150,7 @@ def display_tank_sounding_report():
             st.experimental_rerun()
 
     # Tank sounding data table
-    st.subheader("Tank Sounding Method Fuel Consumption Data")
+    st.subheader("Fuel Consumption Data")
     df = create_editable_dataframe(bunkering_record, debunkering_record, bunker_survey)
     
     edited_df = st.data_editor(
