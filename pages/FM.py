@@ -23,15 +23,15 @@ def init_session_state():
             'OTHER': {'flowmeters': [], 'formula': ''}
         }
 
-    if 'tank_config' not in st.session_state:
-        st.session_state.tank_config = {
-            'ME': {'tank1': False, 'tank2': False, 'tank3': False},
-            'AE1': {'tank1': False, 'tank2': False, 'tank3': False},
-            'AE2': {'tank1': False, 'tank2': False, 'tank3': False},
-            'AE3': {'tank1': False, 'tank2': False, 'tank3': False},
-            'BOILER1': {'tank1': False, 'tank2': False, 'tank3': False},
-            'BOILER2': {'tank1': False, 'tank2': False, 'tank3': False},
-            'OTHERS': {'tank1': False, 'tank2': False, 'tank3': False}
+    if 'tank_levels' not in st.session_state:
+        st.session_state.tank_levels = {
+            'ME': {'tank1': 0.0, 'tank2': 0.0, 'tank3': 0.0},
+            'AE1': {'tank1': 0.0, 'tank2': 0.0, 'tank3': 0.0},
+            'AE2': {'tank1': 0.0, 'tank2': 0.0, 'tank3': 0.0},
+            'AE3': {'tank1': 0.0, 'tank2': 0.0, 'tank3': 0.0},
+            'BOILER1': {'tank1': 0.0, 'tank2': 0.0, 'tank3': 0.0},
+            'BOILER2': {'tank1': 0.0, 'tank2': 0.0, 'tank3': 0.0},
+            'OTHERS': {'tank1': 0.0, 'tank2': 0.0, 'tank3': 0.0}
         }
 
 init_session_state()
@@ -40,7 +40,7 @@ init_session_state()
 st.title('🚢 Vessel Consumption Calculator')
 
 # Create tabs for Admin and User sections
-admin_tab, user_tab = st.tabs(["⚙️ Admin Configuration", "📊 User Calculations"])
+admin_tab, user_tab = st.tabs(["⚙️ Admin Configuration", "📊 Daily Operations"])
 
 with admin_tab:
     st.header('System Configuration')
@@ -81,8 +81,6 @@ with admin_tab:
             if fm_data:
                 fm_df = pd.DataFrame(fm_data)
                 st.dataframe(fm_df, use_container_width=True)
-        else:
-            st.info('No flowmeters added yet. Add a flowmeter using the form above.')
 
     # Equipment Configuration Section
     with st.expander("⚡ Equipment Configuration", expanded=True):
@@ -105,6 +103,7 @@ with admin_tab:
                 st.info("Available variables: F1_TODAY, F1_PREV, F2_TODAY, F2_PREV, etc.")
                 custom_formula = st.text_input(
                     'Enter Custom Formula',
+                    value=st.session_state.configurations[equipment_type].get('formula', ''),
                     help='Example: (F1_TODAY - F1_PREV) - (F2_TODAY - F2_PREV)'
                 )
 
@@ -115,47 +114,9 @@ with admin_tab:
                 else:
                     st.session_state.configurations[equipment_type]['formula'] = formula_type
                 st.success(f'Configuration saved for {equipment_type}')
-                st.rerun()
-        else:
-            st.warning('Please add flowmeters first before configuring equipment.')
-
-    # Tank Configuration Section
-    st.markdown("---")
-    st.header('🛢️ Tank Configuration')
-
-    # Tank Assignment Matrix
-    st.subheader('Tank Assignment Matrix')
-    col1, col2, col3, col4 = st.columns([2, 1, 1, 1])
-
-    with col1:
-        st.markdown("**Equipment**")
-    with col2:
-        st.markdown("**Tank 1**")
-    with col3:
-        st.markdown("**Tank 2**")
-    with col4:
-        st.markdown("**Tank 3**")
-
-    for equipment in st.session_state.tank_config.keys():
-        col1, col2, col3, col4 = st.columns([2, 1, 1, 1])
-
-        with col1:
-            st.markdown(f"**{equipment}**")
-        with col2:
-            tank1 = st.checkbox('', key=f'{equipment}_tank1',
-                              value=st.session_state.tank_config[equipment]['tank1'])
-            st.session_state.tank_config[equipment]['tank1'] = tank1
-        with col3:
-            tank2 = st.checkbox('', key=f'{equipment}_tank2',
-                              value=st.session_state.tank_config[equipment]['tank2'])
-            st.session_state.tank_config[equipment]['tank2'] = tank2
-        with col4:
-            tank3 = st.checkbox('', key=f'{equipment}_tank3',
-                              value=st.session_state.tank_config[equipment]['tank3'])
-            st.session_state.tank_config[equipment]['tank3'] = tank3
 
 with user_tab:
-    st.header('Consumption Calculations')
+    st.header('Daily Consumption Recording')
 
     def convert_to_mass(volume, density, temperature):
         temperature_factor = 1 - (0.00065 * (temperature - 15))
@@ -175,22 +136,24 @@ with user_tab:
                 for i, (curr, prev) in enumerate(zip(readings['current'], readings['previous']), 1):
                     variables[f'F{i}_TODAY'] = float(curr)
                     variables[f'F{i}_PREV'] = float(prev)
-
                 formula = formula_type
                 for var_name, value in variables.items():
                     formula = formula.replace(var_name, str(value))
-
                 return eval(formula)
         except Exception as e:
             st.error(f"Calculation error: {str(e)}")
             return None
 
+    # Flowmeter Readings Section
+    st.subheader('📊 Flowmeter Readings')
+
     # Equipment tabs for calculations
     equipment_tabs = st.tabs(['ME', 'AE', 'BLR', 'OTHER'])
 
+    calculation_results = {}  # Store calculation results for display
+
     for eq_type, tab in zip(['ME', 'AE', 'BLR', 'OTHER'], equipment_tabs):
         with tab:
-            st.subheader(f'{eq_type} Consumption')
             config = st.session_state.configurations[eq_type]
 
             if not config['flowmeters']:
@@ -233,9 +196,6 @@ with user_tab:
                     )
                     readings['previous'].append(previous)
 
-                    if fm_details['type'] == 'Volumetric':
-                        st.info(f"Mass calculation will be applied")
-
             if st.button(f'Calculate {eq_type} Consumption'):
                 # Apply mass conversion if needed
                 for i, fm in enumerate(config['flowmeters']):
@@ -247,44 +207,67 @@ with user_tab:
 
                 result = calculate_consumption(readings, config['formula'])
                 if result is not None:
+                    calculation_results[eq_type] = result
                     st.success(f'{eq_type} Consumption: {result:.2f} units')
 
-                    # Show connected tanks
-                    connected_tanks = []
-                    for tank_num, connected in st.session_state.tank_config[eq_type].items():
-                        if connected:
-                            connected_tanks.append(f"Tank {tank_num[-1]}")
-                    if connected_tanks:
-                        st.info(f"Connected tanks: {', '.join(connected_tanks)}")
+    # Tank Levels Section
+    st.markdown("---")
+    st.subheader('🛢️ Tank Levels')
 
-# Add save/load functionality
-if admin_tab:
-    st.sidebar.header("💾 Save/Load Configuration")
+    # Create columns for the table header
+    cols = st.columns([2, 1, 1, 1])
+    cols[0].markdown("**Equipment**")
+    cols[1].markdown("**Tank 1**")
+    cols[2].markdown("**Tank 2**")
+    cols[3].markdown("**Tank 3**")
 
-    # Save configuration
-    if st.sidebar.button("Save Configuration"):
-        config_data = {
-            'flowmeters': st.session_state.flowmeters,
-            'configurations': st.session_state.configurations,
-            'tank_config': st.session_state.tank_config
-        }
-        json_str = json.dumps(config_data)
-        st.sidebar.download_button(
-            label="Download Configuration",
-            data=json_str,
-            file_name="vessel_config.json",
-            mime="application/json"
-        )
+    # Create input fields for each equipment's tank levels
+    for equipment in ['ME', 'AE1', 'AE2', 'AE3', 'BOILER1', 'BOILER2', 'OTHERS']:
+        cols = st.columns([2, 1, 1, 1])
+        cols[0].markdown(f"**{equipment}**")
 
-    # Load configuration
-    uploaded_file = st.sidebar.file_uploader("Load Configuration", type=['json'])
-    if uploaded_file is not None:
-        try:
-            config_data = json.loads(uploaded_file.getvalue())
-            st.session_state.flowmeters = config_data['flowmeters']
-            st.session_state.configurations = config_data['configurations']
-            st.session_state.tank_config = config_data['tank_config']
-            st.sidebar.success("Configuration loaded successfully!")
-            st.rerun()
-        except Exception as e:
-            st.sidebar.error(f"Error loading configuration: {str(e)}")
+        # Tank level inputs
+        for tank_num in range(1, 4):
+            tank_key = f'tank{tank_num}'
+            tank_level = cols[tank_num].number_input(
+                f"Level",
+                value=st.session_state.tank_levels[equipment][tank_key],
+                key=f'{equipment}_{tank_key}_level',
+                label_visibility="collapsed"
+            )
+            st.session_state.tank_levels[equipment][tank_key] = tank_level
+
+    # Save button for tank levels
+    if st.button('Save Tank Levels'):
+        st.success('Tank levels saved successfully!')
+
+# Add save/load functionality in sidebar
+st.sidebar.header("💾 Save/Load Configuration")
+
+# Save configuration
+if st.sidebar.button("Save Configuration"):
+    config_data = {
+        'flowmeters': st.session_state.flowmeters,
+        'configurations': st.session_state.configurations,
+        'tank_levels': st.session_state.tank_levels
+    }
+    json_str = json.dumps(config_data)
+    st.sidebar.download_button(
+        label="Download Configuration",
+        data=json_str,
+        file_name="vessel_config.json",
+        mime="application/json"
+    )
+
+# Load configuration
+uploaded_file = st.sidebar.file_uploader("Load Configuration", type=['json'])
+if uploaded_file is not None:
+    try:
+        config_data = json.loads(uploaded_file.getvalue())
+        st.session_state.flowmeters = config_data['flowmeters']
+        st.session_state.configurations = config_data['configurations']
+        st.session_state.tank_levels = config_data['tank_levels']
+        st.sidebar.success("Configuration loaded successfully!")
+        st.rerun()
+    except Exception as e:
+        st.sidebar.error(f"Error loading configuration: {str(e)}")
