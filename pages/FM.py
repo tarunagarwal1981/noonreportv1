@@ -2,9 +2,9 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 
-# Initialize session state for flowmeters and configurations if not exists
+# Initialize session state
 if 'flowmeters' not in st.session_state:
-    st.session_state.flowmeters = []
+    st.session_state.flowmeters = {}  # Changed to dict to store flowmeter details
 if 'configurations' not in st.session_state:
     st.session_state.configurations = {
         'ME': {'flowmeters': [], 'formula': ''},
@@ -12,6 +12,14 @@ if 'configurations' not in st.session_state:
         'BLR': {'flowmeters': [], 'formula': ''},
         'OTHER': {'flowmeters': [], 'formula': ''}
     }
+if 'readings' not in st.session_state:
+    st.session_state.readings = {}
+
+def convert_to_mass(volume, density, temperature):
+    # Basic conversion formula - can be enhanced with more complex temperature compensation
+    temperature_factor = 1 - (0.00065 * (temperature - 15))  # Simple temperature correction
+    mass = volume * density * temperature_factor
+    return mass
 
 # App title
 st.title('Vessel Flowmeter Configuration and Calculation')
@@ -21,19 +29,37 @@ st.header('System Configuration')
 
 # Flowmeter Management
 with st.expander("Flowmeter Management", expanded=True):
-    col1, col2 = st.columns([2, 1])
+    col1, col2, col3 = st.columns([2, 1, 1])
     with col1:
         new_flowmeter = st.text_input('Enter new flowmeter name')
     with col2:
+        flowmeter_type = st.selectbox(
+            'Flowmeter Type',
+            ['Volumetric', 'Mass'],
+            key='new_flowmeter_type'
+        )
+    with col3:
         if st.button('Add Flowmeter'):
             if new_flowmeter and new_flowmeter not in st.session_state.flowmeters:
-                st.session_state.flowmeters.append(new_flowmeter)
+                st.session_state.flowmeters[new_flowmeter] = {
+                    'type': flowmeter_type,
+                    'current_reading': 0,
+                    'previous_reading': 0,
+                    'density': 0,
+                    'temperature': 0
+                }
                 st.success(f'Flowmeter {new_flowmeter} added successfully!')
 
     # Display existing flowmeters in a table
     if st.session_state.flowmeters:
         st.subheader('Existing Flowmeters')
-        fm_df = pd.DataFrame(st.session_state.flowmeters, columns=['Flowmeter Name'])
+        fm_data = []
+        for fm_name, fm_details in st.session_state.flowmeters.items():
+            fm_data.append({
+                'Flowmeter Name': fm_name,
+                'Type': fm_details['type']
+            })
+        fm_df = pd.DataFrame(fm_data)
         st.dataframe(fm_df)
 
 # Equipment Configuration
@@ -45,7 +71,7 @@ with st.expander("Equipment Configuration", expanded=True):
     # Select flowmeters for the equipment
     selected_flowmeters = st.multiselect(
         'Select Flowmeters',
-        st.session_state.flowmeters,
+        list(st.session_state.flowmeters.keys()),
         default=st.session_state.configurations[equipment_type]['flowmeters']
     )
 
@@ -57,9 +83,12 @@ with st.expander("Equipment Configuration", expanded=True):
     )
 
     if formula_type == 'Custom Formula':
+        st.write("Available variables for formula:")
+        st.write("- Use F1_TODAY, F1_PREV for first flowmeter's readings")
+        st.write("- Use F2_TODAY, F2_PREV for second flowmeter's readings, etc.")
         custom_formula = st.text_input(
             'Enter Custom Formula',
-            help='Use F1, F2, etc. to refer to flowmeters in order of selection'
+            help='Example: (F1_TODAY - F1_PREV) - (F2_TODAY - F2_PREV)'
         )
 
     if st.button('Save Configuration'):
@@ -70,15 +99,25 @@ with st.expander("Equipment Configuration", expanded=True):
             st.session_state.configurations[equipment_type]['formula'] = formula_type
         st.success(f'Configuration saved for {equipment_type}')
 
-# Display current configurations
-with st.expander("Current Configurations", expanded=True):
-    for eq_type, config in st.session_state.configurations.items():
-        st.subheader(f'{eq_type} Configuration')
-        st.write(f"Assigned Flowmeters: {', '.join(config['flowmeters']) if config['flowmeters'] else 'None'}")
-        st.write(f"Formula Type: {config['formula'] if config['formula'] else 'Not configured'}")
-
 # Calculation Section
 st.header('Consumption Calculations')
+
+def evaluate_custom_formula(formula, readings):
+    # Create a safe dict of variables for evaluation
+    variables = {}
+    for i, fm in enumerate(readings['flowmeters'], 1):
+        variables[f'F{i}_TODAY'] = readings['current'][i-1]
+        variables[f'F{i}_PREV'] = readings['previous'][i-1]
+
+    # Replace variable names in formula
+    for var_name, value in variables.items():
+        formula = formula.replace(var_name, str(value))
+
+    try:
+        return eval(formula)
+    except Exception as e:
+        st.error(f"Error evaluating formula: {str(e)}")
+        return None
 
 def calculate_consumption(readings, formula_type):
     if formula_type == 'Simple Difference':
@@ -89,8 +128,7 @@ def calculate_consumption(readings, formula_type):
             total += float(readings['current'][i]) - float(readings['previous'][i])
         return total
     else:
-        # Handle custom formula here
-        return 0  # Placeholder
+        return evaluate_custom_formula(formula_type, readings)
 
 # Create tabs for different consumption types
 tab1, tab2, tab3, tab4 = st.tabs(['ME Consumption', 'AE Consumption', 'BLR Consumption', 'Other Equipment'])
@@ -104,20 +142,59 @@ def create_consumption_inputs(equipment_type, tab):
             st.warning(f'No flowmeters configured for {equipment_type}. Please configure in the Equipment Configuration section.')
             return
 
-        readings = {'current': [], 'previous': []}
+        readings = {'current': [], 'previous': [], 'flowmeters': config['flowmeters']}
+        mass_flows = []
 
         for fm in config['flowmeters']:
+            st.write(f"### Flowmeter: {fm}")
+            fm_details = st.session_state.flowmeters[fm]
+
             col1, col2 = st.columns(2)
             with col1:
-                current = st.number_input(f'Current Reading - {fm}', key=f'{equipment_type}_{fm}_current')
+                current = st.number_input(
+                    f'Current Reading',
+                    key=f'{equipment_type}_{fm}_current'
+                )
                 readings['current'].append(current)
+
+                if fm_details['type'] == 'Volumetric':
+                    density = st.number_input(
+                        f'Density (kg/m³)',
+                        value=fm_details['density'],
+                        key=f'{equipment_type}_{fm}_density'
+                    )
+                    temperature = st.number_input(
+                        f'Temperature (°C)',
+                        value=fm_details['temperature'],
+                        key=f'{equipment_type}_{fm}_temp'
+                    )
+
             with col2:
-                previous = st.number_input(f'Previous Reading - {fm}', key=f'{equipment_type}_{fm}_previous')
+                previous = st.number_input(
+                    f'Previous Reading',
+                    key=f'{equipment_type}_{fm}_previous'
+                )
                 readings['previous'].append(previous)
 
+            # Convert to mass if volumetric
+            if fm_details['type'] == 'Volumetric':
+                current_mass = convert_to_mass(current, density, temperature)
+                previous_mass = convert_to_mass(previous, density, temperature)
+                mass_flows.append((current_mass, previous_mass))
+                st.info(f"Mass flow calculation for {fm}:")
+                st.write(f"Current: {current_mass:.2f} kg")
+                st.write(f"Previous: {previous_mass:.2f} kg")
+
         if st.button(f'Calculate {equipment_type} Consumption'):
+            # Use mass values for volumetric flowmeters
+            if mass_flows:
+                for i, (curr_mass, prev_mass) in enumerate(mass_flows):
+                    readings['current'][i] = curr_mass
+                    readings['previous'][i] = prev_mass
+
             consumption = calculate_consumption(readings, config['formula'])
-            st.success(f'{equipment_type} Consumption: {consumption:.2f} units')
+            if consumption is not None:
+                st.success(f'{equipment_type} Consumption: {consumption:.2f} units')
 
 # Create consumption calculation sections for each equipment type
 create_consumption_inputs('ME', tab1)
