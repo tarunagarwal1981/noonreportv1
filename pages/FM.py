@@ -2,9 +2,10 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 
-# Initialize session state
+# Initialize session state with proper dictionary structure
 if 'flowmeters' not in st.session_state:
-    st.session_state.flowmeters = {}  # Changed to dict to store flowmeter details
+    st.session_state.flowmeters = dict()  # Initialize as empty dictionary
+
 if 'configurations' not in st.session_state:
     st.session_state.configurations = {
         'ME': {'flowmeters': [], 'formula': ''},
@@ -12,12 +13,12 @@ if 'configurations' not in st.session_state:
         'BLR': {'flowmeters': [], 'formula': ''},
         'OTHER': {'flowmeters': [], 'formula': ''}
     }
+
 if 'readings' not in st.session_state:
-    st.session_state.readings = {}
+    st.session_state.readings = dict()
 
 def convert_to_mass(volume, density, temperature):
-    # Basic conversion formula - can be enhanced with more complex temperature compensation
-    temperature_factor = 1 - (0.00065 * (temperature - 15))  # Simple temperature correction
+    temperature_factor = 1 - (0.00065 * (temperature - 15))
     mass = volume * density * temperature_factor
     return mass
 
@@ -43,10 +44,10 @@ with st.expander("Flowmeter Management", expanded=True):
             if new_flowmeter and new_flowmeter not in st.session_state.flowmeters:
                 st.session_state.flowmeters[new_flowmeter] = {
                     'type': flowmeter_type,
-                    'current_reading': 0,
-                    'previous_reading': 0,
-                    'density': 0,
-                    'temperature': 0
+                    'current_reading': 0.0,
+                    'previous_reading': 0.0,
+                    'density': 0.0,
+                    'temperature': 0.0
                 }
                 st.success(f'Flowmeter {new_flowmeter} added successfully!')
 
@@ -99,17 +100,12 @@ with st.expander("Equipment Configuration", expanded=True):
             st.session_state.configurations[equipment_type]['formula'] = formula_type
         st.success(f'Configuration saved for {equipment_type}')
 
-# Calculation Section
-st.header('Consumption Calculations')
-
 def evaluate_custom_formula(formula, readings):
-    # Create a safe dict of variables for evaluation
     variables = {}
     for i, fm in enumerate(readings['flowmeters'], 1):
         variables[f'F{i}_TODAY'] = readings['current'][i-1]
         variables[f'F{i}_PREV'] = readings['previous'][i-1]
 
-    # Replace variable names in formula
     for var_name, value in variables.items():
         formula = formula.replace(var_name, str(value))
 
@@ -176,7 +172,6 @@ def create_consumption_inputs(equipment_type, tab):
                 )
                 readings['previous'].append(previous)
 
-            # Convert to mass if volumetric
             if fm_details['type'] == 'Volumetric':
                 current_mass = convert_to_mass(current, density, temperature)
                 previous_mass = convert_to_mass(previous, density, temperature)
@@ -186,7 +181,6 @@ def create_consumption_inputs(equipment_type, tab):
                 st.write(f"Previous: {previous_mass:.2f} kg")
 
         if st.button(f'Calculate {equipment_type} Consumption'):
-            # Use mass values for volumetric flowmeters
             if mass_flows:
                 for i, (curr_mass, prev_mass) in enumerate(mass_flows):
                     readings['current'][i] = curr_mass
