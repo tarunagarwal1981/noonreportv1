@@ -25,13 +25,13 @@ def init_session_state():
 
     if 'tank_levels' not in st.session_state:
         st.session_state.tank_levels = {
-            'ME': {'tank1': 0.0, 'tank2': 0.0, 'tank3': 0.0},
-            'AE1': {'tank1': 0.0, 'tank2': 0.0, 'tank3': 0.0},
-            'AE2': {'tank1': 0.0, 'tank2': 0.0, 'tank3': 0.0},
-            'AE3': {'tank1': 0.0, 'tank2': 0.0, 'tank3': 0.0},
-            'BOILER1': {'tank1': 0.0, 'tank2': 0.0, 'tank3': 0.0},
-            'BOILER2': {'tank1': 0.0, 'tank2': 0.0, 'tank3': 0.0},
-            'OTHERS': {'tank1': 0.0, 'tank2': 0.0, 'tank3': 0.0}
+            'ME': {'HFO': 0.0, 'LFO': 0.0, 'MGO': 0.0},
+            'AE1': {'HFO': 0.0, 'LFO': 0.0, 'MGO': 0.0},
+            'AE2': {'HFO': 0.0, 'LFO': 0.0, 'MGO': 0.0},
+            'AE3': {'HFO': 0.0, 'LFO': 0.0, 'MGO': 0.0},
+            'BOILER1': {'HFO': 0.0, 'LFO': 0.0, 'MGO': 0.0},
+            'BOILER2': {'HFO': 0.0, 'LFO': 0.0, 'MGO': 0.0},
+            'OTHERS': {'HFO': 0.0, 'LFO': 0.0, 'MGO': 0.0}
         }
 
 init_session_state()
@@ -156,6 +156,28 @@ with user_tab:
         with tab:
             config = st.session_state.configurations[eq_type]
 
+            # Add datetime and fuel type fields
+            col1, col2 = st.columns(2)
+            with col1:
+                reading_date = st.date_input(
+                    "Date",
+                    value=datetime.now().date(),
+                    key=f'{eq_type}_date'
+                )
+                reading_time = st.time_input(
+                    "Time",
+                    value=datetime.now().time(),
+                    key=f'{eq_type}_time'
+                )
+            with col2:
+                fuel_type = st.selectbox(
+                    "Fuel Type",
+                    options=['HFO', 'LFO', 'MGO'],
+                    key=f'{eq_type}_fuel_type'
+                )
+
+            st.markdown("---")  # Add a separator between datetime/fuel type and flowmeter readings
+
             if not config['flowmeters']:
                 st.warning(f'No flowmeters configured for {eq_type}. Please configure in Admin section.')
                 continue
@@ -217,9 +239,9 @@ with user_tab:
     # Create columns for the table header
     cols = st.columns([2, 1, 1, 1])
     cols[0].markdown("**Equipment**")
-    cols[1].markdown("**Tank 1**")
-    cols[2].markdown("**Tank 2**")
-    cols[3].markdown("**Tank 3**")
+    cols[1].markdown("**HFO**")
+    cols[2].markdown("**LFO**")
+    cols[3].markdown("**MGO**")
 
     # Create input fields for each equipment's tank levels
     for equipment in ['ME', 'AE1', 'AE2', 'AE3', 'BOILER1', 'BOILER2', 'OTHERS']:
@@ -227,15 +249,14 @@ with user_tab:
         cols[0].markdown(f"**{equipment}**")
 
         # Tank level inputs
-        for tank_num in range(1, 4):
-            tank_key = f'tank{tank_num}'
-            tank_level = cols[tank_num].number_input(
+        for tank_type in ['HFO', 'LFO', 'MGO']:
+            tank_level = cols[['HFO', 'LFO', 'MGO'].index(tank_type) + 1].number_input(
                 f"Level",
-                value=st.session_state.tank_levels[equipment][tank_key],
-                key=f'{equipment}_{tank_key}_level',
+                value=st.session_state.tank_levels[equipment][tank_type],
+                key=f'{equipment}_{tank_type}_level',
                 label_visibility="collapsed"
             )
-            st.session_state.tank_levels[equipment][tank_key] = tank_level
+            st.session_state.tank_levels[equipment][tank_type] = tank_level
 
     # Save button for tank levels
     if st.button('Save Tank Levels'):
