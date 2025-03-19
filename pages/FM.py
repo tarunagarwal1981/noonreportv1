@@ -248,11 +248,15 @@ with user_tab:
         cols = st.columns([2, 1, 1, 1])
         cols[0].markdown(f"**{equipment}**")
 
+        # Ensure the tank_levels dictionary has the correct structure
+        if equipment not in st.session_state.tank_levels:
+            st.session_state.tank_levels[equipment] = {'HFO': 0.0, 'LFO': 0.0, 'MGO': 0.0}
+
         # Tank level inputs
         for tank_type in ['HFO', 'LFO', 'MGO']:
             tank_level = cols[['HFO', 'LFO', 'MGO'].index(tank_type) + 1].number_input(
                 f"Level",
-                value=st.session_state.tank_levels[equipment][tank_type],
+                value=st.session_state.tank_levels[equipment].get(tank_type, 0.0),
                 key=f'{equipment}_{tank_type}_level',
                 label_visibility="collapsed"
             )
