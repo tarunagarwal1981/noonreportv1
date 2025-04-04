@@ -24,6 +24,12 @@ def initialize_session_state():
     if 'fuel_type_columns' not in st.session_state:
         st.session_state.fuel_type_columns = ['HSFO', 'LSFO', 'ULSFO', 'LSMGO', 'LNG']
 
+    # Define all available fuel types for bunkering/debunkering dropdowns
+    if 'available_fuel_types' not in st.session_state:
+        st.session_state.available_fuel_types = [
+            'HSFO', 'VLSFO', 'ULSFO', 'MGO', 'LPG', 'LNG', 'Methanol', 'Ethanol'
+        ]
+
     if 'fuel_types' not in st.session_state:
         st.session_state.fuel_types = ['HFO', 'LFO', 'MGO/MDO', 'LPG', 'LNG', 'Methanol', 'Ethanol', 'Others', 'Other Fuel Type']
 
@@ -160,6 +166,15 @@ def display_additional_table():
 
     return edited_additional_data
 
+def classify_fuel_by_viscosity(fuel_type, viscosity):
+    """Classifies the fuel based on type and viscosity."""
+    if fuel_type in ['HSFO', 'VLSFO', 'ULSFO']:
+        if viscosity > 80:
+            return 'HFO'
+        else:
+            return 'LFO'
+    return fuel_type
+
 def display_bunkering_details():
     st.markdown("<h4 style='font-size: 18px;'>Bunkering Details</h4>", unsafe_allow_html=True)
     
@@ -170,19 +185,51 @@ def display_bunkering_details():
             entry['bdn_number'] = st.text_input("Bunker Delivery Note Number", value=entry.get('bdn_number', ''), key=f"bdn_number_{i}")
             entry['delivery_date'] = st.date_input("Bunker Delivery Date", value=entry.get('delivery_date', pd.Timestamp.now().date()), key=f"delivery_date_{i}")
             entry['delivery_time'] = st.time_input("Bunker Delivery Time", value=entry.get('delivery_time', pd.Timestamp.now().time()), key=f"delivery_time_{i}")
+            
+            # Add fuel type dropdown with the expanded list
+            entry['fuel_type'] = st.selectbox(
+                "Fuel Type", 
+                options=st.session_state.available_fuel_types,
+                index=st.session_state.available_fuel_types.index(entry.get('fuel_type', st.session_state.available_fuel_types[0])) 
+                if entry.get('fuel_type') in st.session_state.available_fuel_types else 0,
+                key=f"fuel_type_select_{i}"
+            )
+            
+            # Add viscosity field
+            entry['viscosity'] = st.number_input(
+                "Viscosity (cSt)",
+                min_value=0.0,
+                max_value=1000.0,
+                value=entry.get('viscosity', 50.0),
+                step=0.1,
+                key=f"viscosity_{i}"
+            )
+            
+            # Classify the fuel type based on viscosity
+            if entry['fuel_type'] in ['HSFO', 'VLSFO', 'ULSFO']:
+                fuel_classification = "HFO" if entry['viscosity'] > 80 else "LFO"
+                st.info(f"Based on viscosity, this will be classified as {fuel_classification}")
+                entry['classified_as'] = fuel_classification
+            
         with col2:
             entry['imo_number'] = st.text_input("IMO number", value=entry.get('imo_number', ''), key=f"imo_number_{i}")
-            entry['fuel_type'] = st.text_input("Fuel Type", value=entry.get('fuel_type', ''), key=f"fuel_type_{i}")
             entry['mass'] = st.number_input("Mass (mt)", value=entry.get('mass', 0.0), min_value=0.0, step=0.1, key=f"mass_{i}")
-        with col3:
             entry['lower_heating_value'] = st.number_input("Lower heating value (MJ/kg)", value=entry.get('lower_heating_value', 0.0), min_value=0.0, step=0.1, key=f"lower_heating_value_{i}")
             entry['eu_ghg_intensity'] = st.number_input("EU GHG emission intensity (gCO2eq/MJ)", value=entry.get('eu_ghg_intensity', 0.0), min_value=0.0, step=0.1, key=f"eu_ghg_intensity_{i}")
+            
+        with col3:
             entry['imo_ghg_intensity'] = st.number_input("IMO GHG emission intensity (gCO2eq/MJ)", value=entry.get('imo_ghg_intensity', 0.0), min_value=0.0, step=0.1, key=f"imo_ghg_intensity_{i}")
             entry['lcv_eu'] = st.number_input("Lower Calorific Value (EU) (MJ/kg)", value=entry.get('lcv_eu', 0.0), min_value=0.0, step=0.1, key=f"lcv_eu_{i}")
             entry['sustainability'] = st.text_input("Sustainability", value=entry.get('sustainability', ''), key=f"sustainability_{i}")
+            
+            # Add tank selection
+            entry['tanks'] = st.multiselect("Select Tanks", st.session_state.tanks, default=entry.get('tanks', []), key=f"bunkering_tanks_{i}")
         
-        # Add tank selection - keep this as is
-        entry['tanks'] = st.multiselect("Select Tanks", st.session_state.tanks, default=entry.get('tanks', []), key=f"bunkering_tanks_{i}")
+        # Updating tank fuel grades based on selection
+        if entry.get('tanks') and entry.get('fuel_type') and entry.get('viscosity'):
+            for tank in entry['tanks']:
+                st.session_state.fuel_grades[tank] = classify_fuel_by_viscosity(entry['fuel_type'], entry['viscosity'])
+    
     if st.button("➕ Add Bunkering Entry"):
         st.session_state.bunkering_entries.append({})
         st.experimental_rerun()
@@ -196,12 +243,39 @@ def display_debunkering_details():
         with col1:
             entry['date'] = st.date_input("Date of Debunkering", value=entry.get('date', pd.Timestamp.now().date()), key=f"debunker_date_{i}")
             entry['quantity'] = st.number_input("Quantity Debunkered (mt)", value=entry.get('quantity', 0.0), min_value=0.0, step=0.1, key=f"debunker_qty_{i}")
+            
+            # Add fuel type dropdown with the expanded list
+            entry['fuel_type'] = st.selectbox(
+                "Fuel Type", 
+                options=st.session_state.available_fuel_types,
+                index=st.session_state.available_fuel_types.index(entry.get('fuel_type', st.session_state.available_fuel_types[0])) 
+                if entry.get('fuel_type') in st.session_state.available_fuel_types else 0,
+                key=f"debunker_fuel_type_select_{i}"
+            )
+            
+            # Add viscosity field for debunkering
+            entry['viscosity'] = st.number_input(
+                "Viscosity (cSt)",
+                min_value=0.0,
+                max_value=1000.0,
+                value=entry.get('viscosity', 50.0),
+                step=0.1,
+                key=f"debunker_viscosity_{i}"
+            )
+            
+            # Classify the fuel type based on viscosity
+            if entry['fuel_type'] in ['HSFO', 'VLSFO', 'ULSFO']:
+                fuel_classification = "HFO" if entry['viscosity'] > 80 else "LFO"
+                st.info(f"Based on viscosity, this will be classified as {fuel_classification}")
+                entry['classified_as'] = fuel_classification
+                
         with col2:
             entry['bdn_number'] = st.text_input("BDN Number of Debunkered Oil", value=entry.get('bdn_number', ''), key=f"debunker_bdn_{i}")
             entry['receipt_file'] = st.file_uploader("Upload Receipt", type=['pdf', 'jpg', 'png'], key=f"receipt_file_{i}")
-        
-        # Add tank selection - keep this as is
-        entry['tanks'] = st.multiselect("Select Tanks", st.session_state.tanks, default=entry.get('tanks', []), key=f"debunkering_tanks_{i}")
+            
+            # Add tank selection
+            entry['tanks'] = st.multiselect("Select Tanks", st.session_state.tanks, default=entry.get('tanks', []), key=f"debunkering_tanks_{i}")
+    
     if st.button("➕ Add Debunkering Entry"):
         st.session_state.debunkering_entries.append({})
         st.experimental_rerun()
