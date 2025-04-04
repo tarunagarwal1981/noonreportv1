@@ -31,38 +31,57 @@ def initialize_session_state():
 
 def display_tank_sounding_report():
     def create_editable_dataframe():
-        index = ['BDN Number', 'Previous ROB'] + st.session_state.consumers + ['Current ROB']
-        df = pd.DataFrame(index=index, columns=st.session_state.fuel_types)
-        
-        # Generate BDN numbers for each fuel type
+        # Define the row indices, including 'Fuel Type' as the first row
+        index = ['Fuel Type', 'BDN Number', 'Previous ROB'] + st.session_state.consumers + ['Current ROB']
+
+        # Create DataFrame with generic column names
+        num_columns = 5  # For HSFO, LSFO, ULSFO, LSMGO, LNG
+        df = pd.DataFrame(index=index, columns=[f'Column {i+1}' for i in range(num_columns)])
+
+        # Set fuel types in the first row
+        df.loc['Fuel Type'] = ['HSFO', 'LSFO', 'ULSFO', 'LSMGO', 'LNG']
+
+        # Generate BDN numbers
         bdn_numbers = generate_random_bdn_numbers()
-        df.loc['BDN Number'] = [bdn_numbers[i % 3] for i in range(len(st.session_state.fuel_types))]
-        
+        df.loc['BDN Number'] = [bdn_numbers[i % 3] for i in range(num_columns)]
+
         # Generate random Previous ROB values
-        df.loc['Previous ROB'] = [np.random.uniform(100, 1000) for _ in st.session_state.fuel_types]
-        
+        df.loc['Previous ROB'] = [np.random.uniform(100, 1000) for _ in range(num_columns)]
+
         # Initialize consumption values
         for consumer in st.session_state.consumers:
-            df.loc[consumer] = [np.random.uniform(0, 50) for _ in st.session_state.fuel_types]
-        
+            df.loc[consumer] = [np.random.uniform(0, 50) for _ in range(num_columns)]
+
         # Calculate Current ROB
-        consumption = df.loc[st.session_state.consumers].sum()
-        df.loc['Current ROB'] = df.loc['Previous ROB'] - consumption
+        consumption = pd.DataFrame(df.loc[st.session_state.consumers], dtype=float).sum()
+        df.loc['Current ROB'] = pd.to_numeric(df.loc['Previous ROB']) - consumption
+
         return df
 
     df = create_editable_dataframe()
 
     st.subheader("Tank Sounding Method Fuel Consumption Data")
+
+    # Configure column properties
+    column_config = {
+        col: st.column_config.NumberColumn(
+            col,
+            help=f"Values for {col}",
+            min_value=0.0,
+            format="%.3f"
+        ) for col in df.columns
+    }
+
     edited_df = st.data_editor(
         df,
         use_container_width=True,
         num_rows="dynamic",
+        column_config=column_config,
         key=f"tank_sounding_editor_{uuid.uuid4()}"
     )
 
     st.session_state.consumption_data_tank_sounding = edited_df.loc[st.session_state.consumers]
     st.session_state.previous_rob_tank_sounding = edited_df.loc['Previous ROB']
-
 def display_additional_table():
     st.subheader("Additional Consumption Data")
 
