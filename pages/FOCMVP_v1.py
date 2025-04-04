@@ -299,8 +299,9 @@ def edit_tank_properties():
     # Display debunkering details if debunkering record is checked
     if debunkering_record:
         display_debunkering_details()
-
-    fuel_grade_options = ['VLSFO', 'MGO', 'HFO']
+    
+    # Enhanced fuel grade options with viscosity-specific classifications
+    fuel_grade_options = ['VLSFO - HFO', 'VLSFO - LFO', 'MGO', 'HSFO - HFO', 'HSFO- LFO', 'HFO', 'LFO']
     
     # Ensure all tanks have viscosity, sulfur, and fuel grade values
     for i in range(1, 9):
@@ -310,16 +311,10 @@ def edit_tank_properties():
         if tank_name not in st.session_state.sulfur:
             st.session_state.sulfur[tank_name] = np.random.uniform(0.05, 0.49)
         if tank_name not in st.session_state.fuel_grades:
+            # Assign one of the enhanced fuel grade options randomly
             st.session_state.fuel_grades[tank_name] = random.choice(fuel_grade_options)
         if tank_name not in st.session_state.current_rob:
             st.session_state.current_rob[tank_name] = np.random.uniform(50, 500)
-    
-    # Generate BDN numbers (one for each tank)
-    if 'bdn_numbers' not in st.session_state:
-        st.session_state.bdn_numbers = [
-            ''.join(random.choices(string.ascii_uppercase + string.digits, k=8)) 
-            for _ in range(8)
-        ]
     
     # Create the base DataFrame - Add BDN number column
     tank_props = pd.DataFrame({
