@@ -413,7 +413,12 @@ def edit_tank_properties():
 
 def main():
     initialize_session_state()
-
+    
+    
+    # Force reinitialize fuel grades with new options
+    enhanced_fuel_grade_options = ['VLSFO - HFO', 'VLSFO - LFO', 'MGO', 'HSFO - HFO', 'HSFO- LFO', 'HFO', 'LFO']
+    for tank in st.session_state.tanks:
+        st.session_state.fuel_grades[tank] = random.choice(enhanced_fuel_grade_options)
     st.title("Fuel Consumption Report - Tank Sounding Method")
 
     # Display the tank sounding method report with fuel types as columns
