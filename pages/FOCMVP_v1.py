@@ -433,4 +433,6 @@ def main():
 
     if st.button("Submit Report", type="primary"):
         st.success("Report submitted successfully!")
+
+if __name__ == "__main__":
     main()
