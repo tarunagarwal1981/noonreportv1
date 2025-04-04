@@ -86,10 +86,10 @@ def initialize_session_state():
         st.session_state.debunkering_entries = [{}]
 
     if 'bdn_numbers' not in st.session_state:
-    st.session_state.bdn_numbers = [
-        ''.join(random.choices(string.ascii_uppercase + string.digits, k=8)) 
-        for _ in range(8)
-    ]
+        st.session_state.bdn_numbers = [
+            ''.join(random.choices(string.ascii_uppercase + string.digits, k=8)) 
+            for _ in range(8)
+        ]
 
 def display_tank_sounding_report():
     def create_editable_dataframe():
