@@ -85,17 +85,19 @@ def initialize_session_state():
     if 'debunkering_entries' not in st.session_state:
         st.session_state.debunkering_entries = [{}]
 
+    if 'bdn_numbers' not in st.session_state:
+    st.session_state.bdn_numbers = [
+        ''.join(random.choices(string.ascii_uppercase + string.digits, k=8)) 
+        for _ in range(8)
+    ]
+
 def display_tank_sounding_report():
     def create_editable_dataframe():
-        # New structure with fuel types as columns
-        index = ['BDN Number', 'Previous ROB'] + st.session_state.consumers + ['Current ROB']
+        # New structure with fuel types as columns but WITHOUT the BDN Number row
+        index = ['Previous ROB'] + st.session_state.consumers + ['Current ROB']
         columns = st.session_state.fuel_type_columns  # Use the fuel type columns
         
         df = pd.DataFrame(index=index, columns=columns)
-        
-        # Generate BDN numbers
-        bdn_numbers = generate_random_bdn_numbers()
-        df.loc['BDN Number'] = [bdn_numbers[i % 3] for i in range(len(columns))]
         
         # Set Previous ROB from session state or initialize with random values
         df.loc['Previous ROB'] = st.session_state.previous_rob_tank_sounding
@@ -281,8 +283,6 @@ def display_debunkering_details():
         st.experimental_rerun()
 
 def edit_tank_properties():
-    st.write("Edit tank properties:")
-    
     # Add checkboxes for bunkering record, debunkering record, and Bunker Survey
     col1, col2, col3 = st.columns(3)
     with col1:
@@ -314,9 +314,17 @@ def edit_tank_properties():
         if tank_name not in st.session_state.current_rob:
             st.session_state.current_rob[tank_name] = np.random.uniform(50, 500)
     
-    # Create the base DataFrame - Keep this using tanks as before
+    # Generate BDN numbers (one for each tank)
+    if 'bdn_numbers' not in st.session_state:
+        st.session_state.bdn_numbers = [
+            ''.join(random.choices(string.ascii_uppercase + string.digits, k=8)) 
+            for _ in range(8)
+        ]
+    
+    # Create the base DataFrame - Add BDN number column
     tank_props = pd.DataFrame({
         'Fuel Grade': [st.session_state.fuel_grades.get(f'Tank {i}', random.choice(fuel_grade_options)) for i in range(1, 9)],
+        'BDN Number': st.session_state.bdn_numbers,
         'Viscosity': [st.session_state.viscosity[f'Tank {i}'] for i in range(1, 9)],
         'Sulfur (%)': [st.session_state.sulfur[f'Tank {i}'] for i in range(1, 9)],
         'Current ROB': [st.session_state.current_rob.get(f'Tank {i}', np.random.uniform(50, 500)) for i in range(1, 9)]
@@ -324,11 +332,11 @@ def edit_tank_properties():
 
     # Add columns based on checked options
     if bunkering_record:
-        tank_props.insert(3, 'Bunkered qty(mT)', [0.0] * 8)
+        tank_props.insert(4, 'Bunkered qty(mT)', [0.0] * 8)
     if debunkering_record:
-        tank_props.insert(3, 'Debunkered qty(mT)', [0.0] * 8)
+        tank_props.insert(4, 'Debunkered qty(mT)', [0.0] * 8)
     if bunker_survey:
-        tank_props.insert(3, 'Survey Correction qty(mT)', [0.0] * 8)
+        tank_props.insert(4, 'Survey Correction qty(mT)', [0.0] * 8)
 
     tank_transfer = st.checkbox("Enable Tank-to-Tank Transfer")
 
@@ -341,6 +349,11 @@ def edit_tank_properties():
             'Fuel Grade',
             options=fuel_grade_options,
             required=True
+        ),
+        'BDN Number': st.column_config.TextColumn(
+            'BDN Number',
+            max_chars=15,
+            help="Bunker Delivery Note Number"
         ),
         'Viscosity': st.column_config.NumberColumn(
             'Viscosity', min_value=20.0, max_value=100.0, step=0.1, format="%.1f"
@@ -390,6 +403,7 @@ def edit_tank_properties():
         st.session_state.sulfur[tank_name] = edited_props.loc[tank_name, 'Sulfur (%)']
         st.session_state.fuel_grades[tank_name] = edited_props.loc[tank_name, 'Fuel Grade']
         st.session_state.current_rob[tank_name] = edited_props.loc[tank_name, 'Current ROB']
+        st.session_state.bdn_numbers[i-1] = edited_props.loc[tank_name, 'BDN Number']
 
     if tank_transfer:
         transfers_from = edited_props['Qty (mT) Transferred From Tank']
@@ -413,12 +427,10 @@ def main():
     # Display additional table for other consumption data
     display_additional_table()
 
-    # Tank properties editor (keeps tank numbers as is)
-    if st.checkbox("Edit Tank Properties"):
-        edit_tank_properties()
+    # Tank properties editor is always shown (no checkbox needed)
+    st.subheader("Tank Properties")
+    edit_tank_properties()
 
     if st.button("Submit Report", type="primary"):
         st.success("Report submitted successfully!")
-
-if __name__ == "__main__":
     main()
