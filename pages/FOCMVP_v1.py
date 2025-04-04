@@ -5,7 +5,7 @@ import random
 import string
 import uuid
 
-st.set_page_config(layout="wide", page_title="Fuel Consumption Report")
+st.set_page_config(layout="wide", page_title="Fuel Consumption Report - Tank Sounding Method")
 
 def generate_random_bdn_numbers():
     """Generates three unique random alphanumeric BDN numbers (8 characters)."""
@@ -21,43 +21,61 @@ def initialize_session_state():
         ]
 
     if 'fuel_types' not in st.session_state:
-        st.session_state.fuel_types = ['HSFO', 'LSFO', 'ULSFO', 'LSMGO', 'LNG']
+        st.session_state.fuel_types = ['HFO', 'LFO', 'MGO/MDO', 'LPG', 'LNG', 'Methanol', 'Ethanol', 'Others', 'Other Fuel Type']
+
+    if 'tanks' not in st.session_state:
+        st.session_state.tanks = [f'Tank {i}' for i in range(1, 9)]
 
     if 'viscosity' not in st.session_state:
-        st.session_state.viscosity = {fuel: np.random.uniform(20, 100) for fuel in st.session_state.fuel_types}
+        st.session_state.viscosity = {item: np.random.uniform(20, 100) for item in st.session_state.fuel_types + st.session_state.tanks}
 
     if 'sulfur' not in st.session_state:
-        st.session_state.sulfur = {fuel: np.random.uniform(0.05, 0.49) for fuel in st.session_state.fuel_types}
+        st.session_state.sulfur = {item: np.random.uniform(0.05, 0.49) for item in st.session_state.fuel_types + st.session_state.tanks}
+
+    if 'consumption_data_tank_sounding' not in st.session_state:
+        # Create empty dataframe for tank sounding data
+        index = st.session_state.consumers
+        tanks = st.session_state.tanks
+        st.session_state.consumption_data_tank_sounding = pd.DataFrame(0, index=index, columns=tanks)
+        
+    if 'previous_rob_tank_sounding' not in st.session_state:
+        # Initialize with random values
+        st.session_state.previous_rob_tank_sounding = pd.Series({tank: np.random.uniform(100, 1000) for tank in st.session_state.tanks})
 
 def display_tank_sounding_report():
     def create_editable_dataframe():
-        # Define the row indices
-        index = ['BDN Number', 'Previous ROB'] + st.session_state.consumers + ['Current ROB']
-
-        # Create DataFrame with fuel types as column names
-        df = pd.DataFrame(index=index, columns=st.session_state.fuel_types)
-
-        # Generate BDN numbers for each fuel type
+        index = ['Fuel Type', 'BDN Number', 'Previous ROB'] + st.session_state.consumers + ['Current ROB']
+        tanks = st.session_state.tanks
+        df = pd.DataFrame(index=index, columns=tanks)
+        
+        # Fill with sample data if new session
+        if not hasattr(st.session_state, 'fuel_grades'):
+            st.session_state.fuel_grades = {}
+            for tank in tanks:
+                st.session_state.fuel_grades[tank] = random.choice(["LFO", "MGO", "HFO"])
+        
+        # Populate Fuel Type row
+        for tank in tanks:
+            df.at['Fuel Type', tank] = st.session_state.fuel_grades.get(tank, random.choice(["LFO", "MGO", "HFO"]))
+        
+        # Generate BDN numbers
         bdn_numbers = generate_random_bdn_numbers()
-        df.loc['BDN Number'] = [bdn_numbers[i % 3] for i in range(len(st.session_state.fuel_types))]
-
-        # Generate random Previous ROB values
-        df.loc['Previous ROB'] = [np.random.uniform(100, 1000) for _ in st.session_state.fuel_types]
-
-        # Initialize consumption values
-        for consumer in st.session_state.consumers:
-            df.loc[consumer] = [np.random.uniform(0, 50) for _ in st.session_state.fuel_types]
-
+        df.loc['BDN Number'] = [bdn_numbers[i % 3] for i in range(len(tanks))]
+        
+        # Set Previous ROB from session state or initialize with random values
+        df.loc['Previous ROB'] = st.session_state.previous_rob_tank_sounding
+        
+        # Set consumption data from session state
+        df.loc[st.session_state.consumers] = st.session_state.consumption_data_tank_sounding
+        
         # Calculate Current ROB
-        consumption = df.loc[st.session_state.consumers].sum()
-        df.loc['Current ROB'] = df.loc['Previous ROB'] - consumption
-
+        consumption = pd.to_numeric(df.loc[st.session_state.consumers].sum(), errors='coerce').fillna(0)
+        df.loc['Current ROB'] = pd.to_numeric(df.loc['Previous ROB'], errors='coerce').fillna(0) - consumption
+        
         return df
 
-    # Create the editable DataFrame
     df = create_editable_dataframe()
-
-    # Display the table with fuel types as column headers
+    
     st.subheader("Tank Sounding Method Fuel Consumption Data")
     edited_df = st.data_editor(
         df,
@@ -66,19 +84,29 @@ def display_tank_sounding_report():
         key=f"tank_sounding_editor_{uuid.uuid4()}"
     )
 
-    # Update session state with the edited data
+    # Save edited data back to session state
     st.session_state.consumption_data_tank_sounding = edited_df.loc[st.session_state.consumers]
     st.session_state.previous_rob_tank_sounding = edited_df.loc['Previous ROB']
     
+    # Save fuel types
+    if 'fuel_grades' not in st.session_state:
+        st.session_state.fuel_grades = {}
+    for tank in st.session_state.tanks:
+        st.session_state.fuel_grades[tank] = edited_df.at['Fuel Type', tank]
+    
+    return edited_df
+
 def display_additional_table():
     st.subheader("Additional Consumption Data")
-
+    
+    last_column_name = "Fuel BDN No."
+    
     additional_data = pd.DataFrame({
         'Work': [0, 0, 0, 0],
         'SFOC': [0, 0, 0, ''],
-        'Fuel Type': ['', '', '', '']
+        last_column_name: ['', '', '', '']
     }, index=['Reefer container', 'Cargo cooling', 'Heating/Discharge pump', 'Shore-Side Electricity'])
-
+    
     column_config = {
         "Work": st.column_config.NumberColumn(
             "Work",
@@ -92,13 +120,13 @@ def display_additional_table():
             min_value=0,
             format="%.2f"
         ),
-        "Fuel Type": st.column_config.SelectboxColumn(
-            "Fuel Type",
-            help="Select the fuel type",
-            options=st.session_state.fuel_types
+        last_column_name: st.column_config.TextColumn(
+            "Fuel BDN No.",
+            help="Enter the Fuel BDN Number",
+            max_chars=50
         )
     }
-
+    
     edited_additional_data = st.data_editor(
         additional_data,
         use_container_width=True,
@@ -109,9 +137,58 @@ def display_additional_table():
 
     return edited_additional_data
 
+def display_bunkering_details():
+    st.markdown("<h4 style='font-size: 18px;'>Bunkering Details</h4>", unsafe_allow_html=True)
+    if 'bunkering_entries' not in st.session_state:
+        st.session_state.bunkering_entries = [{}]
+    for i, entry in enumerate(st.session_state.bunkering_entries):
+        st.markdown(f"<h5 style='font-size: 16px;'>Bunkering Entry {i+1}</h5>", unsafe_allow_html=True)
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            entry['bdn_number'] = st.text_input("Bunker Delivery Note Number", key=f"bdn_number_{i}")
+            entry['delivery_date'] = st.date_input("Bunker Delivery Date", key=f"delivery_date_{i}")
+            entry['delivery_time'] = st.time_input("Bunker Delivery Time", key=f"delivery_time_{i}")
+        with col2:
+            entry['imo_number'] = st.text_input("IMO number", key=f"imo_number_{i}")
+            entry['fuel_type'] = st.text_input("Fuel Type", key=f"fuel_type_{i}")
+            entry['mass'] = st.number_input("Mass (mt)", min_value=0.0, step=0.1, key=f"mass_{i}")
+        with col3:
+            entry['lower_heating_value'] = st.number_input("Lower heating value (MJ/kg)", min_value=0.0, step=0.1, key=f"lower_heating_value_{i}")
+            entry['eu_ghg_intensity'] = st.number_input("EU GHG emission intensity (gCO2eq/MJ)", min_value=0.0, step=0.1, key=f"eu_ghg_intensity_{i}")
+            entry['imo_ghg_intensity'] = st.number_input("IMO GHG emission intensity (gCO2eq/MJ)", min_value=0.0, step=0.1, key=f"imo_ghg_intensity_{i}")
+            entry['lcv_eu'] = st.number_input("Lower Calorific Value (EU) (MJ/kg)", min_value=0.0, step=0.1, key=f"lcv_eu_{i}")
+            entry['sustainability'] = st.text_input("Sustainability", key=f"sustainability_{i}")
+        
+        # Add tank selection
+        entry['tanks'] = st.multiselect("Select Tanks", st.session_state.tanks, key=f"bunkering_tanks_{i}")
+    if st.button("➕ Add Bunkering Entry"):
+        st.session_state.bunkering_entries.append({})
+        st.experimental_rerun()
+
+def display_debunkering_details():
+    st.markdown("<h4 style='font-size: 18px;'>Debunkering Details</h4>", unsafe_allow_html=True)
+    if 'debunkering_entries' not in st.session_state:
+        st.session_state.debunkering_entries = [{}]
+    for i, entry in enumerate(st.session_state.debunkering_entries):
+        st.markdown(f"<h5 style='font-size: 16px;'>Debunkering Entry {i+1}</h5>", unsafe_allow_html=True)
+        col1, col2 = st.columns(2)
+        with col1:
+            entry['date'] = st.date_input("Date of Debunkering", key=f"debunker_date_{i}")
+            entry['quantity'] = st.number_input("Quantity Debunkered (mt)", min_value=0.0, step=0.1, key=f"debunker_qty_{i}")
+        with col2:
+            entry['bdn_number'] = st.text_input("BDN Number of Debunkered Oil", key=f"debunker_bdn_{i}")
+            entry['receipt_file'] = st.file_uploader("Upload Receipt", type=['pdf', 'jpg', 'png'], key=f"receipt_file_{i}")
+        
+        # Add tank selection
+        entry['tanks'] = st.multiselect("Select Tanks", st.session_state.tanks, key=f"debunkering_tanks_{i}")
+    if st.button("➕ Add Debunkering Entry"):
+        st.session_state.debunkering_entries.append({})
+        st.experimental_rerun()
+
 def edit_tank_properties():
     st.write("Edit tank properties:")
-
+    
+    # Add checkboxes for bunkering record, debunkering record, and Bunker Survey
     col1, col2, col3 = st.columns(3)
     with col1:
         bunkering_record = st.checkbox("Bunkering Record")
@@ -120,27 +197,44 @@ def edit_tank_properties():
     with col3:
         bunker_survey = st.checkbox("Bunker Survey")
 
-    # Create the base DataFrame with fuel types as columns
-    tank_props = pd.DataFrame({
-        'Viscosity': [st.session_state.viscosity[fuel] for fuel in st.session_state.fuel_types],
-        'Sulfur (%)': [st.session_state.sulfur[fuel] for fuel in st.session_state.fuel_types],
-        'Current ROB': [np.random.uniform(50, 500) for _ in st.session_state.fuel_types]
-    }, index=st.session_state.fuel_types)
-
+    # Display bunkering details if bunkering record is checked
     if bunkering_record:
-        tank_props.insert(2, 'Bunkered qty(mT)', [0.0] * len(st.session_state.fuel_types))
-    if debunkering_record:
-        tank_props.insert(2, 'Debunkered qty(mT)', [0.0] * len(st.session_state.fuel_types))
-    if bunker_survey:
-        tank_props.insert(2, 'Survey Correction qty(mT)', [0.0] * len(st.session_state.fuel_types))
+        display_bunkering_details()
 
-    tank_transfer = st.checkbox("Enable Fuel Transfer")
+    # Display debunkering details if debunkering record is checked
+    if debunkering_record:
+        display_debunkering_details()
+
+    fuel_grade_options = ['VLSFO', 'MGO', 'HFO']
+    
+    # Create the base DataFrame
+    tank_props = pd.DataFrame({
+        'Fuel Grade': [st.session_state.fuel_grades.get(f'Tank {i}', random.choice(fuel_grade_options)) for i in range(1, 9)],
+        'Viscosity': [st.session_state.viscosity[f'Tank {i}'] for i in range(1, 9)],
+        'Sulfur (%)': [st.session_state.sulfur[f'Tank {i}'] for i in range(1, 9)],
+        'Current ROB': [st.session_state.current_rob.get(f'Tank {i}', np.random.uniform(50, 500)) for i in range(1, 9)]
+    }, index=[f'Tank {i}' for i in range(1, 9)])
+
+    # Add columns based on checked options
+    if bunkering_record:
+        tank_props.insert(3, 'Bunkered qty(mT)', [0.0] * 8)
+    if debunkering_record:
+        tank_props.insert(3, 'Debunkered qty(mT)', [0.0] * 8)
+    if bunker_survey:
+        tank_props.insert(3, 'Survey Correction qty(mT)', [0.0] * 8)
+
+    tank_transfer = st.checkbox("Enable Tank-to-Tank Transfer")
 
     if tank_transfer:
-        tank_props['Qty (mT) Transferred From'] = [0.0] * len(st.session_state.fuel_types)
-        tank_props['Qty (mT) Transferred To'] = [0.0] * len(st.session_state.fuel_types)
+        tank_props['Qty (mT) Transferred From Tank'] = [0.0] * 8
+        tank_props['Qty (mT) Transferred To Tank'] = [0.0] * 8
 
     column_config = {
+        'Fuel Grade': st.column_config.SelectboxColumn(
+            'Fuel Grade',
+            options=fuel_grade_options,
+            required=True
+        ),
         'Viscosity': st.column_config.NumberColumn(
             'Viscosity', min_value=20.0, max_value=100.0, step=0.1, format="%.1f"
         ),
@@ -167,10 +261,10 @@ def edit_tank_properties():
 
     if tank_transfer:
         column_config.update({
-            'Qty (mT) Transferred From': st.column_config.NumberColumn(
+            'Qty (mT) Transferred From Tank': st.column_config.NumberColumn(
                 'Transferred From', min_value=0.0, step=0.1, format="%.1f"
             ),
-            'Qty (mT) Transferred To': st.column_config.NumberColumn(
+            'Qty (mT) Transferred To Tank': st.column_config.NumberColumn(
                 'Transferred To', min_value=0.0, step=0.1, format="%.1f"
             )
         })
@@ -181,23 +275,28 @@ def edit_tank_properties():
         column_config=column_config,
         key=f"edit_tank_properties_editor_{uuid.uuid4()}"
     )
+    
+    for i in range(1, 9):
+        tank_name = f'Tank {i}'
+        st.session_state.viscosity[tank_name] = edited_props.loc[tank_name, 'Viscosity']
+        st.session_state.sulfur[tank_name] = edited_props.loc[tank_name, 'Sulfur (%)']
+    
+    if 'fuel_grades' not in st.session_state:
+        st.session_state.fuel_grades = {}
+    for tank_name, row in edited_props.iterrows():
+        st.session_state.fuel_grades[tank_name] = row['Fuel Grade']
 
-    # Update session state
-    for fuel in st.session_state.fuel_types:
-        st.session_state.viscosity[fuel] = edited_props.loc[fuel, 'Viscosity']
-        st.session_state.sulfur[fuel] = edited_props.loc[fuel, 'Sulfur (%)']
-        
     if 'current_rob' not in st.session_state:
         st.session_state.current_rob = {}
-    for fuel in st.session_state.fuel_types:
-        st.session_state.current_rob[fuel] = edited_props.loc[fuel, 'Current ROB']
+    for tank_name, row in edited_props.iterrows():
+        st.session_state.current_rob[tank_name] = row['Current ROB']
 
     if tank_transfer:
-        transfers_from = edited_props['Qty (mT) Transferred From']
-        transfers_to = edited_props['Qty (mT) Transferred To']
-
+        transfers_from = edited_props['Qty (mT) Transferred From Tank']
+        transfers_to = edited_props['Qty (mT) Transferred To Tank']
+        
         if transfers_from.sum() != transfers_to.sum():
-            st.warning("The total quantity transferred from must equal the total quantity transferred to.")
+            st.warning("The total quantity transferred from tanks must equal the total quantity transferred to tanks.")
         else:
             st.success(f"Total quantity transferred: {transfers_from.sum()} mT")
 
@@ -208,10 +307,14 @@ def main():
 
     st.title("Fuel Consumption Report - Tank Sounding Method")
 
+    # Display the tank sounding method report
     display_tank_sounding_report()
+    
+    # Display additional table for other consumption data
     display_additional_table()
 
-    if st.checkbox("Edit Fuel Properties"):
+    # Tank properties editor
+    if st.checkbox("Edit Tank Properties"):
         edit_tank_properties()
 
     if st.button("Submit Report", type="primary"):
