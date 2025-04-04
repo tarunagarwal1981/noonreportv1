@@ -54,11 +54,11 @@ def display_tank_sounding_report():
 
         return df
 
+    # Create the editable DataFrame
     df = create_editable_dataframe()
 
-    st.subheader("Tank Sounding Method Fuel Consumption Data")
-
     # Display the table with fuel types as column headers
+    st.subheader("Tank Sounding Method Fuel Consumption Data")
     edited_df = st.data_editor(
         df,
         use_container_width=True,
@@ -69,6 +69,7 @@ def display_tank_sounding_report():
     # Update session state with the edited data
     st.session_state.consumption_data_tank_sounding = edited_df.loc[st.session_state.consumers]
     st.session_state.previous_rob_tank_sounding = edited_df.loc['Previous ROB']
+    
 def display_additional_table():
     st.subheader("Additional Consumption Data")
 
