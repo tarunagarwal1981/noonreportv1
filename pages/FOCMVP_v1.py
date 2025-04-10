@@ -333,7 +333,7 @@ def edit_tank_properties():
     if bunker_survey:
         tank_props.insert(4, 'Survey Correction qty(mT)', [0.0] * 8)
 
-    tank_transfer = st.checkbox("Enable Tank-to-Tank Transfer")
+    tank_transfer = st.checkbox("Tank-to-Tank Transfer")
 
     if tank_transfer:
         tank_props['Qty (mT) Transferred From Tank'] = [0.0] * 8
