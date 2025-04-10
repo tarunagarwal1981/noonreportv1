@@ -232,6 +232,16 @@ def display_bunkering_details():
             # Add tank selection
             entry['tanks'] = st.multiselect("Select Tanks", st.session_state.tanks, default=entry.get('tanks', []), key=f"bunkering_tanks_{i}")
 
+        # Add upload fields for BDN, Compliance Certificate, and Analysis Report
+        st.markdown("### Upload Documents")
+        col4, col5, col6 = st.columns(3)
+        with col4:
+            entry['bdn_file'] = st.file_uploader("Upload BDN", type=['pdf', 'jpg', 'png'], key=f"bdn_file_{i}")
+        with col5:
+            entry['compliance_certificate'] = st.file_uploader("Upload Compliance Certificate", type=['pdf', 'jpg', 'png'], key=f"compliance_certificate_{i}")
+        with col6:
+            entry['analysis_report'] = st.file_uploader("Upload Analysis Report", type=['pdf', 'jpg', 'png'], key=f"analysis_report_{i}")
+
         # Updating tank fuel grades based on selection
         if entry.get('tanks') and entry.get('fuel_type') and entry.get('viscosity'):
             for tank in entry['tanks']:
@@ -240,7 +250,6 @@ def display_bunkering_details():
     if st.button("➕ Add Bunkering Entry"):
         st.session_state.bunkering_entries.append({})
         st.experimental_rerun()
-
 def display_debunkering_details():
     st.markdown("<h4 style='font-size: 18px;'>Debunkering Details</h4>", unsafe_allow_html=True)
 
